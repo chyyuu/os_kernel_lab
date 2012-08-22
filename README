@@ -1,0 +1,27 @@
+ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux and developed by Tsinghua University.
+The codes in the files that constitute xv6&jos are Copyright 2006-2007 Frans Kaashoek, Robert Morris, and Russ Cox and uses MIT License.
+The codes in the files that constitute OS/161 are written by David A. Holland.
+The docs and codes in the files that constitute ucore are Copyright 2012 Yu Chen, Naizheng Wang, Yong Xiang and uses GPL License. 
+--------------------------------------------------------------
+lab1: boot/protect mode/stack/interrupt
+lab2: physical memory management
+lab3: virtual memory management
+lab4: kernel thread management
+lab5: user process management
+lab6: scheduling
+lab7: mutex/sync
+lab8: filesystem
+
+The newest lab codes and docs is in https://github.com/chyyuu/ucore_pub or https://bitbucket.org/chyyuu/ucore_pub
+
+If you have any questions about ucore labs, 
+you can subscribe to the Google Groups "os-course" group (http://groups.google.com/group/oscourse?hl=en.)
+To post to this group, send email to oscourse@googlegroups.com.
+To unsubscribe from this group, send email to oscourse+unsubscribe@googlegroups.com.
+For more options, visit this group at http://groups.google.com/group/oscourse?hl=en.
+
+If you want to be a developer of ucore or pay attention to the development of ucore, 
+you can subscribe to the Google Groups "ucore_dev" group (http://groups.google.com/group/ucore_dev?hl=en.)
+To post to this group, send email to ucore_dev@googlegroups.com.
+To unsubscribe from this group, send email to ucore_dev+unsubscribe@googlegroups.com.
+For more options, visit this group at http://groups.google.com/group/ucore_dev?hl=en.
