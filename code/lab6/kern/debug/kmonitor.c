@@ -2,7 +2,7 @@
 #include <string.h>
 #include <mmu.h>
 #include <trap.h>
-#include <monitor.h>
+#include <kmonitor.h>
 #include <kdebug.h>
 
 /* *
@@ -82,7 +82,7 @@ runcmd(char *buf, struct trapframe *tf) {
 /***** Implementations of basic kernel monitor commands *****/
 
 void
-monitor(struct trapframe *tf) {
+kmonitor(struct trapframe *tf) {
     cprintf("Welcome to the kernel debug monitor!!\n");
     cprintf("Type 'help' for a list of commands.\n");
 

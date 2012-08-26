@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <default_sched.h>
 
+// the list of timer
 static list_entry_t timer_list;
 
 static struct sched_class *sched_class;
@@ -98,6 +99,7 @@ schedule(void) {
     local_intr_restore(intr_flag);
 }
 
+// add timer to timer_list
 void
 add_timer(timer_t *timer) {
     bool intr_flag;
@@ -120,6 +122,7 @@ add_timer(timer_t *timer) {
     local_intr_restore(intr_flag);
 }
 
+// del timer from timer_list
 void
 del_timer(timer_t *timer) {
     bool intr_flag;
@@ -139,6 +142,7 @@ del_timer(timer_t *timer) {
     local_intr_restore(intr_flag);
 }
 
+// call scheduler to update tick related info, and check the timer is expired? If expired, then wakup proc
 void
 run_timer_list(void) {
     bool intr_flag;

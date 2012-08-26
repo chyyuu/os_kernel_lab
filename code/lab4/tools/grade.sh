@@ -304,8 +304,11 @@ quick_check() {
 ## kernel image
 osimg=$(make_print ucoreimg)
 
+## swap image
+swapimg=$(make_print swapimg)
+
 ## set default qemu-options
-qemuopts="-hda $osimg"
+qemuopts="-hda $osimg -drive file=$swapimg,media=disk,cache=writeback"
 
 ## set break-function, default is readline
 brkfun=readline
@@ -316,7 +319,7 @@ quick_run 'Check VMM'
 
 pts=5
 quick_check 'check pmm'                                         \
-    'memory management: buddy_pmm_manager'                      \
+    'memory management: default_pmm_manager'                      \
     'check_alloc_page() succeeded!'                             \
     'check_pgdir() succeeded!'                                  \
     'check_boot_pgdir() succeeded!'
@@ -340,11 +343,29 @@ quick_check 'check vmm'                                         \
     'check_pgfault() succeeded!'                                \
     'check_vmm() succeeded.'
 
+pts=20
+quick_check 'check swap page fault'                             \
+    'page fault at 0x00001000: K/W [no page found].'            \
+    'page fault at 0x00002000: K/W [no page found].'            \
+    'page fault at 0x00003000: K/W [no page found].'            \
+    'page fault at 0x00004000: K/W [no page found].'            \
+    'write Virt Page e in fifo_check_swap'			\
+    'page fault at 0x00005000: K/W [no page found].'		\
+    'page fault at 0x00001000: K/W [no page found]'		\
+    'page fault at 0x00002000: K/W [no page found].'		\
+    'page fault at 0x00003000: K/W [no page found].'		\
+    'page fault at 0x00004000: K/W [no page found].'		\
+    'check_swap() succeeded!'
+
 pts=5
 quick_check 'check ticks'                                       \
-    '++ setup timer interrupts'                                 \
-    '100 ticks'                                                 \
-    'End of Test.'
+    '++ setup timer interrupts'
+
+pts=30
+quick_check 'check initproc'                                    \
+    'this initproc, pid = 1, name = "init"'                     \
+    'To U: "Hello world!!".'                                    \
+    'To U: "en.., Bye, Bye. :)"'
 
 ## print final-score
 show_final

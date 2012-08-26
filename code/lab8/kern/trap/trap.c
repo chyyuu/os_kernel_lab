@@ -211,7 +211,7 @@ trap_dispatch(struct trapframe *tf) {
         break;
     case IRQ_OFFSET + IRQ_TIMER:
 #if 0
-    LAB3 : If some page replacement algorithm need tick to change the priority of pages, 
+    LAB3 : If some page replacement algorithm(such as CLOCK PRA) need tick to change the priority of pages,
     then you can add code here. 
 #endif
         /* LAB1 YOUR CODE : STEP 3 */
@@ -224,15 +224,23 @@ trap_dispatch(struct trapframe *tf) {
         /* you should upate you lab1 code (just add ONE or TWO lines of code):
          *    Every TICK_NUM cycle, you should set current process's current->need_resched = 1
          */
-  
+        /* LAB6 YOUR CODE */
+        /* IMPORTANT FUNCTIONS:
+	     * run_timer_list
+	     *----------------------
+	     * you should update your lab5 code (just add ONE or TWO lines of code):
+         *    Every tick, you should update the system time, iterate the timers, and trigger the timers which are end to call scheduler.
+         *    You can use one funcitons to finish all these things.
+         */
         break;
     case IRQ_OFFSET + IRQ_COM1:
-        c = cons_getc();
-        cprintf("serial [%03d] %c\n", c, c);
-        break;
     case IRQ_OFFSET + IRQ_KBD:
+        // There are user level shell in LAB8, so we need change COM/KBD interrupt processing.
         c = cons_getc();
-        cprintf("kbd [%03d] %c\n", c, c);
+        {
+          extern void dev_stdin_write(char c);
+          dev_stdin_write(c);
+        }
         break;
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
     case T_SWITCH_TOU:

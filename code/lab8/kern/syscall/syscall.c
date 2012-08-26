@@ -68,11 +68,11 @@ sys_pgdir(uint32_t arg[]) {
     return 0;
 }
 
-static uint32_t
+static int
 sys_gettime(uint32_t arg[]) {
     return (int)ticks;
 }
-static uint32_t
+static int
 sys_lab6_set_priority(uint32_t arg[])
 {
     uint32_t priority = (uint32_t)arg[0];

@@ -482,7 +482,7 @@ check_slab(void) {
     void *v0, *v1;
 
     size_t nr_free_pages_store = nr_free_pages();
-    size_t slab_allocated_store = slab_allocated();
+    size_t kernel_allocated_store = slab_allocated();
 
     /* slab must be empty now */
     check_slab_empty();
@@ -628,7 +628,7 @@ check_pass:
     check_slab_empty();
     assert(slab_allocated() == 0);
     assert(nr_free_pages_store == nr_free_pages());
-    assert(slab_allocated_store == slab_allocated());
+    assert(kernel_allocated_store == slab_allocated());
 
     cprintf("check_slab() succeeded!\n");
 }
