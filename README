@@ -1,9 +1,10 @@
 INTRODUCTION
 ------------
-ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux and developed by Tsinghua University.
-The codes in the files that constitute xv6&jos are Copyright 2006-2007 Frans Kaashoek, Robert Morris, and Russ Cox and uses MIT License.
+ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux.
+ucore was developed and used in Department of Computer Science & Technology, Institute for Interdisciplinary Information Sciences, Tsinghua University.
+The codes in the files that constitute xv6&jos are Copyright (2006-Current) Frans Kaashoek, Robert Morris, and Russ Cox and uses MIT License.
 The codes in the files that constitute OS/161 are written by David A. Holland.
-The docs and codes in the files that constitute ucore are Copyright 2012 Yu Chen, Naizheng Wang, Yong Xiang and uses GPL License. 
+The docs and codes in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Naizheng Wang, Yong Xiang and uses GPL License. 
 
 CONTENTS
 --------
@@ -32,11 +33,15 @@ OR
 
 RESOURCE REPOSITORY
 -------------------
-The newest lab codes and docs is in https://github.com/chyyuu/ucore_pub or https://bitbucket.org/chyyuu/ucore_pub
+Basic OS labs (for students who learn OS course)
+The newest lab codes and docs is in https://github.com/chyyuu/ucore_pub
+
+Advanced OS labs (for OS geeks or hackers)
+The newest lab codes and docs is in https://github.com/chyyuu/ucore_plus
 
 LEARNING DISSCUSS GROUPS
 ------------------------
-If you have any questions about ucore labs, 
+If you have any questions about ucore basic os labs, 
 you can subscribe to the Google Groups "os-course" group (http://groups.google.com/group/oscourse?hl=en.)
 To post to this group, send email to oscourse@googlegroups.com.
 To unsubscribe from this group, send email to oscourse+unsubscribe@googlegroups.com.
@@ -44,8 +49,14 @@ For more options, visit this group at http://groups.google.com/group/oscourse?hl
 
 DEVELOPMENT DISCUSS GROUPS
 --------------------------
+If you have any questions about ucore advanced os labs, 
 If you want to be a developer of ucore or pay attention to the development of ucore, 
 you can subscribe to the Google Groups "ucore_dev" group (http://groups.google.com/group/ucore_dev?hl=en.)
 To post to this group, send email to ucore_dev@googlegroups.com.
 To unsubscribe from this group, send email to ucore_dev+unsubscribe@googlegroups.com.
 For more options, visit this group at http://groups.google.com/group/ucore_dev?hl=en.
+
+UCORERS (Contributors)
+---------------------
+Junjie Mao, Yuheng Chen, Cong Liu, Yang Yang, Zhun Qu, Shengwei Ren, Wenlei Zhu, Cao Zhang, Tong Sen, Xu Chen, 
+Cang Nan, Yujian Fang, Wentao Han, Kaichen Zhang, Xiaolin Guo, Tianfan Xue, Gang Hu, Cao Liu, Yu Su,Xinhao Yuan, ...
