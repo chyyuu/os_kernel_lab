@@ -98,7 +98,7 @@ struct e820map {
  * that convert Page to other data types, such as phyical address.
  * */
 struct Page {
-    atomic_t ref;                   // page frame's reference counter
+    int ref;                        // page frame's reference counter
     uint32_t flags;                 // array of flags that describe the status of the page frame
     unsigned int property;          // used in buddy system, stores the order (the X in 2^X) of the continuous memory block
     int zone_num;                   // used in buddy system, the No. of zone which the page belongs to

@@ -35,8 +35,8 @@ struct inode {
         inode_type_device_info = 0x1234,
         inode_type_sfs_inode_info,
     } in_type;
-    atomic_t ref_count;
-    atomic_t open_count;
+    int ref_count;
+    int open_count;
     struct fs *in_fs;
     const struct inode_ops *in_ops;
 };
@@ -236,12 +236,12 @@ void inode_check(struct inode *node, const char *opstr);
 
 static inline int
 inode_ref_count(struct inode *node) {
-    return atomic_read(&(node->ref_count));
+    return node->ref_count;
 }
 
 static inline int
 inode_open_count(struct inode *node) {
-    return atomic_read(&(node->open_count));
+    return node->open_count;
 }
 
 #endif /* !__KERN_FS_VFS_INODE_H__ */

@@ -20,7 +20,7 @@ struct file {
     int fd;
     off_t pos;
     struct inode *node;
-    atomic_t open_count;
+    int open_count;
 };
 
 void fd_array_init(struct file *fd_array);
@@ -43,17 +43,19 @@ int file_mkfifo(const char *name, uint32_t open_flags);
 
 static inline int
 fopen_count(struct file *file) {
-    return atomic_read(&(file->open_count));
+    return file->open_count;
 }
 
 static inline int
 fopen_count_inc(struct file *file) {
-    return atomic_add_return(&(file->open_count), 1);
+    file->open_count += 1;
+    return file->open_count;
 }
 
 static inline int
 fopen_count_dec(struct file *file) {
-    return atomic_sub_return(&(file->open_count), 1);
+    file->open_count -= 1;
+    return file->open_count;
 }
 
 #endif /* !__KERN_FS_FILE_H__ */

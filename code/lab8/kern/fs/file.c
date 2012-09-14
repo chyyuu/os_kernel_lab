@@ -27,7 +27,7 @@ fd_array_init(struct file *fd_array) {
     int fd;
     struct file *file = fd_array;
     for (fd = 0; fd < FILES_STRUCT_NENTRY; fd ++, file ++) {
-        atomic_set(&(file->open_count), 0);
+        file->open_count = 0;
         file->status = FD_NONE, file->fd = fd;
     }
 }

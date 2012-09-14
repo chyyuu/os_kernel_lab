@@ -122,22 +122,24 @@ pde2page(pde_t pde) {
 
 static inline int
 page_ref(struct Page *page) {
-    return atomic_read(&(page->ref));
+    return page->ref;
 }
 
 static inline void
 set_page_ref(struct Page *page, int val) {
-    atomic_set(&(page->ref), val);
+    page->ref = val;
 }
 
 static inline int
 page_ref_inc(struct Page *page) {
-    return atomic_add_return(&(page->ref), 1);
+    page->ref += 1;
+    return page->ref;
 }
 
 static inline int
 page_ref_dec(struct Page *page) {
-    return atomic_sub_return(&(page->ref), 1);
+    page->ref -= 1;
+    return page->ref;
 }
 
 extern char bootstack[], bootstacktop[];

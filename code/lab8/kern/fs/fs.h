@@ -25,7 +25,7 @@ struct file;
 struct files_struct {
     struct inode *pwd;      // inode of present working directory
     struct file *fd_array;  // opened files array
-    atomic_t files_count;   // the number of opened files
+    int files_count;        // the number of opened files
     semaphore_t files_sem;  // lock protect sem
 };
 
@@ -42,17 +42,19 @@ int dup_files(struct files_struct *to, struct files_struct *from);
 
 static inline int
 files_count(struct files_struct *filesp) {
-    return atomic_read(&(filesp->files_count));
+    return filesp->files_count;
 }
 
 static inline int
 files_count_inc(struct files_struct *filesp) {
-    return atomic_add_return(&(filesp->files_count), 1);
+    filesp->files_count += 1;
+    return filesp->files_count;
 }
 
 static inline int
 files_count_dec(struct files_struct *filesp) {
-    return atomic_sub_return(&(filesp->files_count), 1);
+    filesp->files_count -= 1;
+    return filesp->files_count;
 }
 
 #endif /* !__KERN_FS_FS_H__ */

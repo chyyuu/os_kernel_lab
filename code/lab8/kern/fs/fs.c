@@ -38,7 +38,7 @@ files_create(void) {
     if ((filesp = kmalloc(sizeof(struct files_struct) + FILES_STRUCT_BUFSIZE)) != NULL) {
         filesp->pwd = NULL;
         filesp->fd_array = (void *)(filesp + 1);
-        atomic_set(&(filesp->files_count), 0);
+        filesp->files_count = 0;
         sem_init(&(filesp->files_sem), 1);
         fd_array_init(filesp->fd_array);
     }
