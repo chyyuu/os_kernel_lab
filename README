@@ -31,12 +31,19 @@ OR
 6 handin your code
   $make handin
 
+GRADE/RANK
+----------
+Superman: Finish all OS labs in one month by yourself
+Master: Finish all OS labs in two month by yourself
+Veteran: Finish all OS labs in three month by yourself
+Apprentice: Finish all OS labs in one semester with other guy's help
+ 
 RESOURCE REPOSITORY
 -------------------
 Basic OS labs (for students who learn OS course)
 The newest lab codes and docs is in https://github.com/chyyuu/ucore_pub
 
-Advanced OS labs (for OS geeks or hackers)
+Advanced OS labs (for OS geeks or hackers or guys with Superman/Master Rank)
 The newest lab codes and docs is in https://github.com/chyyuu/ucore_plus
 
 LEARNING DISSCUSS GROUPS
