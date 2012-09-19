@@ -1,11 +1,14 @@
 INTRODUCTION
 ------------
+ucore labs was used as OS Experiments in OS Course Of Dept. of CS, Tsinghua.
+
 ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux.
 ucore was developed and used in Department of Computer Science & Technology, Institute for Interdisciplinary Information Sciences, Tsinghua University.
 The codes in the files that constitute xv6&jos are Copyright (2006-Current) Frans Kaashoek, Robert Morris, and Russ Cox and uses MIT License.
 The codes in the files that constitute OS/161 are written by David A. Holland.
 The codes in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Naizheng Wang, Yong Xiang and uses GPL License.
 The documents in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Yong Xiang and uses Creative Commons Attribution/Share-Alike (CC-BY-SA) License. 
+
 CONTENTS
 --------
 lab1: boot/protect mode/stack/interrupt
@@ -41,7 +44,7 @@ Apprentice: Finish all OS labs in one semester with other guy's help
 RESOURCE REPOSITORY
 -------------------
 Basic OS labs (for students who learn OS course)
-The newest lab codes and docs is in https://github.com/chyyuu/ucore_pub
+The newest lab codes and docs is in https://github.com/chyyuu/ucore_lab
 
 Advanced OS labs (for OS geeks or hackers or guys with Superman/Master Rank)
 The newest lab codes and docs is in https://github.com/chyyuu/ucore_plus
