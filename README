@@ -1,6 +1,6 @@
 INTRODUCTION
 ------------
-ucore labs was used as OS Experiments in OS Course Of Dept. of CS, Tsinghua.
+ucore labs was used as OS Experiments in OS Course Of Dept. of Computer Science & Technology, Tsinghua University.
 
 ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux.
 ucore was developed and used in Department of Computer Science & Technology, Institute for Interdisciplinary Information Sciences, Tsinghua University.
