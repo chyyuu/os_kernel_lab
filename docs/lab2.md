@@ -1,6 +1,6 @@
 ---
 layout: post
-title: ucore for edu
+title: Ucore Labs
 ---
                  
 

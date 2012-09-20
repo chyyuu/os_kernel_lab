@@ -1,6 +1,6 @@
 ---
 layout: post
-title: ucore for edu
+title: Ucore Labs
 ---
                  
 实验七：同步互斥
