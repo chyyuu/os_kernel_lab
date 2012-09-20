@@ -9,13 +9,13 @@ title: Ucore labs
 
 - 了解操作系统开发实验环境
 
--  熟悉命令行方式的编译、调试工程
+- 熟悉命令行方式的编译、调试工程
 
--  掌握基于硬件模拟器的调试技术
+- 掌握基于硬件模拟器的调试技术
 
--  熟悉C语言编程和指针的概念
+- 熟悉C语言编程和指针的概念
 
--  了解X86汇编语言
+- 了解X86汇编语言
 
 ##2.准备知识
 
@@ -48,9 +48,9 @@ ucore的运行环境可以是真实的X86计算机，不过考虑到调试和开
 
 其中每个开发步骤都是建立在上一个步骤之上的，就像搭积木，从一个一个小木块，最终搭出来一个小房子。在搭房子的过程中，完成从理解操作系统原理到实践操作系统设计与实现的探索过程。这个房子最终的建筑架构和建设进度如下图所示：
 
-<center>![](lab0.files/image001.png)</center>
+![](lab0.files/image001.png)
 
-<center>图1 ucore系统结构图</center>
+图1 ucore系统结构图
 
  
 
@@ -342,43 +342,24 @@ input用来读取你通过键盘（或其他标准输入设备）输入的信息
 
 在这个例子中，你会发现原有的文件中添加了新的内容。接下来我们会见到另一种重定向方式：我们将把一个文件的内容作为将要执行的命令的输入。以下是这个语句：
 
-·  **command < filename**
+**command < filename**
 
 示例:
 
-                   chy@chyhome-PC:~$ sort \< file4.txt
+       chy@chyhome-PC:~$ cat > file5.txt
+       a3.txt
+       a2.txt
+       file2.txt
+       file1.txt
+       <Ctrl-D>
+       chy@chyhome-PC:~$ sort < file5.txt
+       a2.txt
+       a3.txt
+       file1.txt
+       file2.txt
 
-                   another\_file.txt
 
-                   another\_file.txt
-
-                   file1.txt
-
-                   file1.txt
-
-                   file2.pdf
-
-                   file2.pdf
-
-                   file3.mp3
-
-                   file3.mp3
-
-                   file4.txt
-
-                   file4.txt
-
-                   file-with\_other-NAME.TXT
-
-                   file-with\_other-NAME.TXT
-
-                   Yet-Another\_file.txt
-
-                   Yet-Another\_file.txt
-
- 
-
-(3)**管道**
+**管道**
 
 Linux的强大之处在于它能把几个简单的命令联合成为复杂的功能，通过键盘上的管道符号'|'
 完成。现在，我们来排序上面的"grep"命令：
