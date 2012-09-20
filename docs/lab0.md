@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: 实验零：操作系统实验准备
 ---
                                                                                                                           
