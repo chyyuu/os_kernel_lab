@@ -3,7 +3,7 @@ EMPTY	:=
 SPACE	:= $(EMPTY) $(EMPTY)
 SLASH	:= /
 
-V       := @
+#V       := @
 
 # try to infer the correct GCCPREFX
 ifndef GCCPREFIX
@@ -148,6 +148,20 @@ $(kernel): $(KOBJS)
 
 $(call create_target,kernel)
 
+
+# create kernel_nopage target
+kernel_nopage = $(call totarget,kernel_nopage)
+
+$(kernel_nopage): tools/kernel_nopage.ld
+
+$(kernel_nopage): $(KOBJS)
+	@echo + ld $@
+	$(V)$(LD) $(LDFLAGS) -T tools/kernel_nopage.ld -o $@ $(KOBJS)
+	@$(OBJDUMP) -S $@ > $(call asmfile,kernel_nopage)
+	@$(OBJDUMP) -t $@ | $(SED) '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(call symfile,kernel_nopage)
+
+$(call create_target,kernel)
+
 # -------------------------------------------------------------------
 
 # create bootblock
@@ -176,7 +190,7 @@ $(call create_target_host,sign,sign)
 # create ucore.img
 UCOREIMG	:= $(call totarget,ucore.img)
 
-$(UCOREIMG): $(kernel) $(bootblock)
+$(UCOREIMG): $(kernel) $(bootblock) $(kernel_nopage)
 	$(V)dd if=/dev/zero of=$@ count=10000
 	$(V)dd if=$(bootblock) of=$@ conv=notrunc
 	$(V)dd if=$(kernel) of=$@ seek=1 conv=notrunc
