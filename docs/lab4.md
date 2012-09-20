@@ -1,3 +1,8 @@
+---
+layout: post
+title: ucore for edu
+---
+                 
  
 
 **实验四：内核线程管理**

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 实验零：操作系统实验准备
+title: ucore for edu
 ---
                                                                                                                           
 

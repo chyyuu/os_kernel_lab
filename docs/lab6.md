@@ -1,3 +1,8 @@
+---
+layout: post
+title: ucore for edu
+---
+                 
 实验六: 调度器
 
  
