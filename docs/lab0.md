@@ -1,3 +1,7 @@
+---
+layout: post
+title: ucore for edu
+---
                                                                                                                           
 
 实验零：操作系统实验准备

@@ -1,3 +1,8 @@
+---
+layout: post
+title: ucore for edu
+---
+                 
 实验三：虚拟内存管理
 
 **1   **实验目的
