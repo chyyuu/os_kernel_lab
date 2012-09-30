@@ -20,7 +20,7 @@ lab6: scheduling
 lab7: mutex/sync
 lab8: filesystem
 
-If you don't want to install ubuntu and other softs to finish these labs, you can use VirtualBox soft (https://www.virtualbox.org/) and
+If you don't want to install ubuntu and other softs to finish these labs in Windows or MAC OS X, you can use VirtualBox soft (https://www.virtualbox.org/) and
 a virtual disk image with all these softs. 
 You can download this virtual disk image -- oslabs_for_student_2012.zip (576.2MB,) from  http://pan.baidu.com/share/link?shareid=69868&uk=2585194235, which
 is an VirtualBox disk image (contains ubuntu 12.04 and needed softs, and is zipped with zip and xz format), and can be unzipped 
