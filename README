@@ -20,6 +20,25 @@ lab6: scheduling
 lab7: mutex/sync
 lab8: filesystem
 
+If you don't want to install ubuntu and other softs to finish these labs, you can use VirtualBox soft (https://www.virtualbox.org/) and
+a virtual disk image with all these softs. 
+You can download this virtual disk image -- oslabs_for_student_2012.zip (576.2MB,) from  http://pan.baidu.com/share/link?shareid=69868&uk=2585194235, which
+is an VirtualBox disk image (contains ubuntu 12.04 and needed softs, and is zipped with zip and xz format), and can be unzipped 
+by haozip software (http://www.haozip.com). 
+After unzip oslabs_for_student_2012.zip, you will get 
+---
+C:\vms\ubuntu-12.04.vbox.xz
+C:\vms\ubuntu-12.04.vmdk.vmdk.xz
+C:\vms\ubuntu-12.04.vmdk-flat.vmdk.xz
+---
+then you will continue unzip all these files, and get
+---
+C:\vms\ubuntu-12.04.vbox
+C:\vms\ubuntu-12.04.vmdk.vmdk
+C:\vms\ubuntu-12.04.vmdk-flat.vmdk
+---
+If you installed VirtualBox soft, then the last step is: double clik file "ubuntu-12.04.vbox" and run ubuntu 12.04 in VirtualBox. 
+
 EXERCISE STEPS
 --------------
 1 $cd labX  
