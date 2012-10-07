@@ -49,12 +49,12 @@ After you login, you will see the directory ucore_lab in HOME directory.
 
 EXERCISE STEPS
 ==============
-0 Get the newest os lab src codes/docs.(Insure you can connect to github)
-0.1 If you try to get all cods/docs 
+0 Get the newest os lab src codes/docs.(Insure you can connect to github in ubuntu running on VrtualBox)
+0.1 If you try to get all codes/docs 
   $rm -rf ucore_lab
   $git clone git://github.com/chyyuu/ucore_lab.git
   $cd ucore_lab
-0.2 If you try to get the updated code/docs
+0.2 If you gloned ucore_lab and only try to get the updated codes/docs
   $cd ucore_lab
   $git pull
 1 $cd labX  
