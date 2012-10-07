@@ -22,7 +22,7 @@ lab8: filesystem
 
 WORK IN MS WINDOWS
 ------------------
-Working in Linux is encouraged. But If you Like to work in MS Windows, we provide virtual machine environment (Runnint Ubuntu in VirtualBox) in
+Working in Linux is encouraged. But If you like to work in MS Windows, we provide virtual machine environment (Runnint Ubuntu in VirtualBox) in
 Windows to help you to finish the labs. If you don't want to install ubuntu and other softs to finish these labs in Windows, you can use 
 VirtualBox soft (https://www.virtualbox.org/) and a virtual disk image with all these softs. Below example is shown how to setup lab environment in Windows.
 You can download this virtual disk image -- oslabs_for_student_2012.zip (576.2MB,) from  http://pan.baidu.com/share/link?shareid=69868&uk=2585194235, which
