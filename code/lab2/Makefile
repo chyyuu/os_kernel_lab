@@ -3,7 +3,7 @@ EMPTY	:=
 SPACE	:= $(EMPTY) $(EMPTY)
 SLASH	:= /
 
-#V       := @
+V       := @
 
 # try to infer the correct GCCPREFX
 ifndef GCCPREFIX
