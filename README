@@ -1,5 +1,5 @@
 INTRODUCTION
-------------
+============
 ucore labs was used as OS Experiments in OS Course Of Dept. of Computer Science & Technology, Tsinghua University.
 
 ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux.
@@ -10,7 +10,7 @@ The codes in the files that constitute ucore are Copyright (2010-Current) Yu Che
 The documents in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Yong Xiang and uses Creative Commons Attribution/Share-Alike (CC-BY-SA) License. 
 
 CONTENTS
---------
+========
 lab1: boot/protect mode/stack/interrupt
 lab2: physical memory management
 lab3: virtual memory management
@@ -21,7 +21,7 @@ lab7: mutex/sync
 lab8: filesystem
 
 WORK IN MS WINDOWS
-------------------
+==================
 Working in Linux is encouraged. But If you like to work in MS Windows, we provide virtual machine environment (Runnint Ubuntu in VirtualBox) in
 Windows to help you to finish the labs. If you don't want to install ubuntu and other softs to finish these labs in Windows, you can use 
 VirtualBox soft (https://www.virtualbox.org/) and a virtual disk image with all these softs. Below example is shown how to setup lab environment in Windows.
@@ -48,7 +48,15 @@ password: <SPACE KEY>
 After you login, you will see the directory ucore_lab in HOME directory.
 
 EXERCISE STEPS
---------------
+==============
+0 Get the newest os lab src codes/docs.(Insure you can connect to github)
+0.1 If you try to get all cods/docs 
+  $rm -rf ucore_lab
+  $git clone git@github.com:chyyuu/ucore_lab.git
+  $cd ucore_lab
+0.2 If you try to get the updated code/docs
+  $cd ucore_lab
+  $git pull
 1 $cd labX  
 2 read codes (specially the modified or added files)
 3 add your code
@@ -62,14 +70,14 @@ OR
   $make handin
 
 GRADE/RANK
-----------
+==========
 Superman: Finish all OS labs in one month by yourself
 Master: Finish all OS labs in two month by yourself
 Veteran: Finish all OS labs in three month by yourself
 Apprentice: Finish all OS labs in one semester with other guy's help
  
 RESOURCE REPOSITORY
--------------------
+===================
 Basic OS labs (for students who learn OS course)
 The newest lab codes and docs is in https://github.com/chyyuu/ucore_lab
 
@@ -77,7 +85,7 @@ Advanced OS labs (for OS geeks or hackers or guys with Superman/Master Rank)
 The newest lab codes and docs is in https://github.com/chyyuu/ucore_plus
 
 LEARNING DISSCUSS GROUPS
-------------------------
+========================
 If you have any questions about ucore basic os labs, 
 you can subscribe to the Google Groups "os-course" group (http://groups.google.com/group/oscourse?hl=en.)
 To post to this group, send email to oscourse@googlegroups.com.
@@ -85,7 +93,7 @@ To unsubscribe from this group, send email to oscourse+unsubscribe@googlegroups.
 For more options, visit this group at http://groups.google.com/group/oscourse?hl=en.
 
 DEVELOPMENT DISCUSS GROUPS
---------------------------
+==========================
 If you have any questions about ucore advanced os labs, 
 If you want to be a developer of ucore or pay attention to the development of ucore, 
 you can subscribe to the Google Groups "ucore_dev" group (http://groups.google.com/group/ucore_dev?hl=en.)
@@ -94,6 +102,6 @@ To unsubscribe from this group, send email to ucore_dev+unsubscribe@googlegroups
 For more options, visit this group at http://groups.google.com/group/ucore_dev?hl=en.
 
 UCORERS (Contributors)
----------------------
+======================
 Junjie Mao, Yuheng Chen, Cong Liu, Yang Yang, Zhun Qu, Shengwei Ren, Wenlei Zhu, Cao Zhang, Tong Sen, Xu Chen, 
 Cang Nan, Yujian Fang, Wentao Han, Kaichen Zhang, Xiaolin Guo, Tianfan Xue, Gang Hu, Cao Liu, Yu Su,Xinhao Yuan, ...
