@@ -52,7 +52,7 @@ EXERCISE STEPS
 0 Get the newest os lab src codes/docs.(Insure you can connect to github)
 0.1 If you try to get all cods/docs 
   $rm -rf ucore_lab
-  $git clone git@github.com:chyyuu/ucore_lab.git
+  $git clone git://github.com/chyyuu/ucore_lab.git
   $cd ucore_lab
 0.2 If you try to get the updated code/docs
   $cd ucore_lab
