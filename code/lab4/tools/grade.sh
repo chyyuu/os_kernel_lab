@@ -333,8 +333,8 @@ quick_check 'check page table'                                  \
     '  |-- PTE(00001) fafeb000-fafec000 00001000 -rw'
 
 pts=10
-quick_check 'check slab'                                        \
-    'check_slab() succeeded!'
+quick_check 'check slob'                                        \
+    'check_slob() succeeded!'
 
 pts=25
 quick_check 'check vmm'                                         \

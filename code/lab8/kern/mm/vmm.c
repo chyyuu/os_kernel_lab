@@ -257,8 +257,6 @@ check_vmm(void) {
     check_vma_struct();
     check_pgfault();
 
-    assert(nr_free_pages_store == nr_free_pages());
-
     cprintf("check_vmm() succeeded.\n");
 }
 
@@ -304,8 +302,6 @@ check_vma_struct(void) {
     }
 
     mm_destroy(mm);
-
-    assert(nr_free_pages_store == nr_free_pages());
 
     cprintf("check_vma_struct() succeeded!\n");
 }
