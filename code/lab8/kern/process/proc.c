@@ -466,7 +466,7 @@ fork_out:
     return ret;
 
 bad_fork_cleanup_fs:  //for LAB8
-    put_fs(proc);
+    put_files(proc);
 bad_fork_cleanup_kstack:
     put_kstack(proc);
 bad_fork_cleanup_proc:
