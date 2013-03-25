@@ -80,7 +80,7 @@ find_vma(struct mm_struct *mm, uintptr_t addr) {
                 list_entry_t *list = &(mm->mmap_list), *le = list;
                 while ((le = list_next(le)) != list) {
                     vma = le2vma(le, list_link);
-                    if (addr < vma->vm_end) {
+                    if (vma->vm_start<=addr && addr < vma->vm_end) {
                         found = 1;
                         break;
                     }
@@ -181,7 +181,7 @@ check_vma_struct(void) {
     int step1 = 10, step2 = step1 * 10;
 
     int i;
-    for (i = step1; i >= 0; i --) {
+    for (i = step1; i >= 1; i --) {
         struct vma_struct *vma = vma_create(i * 5, i * 5 + 2, 0);
         assert(vma != NULL);
         insert_vma_struct(mm, vma);
@@ -195,21 +195,35 @@ check_vma_struct(void) {
 
     list_entry_t *le = list_next(&(mm->mmap_list));
 
-    for (i = 0; i <= step2; i ++) {
+    for (i = 1; i <= step2; i ++) {
         assert(le != &(mm->mmap_list));
         struct vma_struct *mmap = le2vma(le, list_link);
         assert(mmap->vm_start == i * 5 && mmap->vm_end == i * 5 + 2);
         le = list_next(le);
     }
 
-    for (i = 0; i < 5 * step2 + 2; i ++) {
-        struct vma_struct *vma = find_vma(mm, i);
-        assert(vma != NULL);
-        int j = i / 5;
-        if (i >= 5 * j + 2) {
-            j ++;
+    for (i = 5; i <= 5 * step2; i +=5) {
+        struct vma_struct *vma1 = find_vma(mm, i);
+        assert(vma1 != NULL);
+        struct vma_struct *vma2 = find_vma(mm, i+1);
+        assert(vma2 != NULL);
+        struct vma_struct *vma3 = find_vma(mm, i+2);
+        assert(vma3 == NULL);
+        struct vma_struct *vma4 = find_vma(mm, i+3);
+        assert(vma4 == NULL);
+        struct vma_struct *vma5 = find_vma(mm, i+4);
+        assert(vma5 == NULL);
+
+        assert(vma1->vm_start == i  && vma1->vm_end == i  + 2);
+        assert(vma2->vm_start == i  && vma2->vm_end == i  + 2);
+    }
+
+    for (i =4; i>=0; i--) {
+        struct vma_struct *vma_below_5= find_vma(mm,i);
+        if (vma_below_5 != NULL ) {
+           cprintf("vma_below_5: i %x, start %x, end %x\n",i, vma_below_5->vm_start, vma_below_5->vm_end); 
         }
-        assert(vma->vm_start == j * 5 && vma->vm_end == j * 5 + 2);
+        assert(vma_below_5 == NULL);
     }
 
     mm_destroy(mm);

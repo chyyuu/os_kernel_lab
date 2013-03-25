@@ -260,9 +260,9 @@ touch:
 print-%:
 	@echo $($(shell echo $(patsubst print-%,%,$@) | $(TR) [a-z] [A-Z]))
 
-.PHONY: clean distclean handin
+.PHONY: clean distclean handin tags
 clean:
-	$(V)$(RM) $(GRADE_GDB_IN) $(GRADE_QEMU_OUT)
+	$(V)$(RM) $(GRADE_GDB_IN) $(GRADE_QEMU_OUT) cscope* tags
 	$(V)$(RM) -r $(OBJDIR) $(BINDIR)
 
 distclean: clean
@@ -272,4 +272,10 @@ handin: distclean
 	$(V)$(TAR) -cf - `find . -type f -o -type d | grep -v '^\.$$' | grep -v '/CVS/' \
 					| grep -v '/\.git/' | grep -v '/\.svn/' | grep -v "$(HANDIN)"` \
 					| $(ZIP) > $(HANDIN)
-
+					
+tags:
+	@echo TAGS ALL
+	$(V)rm -f cscope.files cscope.in.out cscope.out cscope.po.out tags
+	$(V)find . -type f -name "*.[chS]" >cscope.files
+	$(V)cscope -bq 
+	$(V)ctags -L cscope.files
