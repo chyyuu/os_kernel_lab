@@ -9,8 +9,27 @@ The codes in the files that constitute OS/161 are written by David A. Holland.
 The codes in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Naizheng Wang, Yong Xiang and uses GPL License.
 The documents in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Yong Xiang and uses Creative Commons Attribution/Share-Alike (CC-BY-SA) License. 
 
+PEOPLES 
+========
+
+OS course for Yao class, fall, 2013
+-----------------------------------
+Lectures: Chen, Yu   http://soft.cs.tsinghua.edu.cn/~chen
+
+TA: Qi, Xiao  qixiao0113@gmail.com
+
+TA: Mao, Junjie eternal.n08@gmail.com  
+
 CONTENTS
 ========
+
+Notes, Lectures OS course for Yao class, fall, 2013
+-----------------
+lec1: os intro 09162013
+
+labs info
+----------------
+lab0: preparing
 lab1: boot/protect mode/stack/interrupt
 lab2: physical memory management
 lab3: virtual memory management
@@ -86,6 +105,14 @@ The newest lab codes and docs is in https://github.com/chyyuu/ucore_plus
 
 LEARNING DISSCUSS GROUPS
 ========================
+
+OS course for Yao class, fall, 2013
+----------------------------------
+
+[https://piazza.com/class/hlhc2vatkon361  OS_COURSE_4_YAO_CLASS_DISCUSS_GROUP]
+
+general discuss
+--------------------------------
 If you have any questions about ucore basic os labs, 
 you can subscribe to the Google Groups "os-course" group (http://groups.google.com/group/oscourse?hl=en.)
 To post to this group, send email to oscourse@googlegroups.com.
