@@ -15,10 +15,8 @@ PEOPLES
 OS course for Yao class, fall, 2013
 -----------------------------------
 Lectures: Chen, Yu   http://soft.cs.tsinghua.edu.cn/~chen
-
 TA: Qi, Xiao  qixiao0113@gmail.com
-
-TA: Mao, Junjie eternal.n08@gmail.com  
+TA: Mao, Junjie eternal.n08@gmail.com
 
 CONTENTS
 ========
@@ -28,7 +26,7 @@ Notes, Lectures OS course for Yao class, fall, 2013
 lec1: os intro 09162013
 
 labs info
-----------------
+----------------]
 lab0: preparing
 lab1: boot/protect mode/stack/interrupt
 lab2: physical memory management
@@ -108,8 +106,7 @@ LEARNING DISSCUSS GROUPS
 
 OS course for Yao class, fall, 2013
 ----------------------------------
-
-[https://piazza.com/class/hlhc2vatkon361  OS_COURSE_4_YAO_CLASS_DISCUSS_GROUP]
+OS course for Yao class discuss site is in https://piazza.com/class/hlhc2vatkon361
 
 general discuss
 --------------------------------
