@@ -314,11 +314,14 @@ quick_check() {
 ## kernel image
 osimg=$(make_print ucoreimg)
 
+## sfs image
+sfsimg=$(make_print sfsimg)
+
 ## swap image
 swapimg=$(make_print swapimg)
 
 ## set default qemu-options
-qemuopts="-hda $osimg -drive file=$swapimg,media=disk,cache=writeback"
+qemuopts="-hda $osimg -drive file=$swapimg,media=disk,cache=writeback -drive file=$sfsimg,media=disk,cache=writeback"
 
 ## set break-function, default is readline
 brkfun=readline

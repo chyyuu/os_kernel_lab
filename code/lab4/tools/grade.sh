@@ -332,10 +332,6 @@ quick_check 'check page table'                                  \
     '  |-- PTE(000e0) faf00000-fafe0000 000e0000 urw'           \
     '  |-- PTE(00001) fafeb000-fafec000 00001000 -rw'
 
-pts=10
-quick_check 'check slob'                                        \
-    'check_slob() succeeded!'
-
 pts=25
 quick_check 'check vmm'                                         \
     'check_vma_struct() succeeded!'                             \
