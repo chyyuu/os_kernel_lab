@@ -1,0 +1,69 @@
+第二次作业
+
+OS concept ver7课本第8章、第九章的习题：
+
+8.3 Given ?ve memory partitions of 100 KB, 500 KB, 200 KB, 300 KB,and
+600 KB (in order), how would each of the ?rst-?t, best-?t, and worst-?t
+algorithms place processes of 212 KB, 417 KB, 112 KB, and 426 KB (in
+order)?Which algorithm makes the most ef?cient use of memory?
+
+8.4 Most systems allow programs to allocate more memory to its address
+space during execution.Data allocated in the heap segments of programs
+is an example of such allocated memory. What is required to support
+dynamic memory allocation in the following schemes:
+a. contiguous-memory allocation
+b. pure segmentation
+c. pure paging
+
+8.12 Consider the following segment table:
+Segment Base Length
+0 219 600
+1 2300 14
+2 90 100
+3 1327 580
+4 1952 96
+What are the physical addresses for the following logical addresses?
+a. 0,430
+b. 1,10
+c. 2,500
+d. 3,400
+e. 4,112
+
+9.5 Assume we have a demand-paged memory. The page table is held in
+registers. It takes 8 milliseconds to service a page fault if an empty page
+is available or the replaced page is not modi?ed, and 20 milliseconds if
+the replaced page is modi?ed. Memory access time is 100 nanoseconds.
+Assume that the page to be replaced is modi?ed 70 percent of the time.
+What is the maximum acceptable page-fault rate for an effective access
+time of no more than 200 nanoseconds?
+
+
+9.13 A page-replacement algorithm should minimize the number of page
+faults. We can do this minimization by distributing heavily used pages
+evenly over all of memory, rather than having them compete for a small
+number of page frames.We can associatewith each page frame a counter
+of the number of pages that are associated with that frame. Then, to
+replace a page, we search for the page frame with the smallest counter.
+a. De?ne a page-replacement algorithmusing this basic idea. Specif-
+ically address the problems of (1) what the initial value of the
+counters is, (2) when counters are increased, (3) when counters
+are decreased, and (4) how the page to be replaced is selected.
+b. Howmany page faults occur for your algorithmfor the following
+reference string, for four page frames?
+1, 2, 3, 4, 5, 3, 4, 1, 6, 7, 8, 7, 8, 9, 7, 8, 9, 5, 4, 5, 4, 2.
+c. What is the minimumnumber of page faults for an optimal page-
+replacement strategy for the reference string in part b with four
+page frames?
+
+实验相关
+------------------
+
+1 lab1的proj1的ucore的代码中是否有使用了绝对地址（编译期间指定的绝对内存地址）？
+
+2 lab2 的ucore的小os的load addr和link addr分别是多少?
+
+3 ucore用了哪个数据结构来管理空闲内存，位于内存什么地方，占多少空间？
+
+4 请考虑在ucore中实现second chance/enhanced clock页替换算法的设计思路。主要描述如何利用相关x86相关硬件、如何设计数据结构，大致要实现哪些函数，函数的大致功能和整体流程。 
+
+5 实现enhanced clock algorithm 在clock算法实现中，pte中的uesd bit位是否可以让os来设置1 or 0 ?
