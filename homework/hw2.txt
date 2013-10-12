@@ -66,4 +66,10 @@ page frames?
 
 4 请考虑在ucore中实现second chance/enhanced clock页替换算法的设计思路。主要描述如何利用相关x86相关硬件、如何设计数据结构，大致要实现哪些函数，函数的大致功能和整体流程。 
 
-5 实现enhanced clock algorithm 在clock算法实现中，pte中的uesd bit位是否可以让os来设置1 or 0 ?
+5 实现enhanced clock algorithm中，
+IF before clock sweep: (used,dirty) = (1,1), THEN after clock sweep: (used, dirty)=(0,1).
+如果把上述转换改为：
+IF before clock sweep: (used,dirty) = (1,1), THEN after clock sweep: (used, dirty)=(1,0).
+是否可行？
+
+6 在clock算法实现中，pte中的uesd bit位是否可以让os来设置1 or 0 ?
