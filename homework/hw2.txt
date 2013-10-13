@@ -72,4 +72,9 @@ IF before clock sweep: (used,dirty) = (1,1), THEN after clock sweep: (used, dirt
 IF before clock sweep: (used,dirty) = (1,1), THEN after clock sweep: (used, dirty)=(1,0).
 是否可行？
 
-6 在clock算法实现中，pte中的uesd bit位是否可以让os来设置1 or 0 ?
+6 在clock算法实现中，pte中的uesd bit位是否可以让os来设置1 or 0 ? 为什么？
+
+7 在enhanced clock算法中的dirty bit位是否可以让os来设置1 or 0 ? 为什么？
+
+8 如果在ucore中实现精确的LRU算法，如何设计？需要硬件和OS分别完成什么事情？
+
