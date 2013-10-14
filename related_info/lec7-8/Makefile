@@ -15,5 +15,7 @@ all: lec7_1.c
 	@echo "using nm to analyze lec7_1"
 	@echo "====================================="
 	nm lec7_1
+process_state:
+	top
 clean:
 	rm ./lec7_1
