@@ -55,6 +55,11 @@ c. What is the minimumnumber of page faults for an optimal page-
 replacement strategy for the reference string in part b with four
 page frames?
 
+1. 请证明LRU算法不会存在belady现象。
+
+2. 请证明或详细说明FIFO/CLOCK/Enhanced CLOCK是否有belady现象？
+
+
 实验相关
 ------------------
 
@@ -77,4 +82,7 @@ IF before clock sweep: (used,dirty) = (1,1), THEN after clock sweep: (used, dirt
 7 在enhanced clock算法中的dirty bit位是否可以让os来设置1 or 0 ? 为什么？
 
 8 如果在ucore中实现精确的LRU算法，如何设计？需要硬件和OS分别完成什么事情？
+
+9 如果在ucore中实现工作集页替换算法和缺页频率替换算法，如何设计？
+
 
