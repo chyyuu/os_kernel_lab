@@ -1,5 +1,9 @@
 all: lec7_1.c
 	@echo "====================================="
+	@echo "compile and analysis lec7_2"
+	@echo "====================================="
+	gcc -g -o lec7_2 lec7_2-fork.c
+	@echo "====================================="
 	@echo "compile and analysis lec7_1"
 	@echo "====================================="
 	gcc -g -o lec7_1 lec7_1.c
@@ -18,4 +22,4 @@ all: lec7_1.c
 process_state:
 	top
 clean:
-	rm ./lec7_1
+	rm ./lec7_1 ./lec7_2
