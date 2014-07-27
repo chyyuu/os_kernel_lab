@@ -86,6 +86,13 @@ OR
 6 handin your code
   $make handin
 
+OPTION
+==============
+Now, ucore suuport LLVM/Clang-3.5 + 
+in step4:
+  $ USELLVM=1 make
+then you will use clang to compile ucore
+
 GRADE/RANK
 ==========
 Superman: Finish all OS labs in one month by yourself
