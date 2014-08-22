@@ -64,6 +64,11 @@ password: <SPACE KEY>
 
 After you login, you will see the directory ucore_lab in HOME directory.
 
+TESTED ENVIRONMENT
+==================
+UBUNTU 14.04: GCC-4.8.2 CLANG-3.5
+FEDORA 20: GCC-4.8.2
+
 EXERCISE STEPS
 ==============
 0 Get the newest os lab src codes/docs.(Insure you can connect to github in ubuntu running on VrtualBox)
