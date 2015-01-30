@@ -23,8 +23,8 @@ endif
 
 # try to infer the correct QEMU
 ifndef QEMU
-QEMU := $(shell if which qemu > /dev/null; \
-	then echo 'qemu'; exit; \
+QEMU := $(shell if which qemu-system-i386 > /dev/null; \
+	then echo 'qemu-system-i386'; exit; \
 	elif which i386-elf-qemu > /dev/null; \
 	then echo 'i386-elf-qemu'; exit; \
 	else \
@@ -197,6 +197,17 @@ TARGETS: $(TARGETS)
 .DEFAULT_GOAL := TARGETS
 
 .PHONY: qemu qemu-nox debug debug-nox
+lab1-mon: $(UCOREIMG)
+	$(V)$(TERMINAL) -e "$(QEMU) -S -s -d in_asm -D $(BINDIR)/q.log -monitor stdio -hda $< -serial null"
+	$(V)sleep 2
+	$(V)$(TERMINAL) -e "gdb -q -x tools/lab1init"
+debug-mon: $(UCOREIMG)
+#	$(V)$(QEMU) -S -s -monitor stdio -hda $< -serial null &
+	$(V)$(TERMINAL) -e "$(QEMU) -S -s -monitor stdio -hda $< -serial null"
+	$(V)sleep 2
+	$(V)$(TERMINAL) -e "gdb -q -x tools/moninit"
+qemu-mon: $(UCOREIMG)
+	$(V)$(QEMU) -monitor stdio -hda $< -serial null
 qemu: $(UCOREIMG)
 	$(V)$(QEMU) -parallel stdio -hda $< -serial null
 

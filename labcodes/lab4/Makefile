@@ -229,6 +229,8 @@ TARGETS: $(TARGETS)
 QEMUOPTS = -hda $(UCOREIMG) -drive file=$(SWAPIMG),media=disk,cache=writeback
 
 .PHONY: qemu qemu-nox debug debug-nox
+qemu-mon: $(UCOREIMG) $(SWAPIMG)
+	$(V)$(QEMU) -monitor stdio $(QEMUOPTS) -serial null
 qemu: $(UCOREIMG) $(SWAPIMG)
 	$(V)$(QEMU) -parallel stdio $(QEMUOPTS) -serial null
 

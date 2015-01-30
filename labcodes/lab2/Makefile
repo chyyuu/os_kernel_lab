@@ -231,6 +231,8 @@ targets: $(TARGETS)
 QEMUOPTS = -hda $(UCOREIMG)
 
 .PHONY: qemu qemu-nox gdb debug debug-mon debug-nox
+qemu-mon: targets
+	$(V)$(QEMU) -monitor stdio $(QEMUOPTS) -serial null
 qemu: targets
 	$(V)$(QEMU) -parallel stdio $(QEMUOPTS) -serial null
 

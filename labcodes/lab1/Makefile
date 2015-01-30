@@ -207,6 +207,8 @@ TARGETS: $(TARGETS)
 .DEFAULT_GOAL := TARGETS
 
 .PHONY: qemu qemu-nox debug debug-nox
+qemu-mon: $(UCOREIMG)
+	$(V)$(QEMU) -monitor stdio -hda $< -serial null
 qemu: $(UCOREIMG)
 	$(V)$(QEMU) -parallel stdio -hda $< -serial null
 

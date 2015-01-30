@@ -23,8 +23,8 @@ endif
 
 # try to infer the correct QEMU
 ifndef QEMU
-QEMU := $(shell if which qemu > /dev/null; \
-	then echo 'qemu'; exit; \
+QEMU := $(shell if which qemu-system-i386 > /dev/null; \
+	then echo 'qemu-system-i386'; exit; \
 	elif which i386-ucore-elf-qemu > /dev/null; \
 	then echo 'i386-ucore-elf-qemu'; exit; \
 	else \
@@ -208,6 +208,8 @@ targets: $(TARGETS)
 QEMUOPTS = -hda $(UCOREIMG)
 
 .PHONY: qemu qemu-nox gdb debug debug-mon debug-nox
+qemu-mon: targets
+	$(V)$(QEMU) -monitor stdio $(QEMUOPTS) -serial null
 qemu: targets
 	$(V)$(QEMU) -parallel stdio $(QEMUOPTS) -serial null
 

@@ -70,7 +70,7 @@ endef
 # finish all
 define do_finish_all
 ALLDEPS = $$(ALLOBJS:.o=.d)
-$$(sort $$(dir $$(ALLOBJS)) $(BINDIR) $(OBJDIR)):
+$$(sort $$(dir $$(ALLOBJS)) $(BINDIR)$(SLASH) $(OBJDIR)$(SLASH)):
 	@$(MKDIR) $$@
 endef
 
