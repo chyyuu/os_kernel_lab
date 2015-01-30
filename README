@@ -12,7 +12,7 @@ The documents in the files that constitute ucore are Copyright (2010-Current) Yu
 PEOPLES 
 ========
 
-OS course for Yao class, fall, 2013
+OS course for Dept. CS. in Tsinghua Univ., and MOOC OS course
 -----------------------------------
 Lectures: Chen, Yu   http://soft.cs.tsinghua.edu.cn/~chen
 TA: Qi, Xiao  qixiao0113@gmail.com
@@ -21,12 +21,12 @@ TA: Mao, Junjie eternal.n08@gmail.com
 CONTENTS
 ========
 
-Notes, Lectures OS course for Yao class, fall, 2013
------------------
-lec1: os intro 09162013
+os course info
+----------------
+[os course summary materials](https://github.com/chyyuu/mooc_os)
 
 labs info
-----------------]
+----------------
 lab0: preparing
 lab1: boot/protect mode/stack/interrupt
 lab2: physical memory management
@@ -116,9 +116,9 @@ The newest lab codes and docs is in https://github.com/chyyuu/ucore_plus
 LEARNING DISSCUSS GROUPS
 ========================
 
-OS course for Yao class, fall, 2013
-----------------------------------
-OS course for Yao class discuss site is in https://piazza.com/class/hlhc2vatkon361
+os learning group based on QQ 
+-------------------------------
+QQ id: 181873534
 
 general discuss
 --------------------------------

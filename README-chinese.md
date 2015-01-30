@@ -23,6 +23,10 @@ Attribution/Share-Alike (CC-BY-SA) License.
 陈一璋
 ...
 
+# 课程汇总信息
+
+ -[课程汇总](https://github.com/chyyuu/mooc_os)
+
 # 实验内容
 
 1. lab0 : 完成实验环境的搭建，熟悉基本的Linux命令和工具
