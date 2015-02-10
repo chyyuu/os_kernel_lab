@@ -9,3 +9,5 @@ tags
 *swp
 .cproject
 .project
+*.bak
+*.org

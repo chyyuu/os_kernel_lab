@@ -216,11 +216,11 @@ qemu-nox: $(UCOREIMG)
 	$(V)$(QEMU) -serial mon:stdio -hda $< -nographic
 TERMINAL        :=gnome-terminal
 gdb: $(UCOREIMG)
-	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null &
+	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null
 debug: $(UCOREIMG)
 	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null &
 	$(V)sleep 2
-	$(V)$(TERMINAL)  --full-screen -e "gdb -tui -q -x tools/gdbinit"
+	$(V)$(TERMINAL)  -e "cgdb -q -x tools/gdbinit"
 	
 debug-nox: $(UCOREIMG)
 	$(V)$(QEMU) -S -s -serial mon:stdio -hda $< -nographic &

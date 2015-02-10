@@ -23,7 +23,8 @@ CONTENTS
 
 os course info
 ----------------
-[os course summary materials](https://github.com/chyyuu/mooc_os)
+* [newest os course summary materials](https://github.com/chyyuu/mooc_os)
+* [newest chinese README for ucore_lab](https://github.com/chyyuu/ucore_lab/README-chinese.md)
 
 labs info
 ----------------
@@ -45,17 +46,17 @@ VirtualBox soft (https://www.virtualbox.org/) and a virtual disk image with all 
 You can download this virtual disk image -- oslabs_for_student_2012.zip (576.2MB,) from  http://pan.baidu.com/share/link?shareid=69868&uk=2585194235, which
 is an VirtualBox disk image (contains ubuntu 12.04 and needed softs, and is zipped with zip and xz format), and can be unzipped 
 by haozip software (http://www.haozip.com). 
-After unzip oslabs_for_student_2012.zip, you will get 
+After unzip oslabs_for_student_XXX.zip, you will get 
 ---
-C:\vms\ubuntu-12.04.vbox.xz
-C:\vms\ubuntu-12.04.vmdk.vmdk.xz
-C:\vms\ubuntu-12.04.vmdk-flat.vmdk.xz
+C:\vms\ubuntu-14.04.vbox.xz
+C:\vms\ubuntu-14.04.vmdk.vmdk.xz
+C:\vms\ubuntu-14.04.vmdk-flat.vmdk.xz
 ---
 then you will continue unzip all these files, and get
 ---
-C:\vms\ubuntu-12.04.vbox
-C:\vms\ubuntu-12.04.vmdk.vmdk
-C:\vms\ubuntu-12.04.vmdk-flat.vmdk
+C:\vms\ubuntu-14.04.vbox
+C:\vms\ubuntu-14.04.vmdk.vmdk
+C:\vms\ubuntu-14.04.vmdk-flat.vmdk
 ---
 If you installed VirtualBox soft, then the last step is: double clik file "ubuntu-12.04.vbox" and run ubuntu 12.04 in VirtualBox.
 In ubuntu 12.04 login Interface:
@@ -72,11 +73,11 @@ FEDORA 20: GCC-4.8.2
 EXERCISE STEPS
 ==============
 0 Get the newest os lab src codes/docs.(Insure you can connect to github in ubuntu running on VrtualBox)
-0.1 If you try to get all codes/docs 
+0.1 If you try to get all codes
   $rm -rf ucore_lab
   $git clone git://github.com/chyyuu/ucore_lab.git
   $cd ucore_lab
-0.2 If you gloned ucore_lab and only try to get the updated codes/docs
+0.2 If you gloned ucore_lab and only try to get the updated codes
   $cd ucore_lab
   $git pull
 1 $cd labX  
@@ -88,7 +89,11 @@ EXERCISE STEPS
   $make qemu
 OR
   $make grade
-6 handin your code
+
+6 debug your code
+  $make debug
+
+7 handin your code
   $make handin
 
 OPTION

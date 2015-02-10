@@ -96,7 +96,7 @@ ucore OS实验了。
 ```
   $ sudo apt-get update
   $ sudo apt-get upgrade
-  $ sudo apt-get install build-essential git qemu-system-x86 vim-gnome gdb make diffutils exuberant-ctags tmux openssh-server cscope meld
+  $ sudo apt-get install build-essential git qemu-system-x86 vim-gnome gdb cgdb eclipse-cdt make diffutils exuberant-ctags tmux openssh-server cscope meld
 ```
 [NOTICE] 最小需要的安装包： build-essential git qemu-system-x86 gdb make diffutils 
 
@@ -112,21 +112,43 @@ ucore OS实验了。
 ```
 2. 学习源码
 ```
-  $cd labX  #X为 1--8  
+  $cd labX  #X为 1--8
 ```
-3. 阅读，修改源码，可以用understand软件或vim软件
+3. 阅读，修改源码，可以用eclipse-cdt, understand, gedit或vim软件
 ```
+  $eclipse
+OR
   $understand
 ```
 4. 修改完毕后，编译实验代码
 ```
   $make
-```  
+``` 
 5. 如果编译无误，则可以运行测试一下
 ```
   $make qemu
 ```
-6. 可以运行如下命令，看看自己的得分
+
+6. 如果需要调试，
+  a. 可基于cgdb的字符方式(以lab1_ans为例)
+```
+  $cd labcodes_answer/lab1_ans
+  $make debug
+```
+可以看到弹出两个窗口，一个是qemu,一个是cgdb
+可以看到在bootloader的bootmain函数处停了下来。
+然后我们就可以进一步在cgdb中用gdb的命令进行调试了
+```
+ (gdb)file bin/kernel   #加载ucore kernel的符号信息
+ (gdb)break kern_init   #在函数kern_init处（即 0x100000地址处）设置断点
+ (gdb)continue          #继续执行
+```
+这时就可以看到在kern_init处停了下来，可进一步调试。
+
+  b. 基于eclipse-CDT的debug view进行调试，如果安装了zylin debug插件，则完成初步配置后，
+     也可很方便地进行调试。
+
+7. 可以运行如下命令，看看自己的得分
   $make grade
 
 # 相关资料
@@ -134,14 +156,14 @@ ucore OS实验了。
 
 ## 希望了解OS基本概念和原理的同学
 
- . [OS课程资料]( http://pan.baidu.com/s/1bncWxyv)    
- . [OS MOOC公开课(原理部分)](http://www.topu.com/mooc/4100)  
+ . [OS课程资料]( http://pan.baidu.com/s/1bncWxyv)
+ . [OS MOOC公开课(原理部分)](http://www.topu.com/mooc/4100)
 
 ## 希望了解OS设计与实现细节的同学
 
- . [OS实验资料](http://pan.baidu.com/s/1i3vbdXV)     
- . [OS实验代码](https://github.com/chyyuu/mooc_os_lab)     
- . [OS MOOC公开课(实验部分)](http://www.topu.com/mooc/4100)  
+ . [OS实验资料](http://hejq.me/ucore_docs/)
+ . [OS实验代码](https://github.com/chyyuu/ucore_lab)
+ . [OS MOOC公开课(实验部分)](http://www.topu.com/mooc/4100)
 
 ## 希望自己动手实践OS的同学
 
