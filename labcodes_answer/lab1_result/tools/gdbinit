@@ -1,4 +1,6 @@
 file bin/kernel
+file obj/bootblock.o
 target remote :1234
+break bootmain
 break kern_init
 continue

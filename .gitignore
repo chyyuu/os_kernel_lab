@@ -7,3 +7,5 @@ cscope.*
 ncscope.*
 tags
 *swp
+.cproject
+.project

@@ -29,9 +29,8 @@
  *
  *  * bootmain() in this file takes over, reads in the kernel and jumps to it.
  * */
-
-#define SECTSIZE        512
-#define ELFHDR          ((struct elfhdr *)0x10000)      // scratch space
+unsigned int    SECTSIZE  =      512 ;
+struct elfhdr * ELFHDR    =      ((struct elfhdr *)0x10000) ;     // scratch space
 
 /* waitdisk - wait for disk ready */
 static void

@@ -152,6 +152,7 @@ $(bootblock): $(call toobj,$(bootfiles)) | $(call totarget,sign)
 	@echo + ld $@
 	$(V)$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 $^ -o $(call toobj,bootblock)
 	@$(OBJDUMP) -S $(call objfile,bootblock) > $(call asmfile,bootblock)
+	@$(OBJDUMP) -t $(call objfile,bootblock) | $(SED) '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(call symfile,bootblock)
 	@$(OBJCOPY) -S -O binary $(call objfile,bootblock) $(call outfile,bootblock)
 	@$(call totarget,sign) $(call outfile,bootblock) $(bootblock)
 
@@ -193,7 +194,7 @@ endif
 # files for grade script
 
 TARGETS: $(TARGETS)
-
+all: $(TARGETS)
 .DEFAULT_GOAL := TARGETS
 
 .PHONY: qemu qemu-nox debug debug-nox
@@ -214,10 +215,12 @@ qemu: $(UCOREIMG)
 qemu-nox: $(UCOREIMG)
 	$(V)$(QEMU) -serial mon:stdio -hda $< -nographic
 TERMINAL        :=gnome-terminal
+gdb: $(UCOREIMG)
+	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null &
 debug: $(UCOREIMG)
 	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null &
 	$(V)sleep 2
-	$(V)$(TERMINAL) -e "gdb -q -x tools/gdbinit"
+	$(V)$(TERMINAL)  --full-screen -e "gdb -tui -q -x tools/gdbinit"
 	
 debug-nox: $(UCOREIMG)
 	$(V)$(QEMU) -S -s -serial mon:stdio -hda $< -nographic &
