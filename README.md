@@ -1,4 +1,4 @@
-# 介绍(2014)
+# 介绍(2015)
 
 ucore OS是用于清华大学计算机系本科操作系统课程的OS教学试验内容。
 ucore OS起源于MIT CSAIL PDOS课题组开发的xv6&jos、哈佛大学开发的
@@ -15,13 +15,31 @@ Attribution/Share-Alike (CC-BY-SA) License.
 - [陈渝](http://soft.cs.tsinghua.edu.cn/~chen)  yuchen AT tsinghua.edu.cn
 - 茅俊杰 eternal.n08 AT gmail.com
 
+# 主讲老师
+向勇、陈渝 
+
 助教
 ============
-何嘉权
-徐永健
-王  欢
-陈一璋
-...
+茅俊杰、何嘉权、曹睿东、武祥晋、辛云星、刘聪、常铖
+
+教学平台支持
+============
+张禹、郭旭
+
+WIKI
+===========
+http://os.cs.tsinghua.edu.cn/oscourse/OS2015
+
+
+学堂在线
+==========
+https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about
+
+
+在线交流
+=========
+- [piazza](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)
+- QQ群 181873534
 
 # 课程汇总信息
 
@@ -45,6 +63,8 @@ ucore OS实验主要在Linux环境下开发。如果你使用的是非Linux环�
 
 ## Windows下基于MingW进行实验
 - windows下如何配置ucore实验环境：这种方式不用安装Linux，感谢“下来障”同学提供的[配置教程](http://pan.baidu.com/s/1i3JxZZR)
+
+[NOTICE] 没有足够的技术支持，希望有感兴趣的生成一个安装软件包和中文使用说明，方便大家使用！
 
 ## Windows下基于VirtualBox or VMWare进行实验
 

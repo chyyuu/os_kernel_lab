@@ -24,7 +24,7 @@ CONTENTS
 os course info
 ----------------
 * [newest os course summary materials](https://github.com/chyyuu/mooc_os)
-* [newest chinese README for ucore_lab](https://github.com/chyyuu/ucore_lab/README-chinese.md)
+* [newest chinese README for ucore_lab](https://github.com/chyyuu/ucore_lab/)
 
 labs info
 ----------------
