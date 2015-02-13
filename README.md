@@ -10,43 +10,46 @@ David A. Holland。其他代码版权属于陈渝、王乃铮、向勇，并采�
 ucore OS相关的文档版权属于陈渝、向勇，并采用 Creative Commons 
 Attribution/Share-Alike (CC-BY-SA) License. 
 
-# 开发维护人员 
+## 开发维护人员 
 
 - [陈渝](http://soft.cs.tsinghua.edu.cn/~chen)  yuchen AT tsinghua.edu.cn
 - 茅俊杰 eternal.n08 AT gmail.com
 
-# 主讲老师
+## 主讲老师
 向勇、陈渝 
 
-助教
-============
+## 助教
+
 茅俊杰、何嘉权、曹睿东、武祥晋、辛云星、刘聪、常铖
 
-教学平台支持
-============
+## 教学平台支持
+
 张禹、郭旭
 
-WIKI
-===========
+## WIKI
+
 http://os.cs.tsinghua.edu.cn/oscourse/OS2015
 
 
-学堂在线
-==========
+## 学堂在线
+
 https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about
 
 
-在线交流
-=========
+## 在线交流
+
 - [piazza](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)
 - QQ群 181873534
 
-# 课程汇总信息
+## 课程汇总信息
 
  -[课程汇总](https://github.com/chyyuu/mooc_os)
 
 # 实验内容
+## 实验指导书
+ -[实验指导书](http://hejq.me/ucore_docs/) 
 
+## 实验题目 
 1. lab0 : 完成实验环境的搭建，熟悉基本的Linux命令和工具
 1. lab1 ：启动操作系统
 1. lab2 ：物理内存管理
@@ -58,17 +61,17 @@ https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about
 1. lab8 : 文件系统
 
 
-# 实验环境
+## 实验环境
 ucore OS实验主要在Linux环境下开发。如果你使用的是非Linux环境，则建议参考下面两种方法。
 
-## Windows下基于MingW进行实验
+### Windows下基于MingW进行实验
 - windows下如何配置ucore实验环境：这种方式不用安装Linux，感谢“下来障”同学提供的[配置教程](http://pan.baidu.com/s/1i3JxZZR)
 
 [NOTICE] 没有足够的技术支持，希望有感兴趣的生成一个安装软件包和中文使用说明，方便大家使用！
 
-## Windows下基于VirtualBox or VMWare进行实验
+### Windows下基于VirtualBox or VMWare进行实验
 
-### 1. 安装VirtualBox or VMWare软件
+#### 1. 安装VirtualBox or VMWare软件
 
 VirtualBox虚拟机软件
 
@@ -76,7 +79,7 @@ VirtualBox虚拟机软件
 
 [NOTICE] 也可以安装vmware虚拟机软件
 
-### 2.使用已经预先安装好相关实验环境所需软件的虚拟硬盘
+#### 2.使用已经预先安装好相关实验环境所需软件的虚拟硬盘
 
 并下载已经安装好ubuntu 14.04  x86-64的虚拟硬盘文件压缩包。
 [VirtualBox和虚拟硬盘文件压缩包](http://pan.baidu.com/s/1pJ4XTGZ)
@@ -102,7 +105,7 @@ ucore OS实验了。
 口令是 <空格键>
 ```
 
-## 手动在VirtualBox虚拟机中安装ubuntu 14.04 和实验环境相关软件
+### 手动在VirtualBox虚拟机中安装ubuntu 14.04 和实验环境相关软件
 （这里假定安装的要是ubuntu14.04 x86-64的系统）
 -------------------------------------
 1. 在VirtualBox上安装ubuntu 
@@ -120,7 +123,7 @@ ucore OS实验了。
 ```
 [NOTICE] 最小需要的安装包： build-essential git qemu-system-x86 gdb make diffutils 
 
-# 练习步骤
+## 实验中的练习步骤
 
 进入VirtualBox中运行的ubuntu，点击左侧的gnome-terminal软件图标，可启动gnome-terminal
 软件。在此软件中，执行如下命令：
@@ -171,8 +174,8 @@ OR
 7. 可以运行如下命令，看看自己的得分
   $make grade
 
-# 相关资料
 
+# 与实验相关的资料
 
 ## 希望了解OS基本概念和原理的同学
 
