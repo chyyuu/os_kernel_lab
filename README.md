@@ -10,44 +10,9 @@ David A. Holland。其他代码版权属于陈渝、王乃铮、向勇，并采�
 ucore OS相关的文档版权属于陈渝、向勇，并采用 Creative Commons 
 Attribution/Share-Alike (CC-BY-SA) License. 
 
-## 开发维护人员 
-
-- [陈渝](http://soft.cs.tsinghua.edu.cn/~chen)  yuchen AT tsinghua.edu.cn
-- 茅俊杰 eternal.n08 AT gmail.com
-
-## 主讲老师
-向勇、陈渝 
-
-## 助教
-
-茅俊杰、何嘉权、曹睿东、武祥晋、辛云星、刘聪、常铖
-
-## 教学平台支持
-
-张禹、郭旭
-
-## WIKI
-
-http://os.cs.tsinghua.edu.cn/oscourse/OS2015
-
-
-## 学堂在线
-
-https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about
-
-
-## 在线交流
-
-- [piazza](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)
-- QQ群 181873534
-
-## 课程汇总信息
-
- -[课程汇总](https://github.com/chyyuu/mooc_os)
-
 # 实验内容
 ## 实验指导书
- -[实验指导书](http://hejq.me/ucore_docs/) 
+ -[实验指导书网址](http://hejq.me/ucore_docs/) 
 
 ## 实验题目 
 1. lab0 : 完成实验环境的搭建，熟悉基本的Linux命令和工具
@@ -176,6 +141,41 @@ OR
 
 
 # 与实验相关的资料
+
+## 清华大学计算机系本科操作系统课程的主讲老师
+  向勇   陈渝 
+
+## 开发维护人员 
+
+- [陈渝](http://soft.cs.tsinghua.edu.cn/~chen)  yuchen AT tsinghua.edu.cn
+- 茅俊杰 eternal.n08 AT gmail.com
+
+## 助教
+
+茅俊杰、何嘉权、曹睿东、武祥晋、辛云星、刘聪、常铖
+
+## 教学平台支持
+
+张禹、郭旭
+
+## WIKI
+
+http://os.cs.tsinghua.edu.cn/oscourse/OS2015
+
+
+## 学堂在线
+
+https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about
+
+
+## 在线交流
+
+- [piazza](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)
+- QQ群 181873534
+
+## 课程汇总信息
+
+ -[课程汇总](https://github.com/chyyuu/mooc_os)
 
 ## 希望了解OS基本概念和原理的同学
 
