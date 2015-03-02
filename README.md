@@ -20,7 +20,7 @@ Attribution/Share-Alike (CC-BY-SA) License.
 
 # 实验内容
 ## 实验指导书
- -[实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/) 
+ - [实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/) 
 
 ## 实验题目
 
