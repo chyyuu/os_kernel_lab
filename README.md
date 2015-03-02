@@ -81,13 +81,13 @@ ucore OS实验了。
 （这里假定安装的要是ubuntu14.04 x86-64的系统）
 -------------------------------------
 
-1. 在VirtualBox上安装ubuntu 
+1) 在VirtualBox上安装ubuntu 
 下载ubuntu 14.04 img镜像，并在VirtualBox中安装系统。
 
 建议a: 设置虚拟硬盘的大小为8GB以上，虚拟内存在512MB以上。
 建议b: 如果你的机器安装的是32位的windows，则下载32位的ubuntu 14.04 img镜像。
 
-2. 在ubuntu系统中安装实验环境相关软件
+2) 在ubuntu系统中安装实验环境相关软件
 在shell（比如gnome-terminal）下可执行如下命令来安装相关软件 (“$”是shell的提示符，不用输入)
 ```
   $ sudo apt-get update
@@ -131,6 +131,7 @@ OR
 ```
 
 6) 如果需要调试，
+  
   a. 可基于cgdb的字符方式(以lab1_ans为例)
 ```
   $cd labcodes_answer/lab1_ans
