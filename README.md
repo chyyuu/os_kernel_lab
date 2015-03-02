@@ -12,7 +12,7 @@ Attribution/Share-Alike (CC-BY-SA) License.
 
 # 实验总体流程
 1. 在[学堂在线](https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about)查看OS相关原理和labX的视频；
-2. 在[实验指导书gitbook](http://hejq.me/ucore_docs/)上阅读实验指导书；
+2. 在[实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/)上阅读实验指导书；
 3. 在实验环境中完成实验并提交实验到git server（清华学生需要在学校内部的git server上，其他同学可提交在其他git server上）；
 4. 如实验中碰到问题，在[在线OS课程问题集](http://xuyongjiande.gitbooks.io/os-qa/)查找是否已经有解答；
 5. 如没有解答，可在[在线OS课程问答和交流区](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)提问。（QQ群 181873534主要用于OS课程一般性交流）；
@@ -20,7 +20,7 @@ Attribution/Share-Alike (CC-BY-SA) License.
 
 # 实验内容
 ## 实验指导书
- -[实验指导书gitbook](http://hejq.me/ucore_docs/) 
+ -[实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/) 
 
 ## 实验题目 
 1. lab0 : 完成实验环境的搭建，熟悉基本的Linux命令和工具
@@ -65,9 +65,7 @@ VirtualBox虚拟机软件
 
 压缩包可以用[haozip for windows软件](http://www.haozip.com)解压。解压压缩包后，可得到如下内容（大约4GB多）。 
 ```
-\mooc-os\mooc-os.vbox
-\mooc-os\mooc-os.vbox-prev
-\mooc-os\mooc-os.vdi
+mooc-os-2015-2.vdi
 ```
 
 如果此时你已经安装好了VirtualBox，在Windows资源管理器中双击文件“mooc-os.vbox”，
@@ -178,8 +176,8 @@ https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about
 
 ## 在线交流
 
-- [piazza](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)
-- QQ群 181873534
+- [piazza，OS课程技术交流的主要在线QA平台](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)
+- QQ群 181873534  主要用于事件通知，聊天等
 
 ## 课程汇总信息
 
