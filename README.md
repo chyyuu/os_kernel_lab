@@ -100,32 +100,37 @@ ucore OS实验了。
 
 进入VirtualBox中运行的ubuntu，点击左侧的gnome-terminal软件图标，可启动gnome-terminal
 软件。在此软件中，执行如下命令：
-1. 目前环境中已经有ucore lab源码，可进一步取得最新ucore lab源码
+
+1) 目前环境中已经有ucore lab源码，可进一步取得最新ucore lab源码
 ```
   $cd  moocos/ucore_lab  #到ucore lab所在目录
   $git pull   #取得最新的ucore lab源代码
   $cd
 ```
-2. 学习源码
+
+2) 学习源码
 ```
   $cd labX  #X为 1--8
 ```
-3. 阅读，修改源码，可以用eclipse-cdt, understand, gedit或vim软件
+
+3) 阅读，修改源码，可以用eclipse-cdt, understand, gedit或vim软件
 ```
   $eclipse
 OR
   $understand
 ```
-4. 修改完毕后，编译实验代码
+
+4) 修改完毕后，编译实验代码
 ```
   $make
 ``` 
-5. 如果编译无误，则可以运行测试一下
+
+5) 如果编译无误，则可以运行测试一下
 ```
   $make qemu
 ```
 
-6. 如果需要调试，
+6) 如果需要调试，
   a. 可基于cgdb的字符方式(以lab1_ans为例)
 ```
   $cd labcodes_answer/lab1_ans
@@ -144,7 +149,7 @@ OR
   b. 基于eclipse-CDT的debug view进行调试，如果安装了zylin debug插件，则完成初步配置后，
      也可很方便地进行调试。
 
-7. 可以运行如下命令，看看自己的得分
+7) 可以运行如下命令，看看自己的得分
   $make grade
 
 
