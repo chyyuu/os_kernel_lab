@@ -22,7 +22,8 @@ Attribution/Share-Alike (CC-BY-SA) License.
 ## 实验指导书
  -[实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/) 
 
-## 实验题目 
+## 实验题目
+
 1. lab0 : 完成实验环境的搭建，熟悉基本的Linux命令和工具
 1. lab1 ：启动操作系统
 1. lab2 ：物理内存管理
@@ -79,6 +80,7 @@ ucore OS实验了。
 ### 手动在VirtualBox虚拟机中安装ubuntu 14.04 和实验环境相关软件
 （这里假定安装的要是ubuntu14.04 x86-64的系统）
 -------------------------------------
+
 1. 在VirtualBox上安装ubuntu 
 下载ubuntu 14.04 img镜像，并在VirtualBox中安装系统。
 
@@ -181,24 +183,24 @@ https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about
 
 ## 课程汇总信息
 
- -[课程汇总](https://github.com/chyyuu/mooc_os)
+ - [课程汇总](https://github.com/chyyuu/mooc_os)
 
 ## 希望了解OS基本概念和原理的同学
 
- . [OS课程资料]( http://pan.baidu.com/s/1bncWxyv)
- . [OS MOOC公开课(原理部分)](http://www.topu.com/mooc/4100)
+- [OS课程资料]( http://pan.baidu.com/s/1bncWxyv)
+- [OS MOOC公开课(原理部分)](http://www.topu.com/mooc/4100)
 
 ## 希望了解OS设计与实现细节的同学
 
- . [OS实验资料](http://hejq.me/ucore_docs/)
- . [OS实验代码](https://github.com/chyyuu/ucore_lab)
- . [OS MOOC公开课(实验部分)](http://www.topu.com/mooc/4100)
+- [OS实验资料](http://hejq.me/ucore_docs/)
+- [OS实验代码](https://github.com/chyyuu/ucore_lab)
+- [OS MOOC公开课(实验部分)](http://www.topu.com/mooc/4100)
 
 ## 希望自己动手实践OS的同学
 
- . ["操作系统简单实现与基本原理 — 基于ucore" (持续更新,变动较大) ](http://chyyuu.gitbooks.io/ucorebook/)
- . ["操作系统简单实现与基本原理 — 基于ucore" 配套代码](https://github.com/chyyuu/ucorebook_code)
- . [ucore plus 跨硬件平台的ucore OS](https://github.com/chyyuu/ucore_plus)
+- ["操作系统简单实现与基本原理 — 基于ucore" (持续更新,变动较大) ](http://chyyuu.gitbooks.io/ucorebook/)
+- ["操作系统简单实现与基本原理 — 基于ucore" 配套代码](https://github.com/chyyuu/ucorebook_code)
+- [ucore plus 跨硬件平台的ucore OS](https://github.com/chyyuu/ucore_plus)
 
 
 # UCORERS (代码贡献者)
