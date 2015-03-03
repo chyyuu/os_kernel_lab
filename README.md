@@ -60,7 +60,7 @@ VirtualBox虚拟机软件
 
 --------------
 
-压缩包可以用[haozip for windows软件](http://www.haozip.com)解压。解压压缩包后，可得到如下内容（大约4GB多）。 
+压缩包可以用[haozip for windows软件](http://www.haozip.com)解压。解压压缩包后，可得到如下内容（大约6GB多）。 
 ```
 mooc-os-2015-2.vdi
 ```
