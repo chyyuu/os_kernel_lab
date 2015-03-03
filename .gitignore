@@ -7,3 +7,7 @@ cscope.*
 ncscope.*
 tags
 *swp
+.cproject
+.project
+*.bak
+*.org
