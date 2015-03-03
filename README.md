@@ -56,13 +56,9 @@ VirtualBox虚拟机软件
 #### 2.使用已经预先安装好相关实验环境所需软件的虚拟硬盘
 
 并下载已经安装好ubuntu 14.04  x86-64的虚拟硬盘文件压缩包。
-[VirtualBox的虚拟硬盘文件压缩包](http://pan.baidu.com/s/11zjRK)
+[VirtualBox的虚拟硬盘文件压缩包2015版](http://pan.baidu.com/s/11zjRK)
 
 --------------
-[NOTICE] 可下载直接使用[同时用于vmware和virtualbox的OVA格式的虚拟硬盘文件mooc-os.ova](http://pan.baidu.com/s/1gdePM6J)
-
-
-
 
 压缩包可以用[haozip for windows软件](http://www.haozip.com)解压。解压压缩包后，可得到如下内容（大约4GB多）。 
 ```
