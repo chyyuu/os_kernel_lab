@@ -11,3 +11,6 @@ tags
 .project
 *.bak
 *.org
+.codelite
+*.project
+*.workspace
