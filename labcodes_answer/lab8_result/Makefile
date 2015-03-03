@@ -299,7 +299,8 @@ QEMUOPTS = -hda $(UCOREIMG) -drive file=$(SWAPIMG),media=disk,cache=writeback -d
 qemu-mon: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
 	$(V)$(QEMU) -monitor stdio $(QEMUOPTS) -serial null
 qemu: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
-	$(V)$(QEMU) -parallel stdio $(QEMUOPTS) -serial null
+	$(V)$(QEMU) -serial stdio $(QEMUOPTS) -parallel null
+#	$(V)$(QEMU) -parallel stdio $(QEMUOPTS) -serial null
 
 qemu-nox: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
 	$(V)$(QEMU) -serial mon:stdio $(QEMUOPTS) -nographic
@@ -308,6 +309,9 @@ monitor: $(UCOREIMG) $(SWAPING) $(SFSIMG)
 	$(V)$(QEMU) -monitor stdio $(QEMUOPTS) -serial null
 
 TERMINAL := gnome-terminal
+
+dbg4ec: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
+	$(V)$(QEMU) -S -s -parallel stdio $(QEMUOPTS) -serial null
 
 debug: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
 	$(V)$(QEMU) -S -s -parallel stdio $(QEMUOPTS) -serial null &
