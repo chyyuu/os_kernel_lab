@@ -14,3 +14,5 @@ tags
 .codelite
 *.project
 *.workspace
+a.out
+make.log
