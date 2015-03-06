@@ -73,15 +73,20 @@ ucore OS实验了。
 口令是 <空格键>
 ```
 
-### 手动在VirtualBox虚拟机中安装ubuntu 14.04 和实验环境相关软件
-（这里假定安装的要是ubuntu14.04 x86-64的系统）
+### 手动在物理PC或VirtualBox中安装ubuntu 14.04 64bit 和实验环境相关软件
 -------------------------------------
+（这里假定安装的要是ubuntu14.04 x86-64的系统）
 
-1) 在VirtualBox上安装ubuntu 
-下载ubuntu 14.04 img镜像，并在VirtualBox中安装系统。
+1) 在物理PC或VirtualBox上安装ubuntu 
 
-建议a: 设置虚拟硬盘的大小为8GB以上，虚拟内存在512MB以上。
-建议b: 如果你的机器安装的是32位的windows，则下载32位的ubuntu 14.04 img镜像。
+下载ubuntu 14.04 64bit img镜像，
+   
+  1.1) 需要把镜像刻录到可启动的光盘或闪盘中,把光盘或闪盘放入物理P，并在物理PC上重启安装。
+  
+  1.2）在配置VirtuaBo虚拟环境中，选择虚拟光盘的来源为下载的ubuntu 14.04 64bit img镜，然后启动irtualBox中新建的虚拟系统进行安装。
+
+建议a: 设置虚拟硬盘的大小为8GB以上，虚拟内存在1B以上。
+建议b: 如果你的机器安装的是32位的windows，则下载32位的ubuntu 14.04 32bit img镜像。
 
 2) 在ubuntu系统中安装实验环境相关软件
 在shell（比如gnome-terminal）下可执行如下命令来安装相关软件 (“$”是shell的提示符，不用输入)
