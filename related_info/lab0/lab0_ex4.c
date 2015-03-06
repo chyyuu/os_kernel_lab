@@ -168,3 +168,119 @@ int main()
     return 0;
 }
 #endif
+
+
+//ex5
+#if 0
+// compile with -nostdinc and explicitly provide header file directories
+#include "list.h"
+#include <stdio.h>
+
+struct MyDataType {
+    list_entry_t list;
+    int32_t data;
+};
+
+struct MyDataType x, y, z;
+
+void display() {
+    printf("x = %lx prev = %lx next = %lx \n", &x.list, x.list.prev, x.list.next); 
+    printf("y = %lx prev = %lx next = %lx \n", &y.list, y.list.prev, y.list.next); 
+    printf("z = %lx prev = %lx next = %lx \n", &z.list, z.list.prev, z.list.next);
+    printf("----------------------------------\n");
+}
+
+int main() {
+    // initialize
+    list_init(&x.list);
+    list_init(&y.list);
+    list_init(&z.list);
+
+    display(); 
+
+    // insert element
+    list_add(&x.list, &y.list);
+
+    display();
+
+    list_add_before(&x.list, &z.list);
+
+    display();
+
+    // delete element
+    list_del_init(&x.list);
+
+    display();
+
+    return 0;
+}
+#endif
+
+//ex6
+#if 0
+#include <stdio.h>
+#include <list.h>
+
+int main() {
+    struct list_entry first, second, third;
+    list_init(&first);
+    list_init(&second);
+    list_init(&third);
+    printf("Is empty:%d\n", list_empty(&first));
+    list_add_after(&first, &second);
+    printf("Is empty:%d\n", list_empty(&first));
+    list_add_before(&first, &third);
+    struct list_entry *temp = &first;
+    int num = 0;
+    while ((temp = list_prev(temp)) != &first)
+        num++;
+    printf("Total elem:%d\n", num);
+    list_del_init(&second);
+    list_del_init(&first);
+    printf("Is empty:%d\n", list_empty(&third));
+    return 0;
+}
+#endif
+
+//ex7
+#if 0
+#include <stdio.h>
+#include <list.h>
+
+struct Ints {
+  int data;
+  list_entry_t le;
+};
+
+#define le2struct(ptr) to_struct((ptr), struct Ints, le)
+#define to_struct(ptr, type, member) \
+  ((type *)((char *)(ptr) - offsetof(type, member)))
+#define offsetof(type, member) \
+  ((size_t)(&((type *)0)->member))
+
+int main() {
+  struct Ints one, two, three, *now_int;
+  list_entry_t *now;
+  one.data = 1;
+  two.data = 2;
+  three.data = 3;
+  list_init(&one.le);
+  list_add_before(&one.le, &two.le);
+  list_add_after(&one.le, &three.le);
+
+  now = &two.le;
+  while (1) {
+    now_int = le2struct(now);
+    printf("Current: %d\n", now_int->data);
+    now = now->next;
+    if (now == &two.le)
+      break;
+  }
+
+  return 0;
+}
+//输出
+//Current: 2
+//Current: 1
+//Current: 3
+#endif
