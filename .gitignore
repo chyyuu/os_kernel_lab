@@ -16,3 +16,4 @@ tags
 *.workspace
 a.out
 make.log
+*.exe
