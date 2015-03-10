@@ -95,6 +95,8 @@ ucore OS实验了。
 ```
 [NOTICE] 最小需要的安装包： build-essential git qemu-system-x86 gdb make diffutils gcc-multilib
 
+[NOTICE] 如要源码编译qemu,需要执行  `apt-get install zlib1g-dev libsdl1.2-dev libesd0-dev automake`
+
 ## 实验中的练习步骤
 
 进入VirtualBox中运行的ubuntu，点击左侧的gnome-terminal软件图标，可启动gnome-terminal
