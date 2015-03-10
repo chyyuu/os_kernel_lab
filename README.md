@@ -16,6 +16,9 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
 # 实验内容
 ## 实验指导书
  - [实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/) 
+ - [实验常用工具列表](https://github.com/objectkuan/ucore_docs/blob/master/lab0/lab0_ref_ucore-tools.md)
+
+> 【提醒】对于实验中的开发: `git`, `gcc`,`gdb`,`qemu`,`make`,`diff`, `patch`, `bash shell`这些重要工具的基本用法是需要提前掌握的.
 
 ## 实验题目
 
@@ -88,9 +91,11 @@ ucore OS实验了。
 ```
   $ sudo apt-get update
   $ sudo apt-get upgrade
-  $ sudo apt-get install build-essential git qemu-system-x86 vim-gnome gdb cgdb eclipse-cdt make diffutils exuberant-ctags tmux openssh-server cscope meld gcc-multilib g++-multilib
+  $ sudo apt-get install build-essential git qemu-system-x86 vim-gnome gdb cgdb eclipse-cdt make diffutils exuberant-ctags tmux openssh-server cscope meld gcc-multilib gcc-multilib g++-multilib
 ```
-[NOTICE] 最小需要的安装包： build-essential git qemu-system-x86 gdb make diffutils 
+[NOTICE] 最小需要的安装包： build-essential git qemu-system-x86 gdb make diffutils gcc-multilib
+
+[NOTICE] 如要源码编译qemu,需要执行  `apt-get install zlib1g-dev libsdl1.2-dev libesd0-dev automake`
 
 ## 实验中的练习步骤
 
