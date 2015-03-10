@@ -75,7 +75,7 @@ ucore OS实验了。
 C:\Users\VirtualBox VMs\
 ```
 
-### 手动在物理PC或VirtualBox中安装ubuntu 14.04 64bit 和实验环境相关软件
+### 手动在物理PC或VirtualBox中重写安装
 -------------------------------------
 （这里假定安装的要是ubuntu14.04 x86-64的系统）
 
@@ -160,68 +160,25 @@ OR
   $make grade
 ```
 
-# 与实验相关的资料
-
-## 清华大学计算机系本科操作系统课程的主讲老师
-  向勇   陈渝 
-
-## 开发维护人员 
-
-- [陈渝](http://soft.cs.tsinghua.edu.cn/~chen)  yuchen AT tsinghua.edu.cn
-- 茅俊杰 eternal.n08 AT gmail.com
-
-## 助教
-
-茅俊杰、何嘉权、曹睿东、武祥晋、辛云星、刘聪、常铖
-
-## 教学平台支持
-
-张禹、郭旭
-
-## WIKI
-
-http://os.cs.tsinghua.edu.cn/oscourse/OS2015
-
-
-## 学堂在线
-
-https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about
-
-
 ## 在线交流
-
 - [piazza，OS课程技术交流的主要在线QA平台](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)
 - QQ群 181873534  主要用于事件通知，聊天等
 
-## 课程汇总信息
+## 开发维护人员 
+- [陈渝](http://soft.cs.tsinghua.edu.cn/~chen)  yuchen AT tsinghua.edu.cn
+- 茅俊杰 eternal.n08 AT gmail.com
 
+## 课程汇总信息
  - [课程汇总](https://github.com/chyyuu/mooc_os)
 
-## 希望了解OS基本概念和原理的同学
-
-- [OS课程资料]( http://pan.baidu.com/s/1bncWxyv)
-- [OS MOOC公开课(原理部分)](http://www.topu.com/mooc/4100)
-
-## 希望了解OS设计与实现细节的同学
-
-- [OS实验资料](http://hejq.me/ucore_docs/)
-- [OS实验代码](https://github.com/chyyuu/ucore_lab)
-- [OS MOOC公开课(实验部分)](http://www.topu.com/mooc/4100)
-
-## 希望自己动手实践OS的同学
-
-- ["操作系统简单实现与基本原理 — 基于ucore" (持续更新,变动较大) ](http://chyyuu.gitbooks.io/ucorebook/)
-- ["操作系统简单实现与基本原理 — 基于ucore" 配套代码](https://github.com/chyyuu/ucorebook_code)
-- [ucore plus 跨硬件平台的ucore OS](https://github.com/chyyuu/ucore_plus)
-
-
-# UCORERS (代码贡献者)
+## UCORERS (代码贡献者)
 
 茅俊杰、陈宇恒、刘聪、杨扬、渠准、任胜伟、朱文雷、
 曹正、沈彤、陈旭、蓝昶、方宇剑、韩文涛、张凯成、
 S郭晓林、薛天凡、胡刚、刘超、粟裕、袁昕颢...
+欢迎加入我们的OS兴趣小组，共同进步！
 
-# 版权信息
+## 版权信息
 
 ucore OS起源于MIT CSAIL PDOS课题组开发的xv6&jos、哈佛大学开发的
 OS161教学操作系统、以及Linux-2.4内核。
@@ -231,8 +188,3 @@ and Russ Cox，使用MIT License。ucore OS中包含的OS/161代码版权属于
 David A. Holland。其他代码版权属于陈渝、王乃铮、向勇，并采用GPL License.
 ucore OS相关的文档版权属于陈渝、向勇，并采用 Creative Commons 
 Attribution/Share-Alike (CC-BY-SA) License. 
-
-# NOTICE
-
-如果你发现了问题，有好的建议或意见,请给 yuchen AT tsinghua.edu.cn 发电邮；
-如果你完成这8个实验，且对进一步探索、研究、研发操作系统感兴趣，请给 yuchen AT tsinghua.edu.cn 发电邮，欢迎加入我们的OS兴趣小组，共同进步！
