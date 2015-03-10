@@ -91,9 +91,9 @@ ucore OS实验了。
 ```
   $ sudo apt-get update
   $ sudo apt-get upgrade
-  $ sudo apt-get install build-essential git qemu-system-x86 vim-gnome gdb cgdb eclipse-cdt make diffutils exuberant-ctags tmux openssh-server cscope meld gcc-multilib g++-multilib
+  $ sudo apt-get install build-essential git qemu-system-x86 vim-gnome gdb cgdb eclipse-cdt make diffutils exuberant-ctags tmux openssh-server cscope meld gcc-multilib gcc-multilib g++-multilib
 ```
-[NOTICE] 最小需要的安装包： build-essential git qemu-system-x86 gdb make diffutils 
+[NOTICE] 最小需要的安装包： build-essential git qemu-system-x86 gdb make diffutils gcc-multilib
 
 ## 实验中的练习步骤
 
