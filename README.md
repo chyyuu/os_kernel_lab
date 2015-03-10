@@ -18,7 +18,7 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
  - [实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/) 
  - [实验常用工具列表](https://github.com/objectkuan/ucore_docs/blob/master/lab0/lab0_ref_ucore-tools.md)
 
-> 【提醒】对于实验中的开发: `git`, `gcc`,`gdb`,`qemu`,`make`,`bash shell`这些重要工具的基本用法是需要提前掌握的.
+> 【提醒】对于实验中的开发: `git`, `gcc`,`gdb`,`qemu`,`make`,`diff`, `patch`, `bash shell`这些重要工具的基本用法是需要提前掌握的.
 
 ## 实验题目
 
