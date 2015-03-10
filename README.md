@@ -36,6 +36,22 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
 ## 实验环境
 ucore OS实验主要在Linux环境下开发。如果你使用的是非Linux环境，则建议参考下面两种方法。
 
+### on Mac OS X, using gcc49
+
+#### 1.install [homebrew](http://brew.sh/)
+
+
+#### 2.install binutils, gcc, gdb targeting i386-elf
+
+* `brew tap altkatz/homebrew-gcc_cross_compilers` 
+* `brew install i386-elf-gcc` # may take an hour
+* `brew install i386-elf-gdb` 
+
+#### 3. install qemu-system-i386
+
+* `brew install qemu`
+
+
 ### Windows下基于MingW进行实验
 - windows下如何配置ucore实验环境：这种方式不用安装Linux，感谢“下来障”同学提供的[配置教程](http://pan.baidu.com/s/1i3JxZZR)
 
