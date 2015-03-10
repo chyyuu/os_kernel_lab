@@ -63,7 +63,7 @@ VirtualBox虚拟机软件
 mooc-os-2015-2.vdi
 ```
 
-如果此时你已经安装好了VirtualBox, 就可以在VirtualBox模拟的x86-64计算机中新建一个虚拟机(配置为ubuntu linux x86 64bit），并指定此虚拟机的虚拟硬盘为你刚才解压的文件。创建完虚拟机后，就可以运行此虚拟幻镜，并可以开始学习
+如果此时你已经安装好了VirtualBox, 就可以在VirtualBox模拟的x86-64计算机中新建一个虚拟机(配置为ubuntu linux x86 64bit），并指定此虚拟机的虚拟硬盘为你刚才解压的vdi文件。创建完虚拟机后，就可以运行此虚拟幻镜，并可以开始学习
 ucore OS实验了。
 ```
 用户名是 moocos
