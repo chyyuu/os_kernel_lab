@@ -63,12 +63,16 @@ VirtualBox虚拟机软件
 mooc-os-2015-2.vdi
 ```
 
-如果此时你已经安装好了VirtualBox，在Windows资源管理器中双击文件“mooc-os.vbox”，
-就可以在VirtualBox模拟的x86-64计算机中运行ubuntu 14.04  x86-64，并可以开始学习
+如果此时你已经安装好了VirtualBox, 就可以在VirtualBox模拟的x86-64计算机中新建一个虚拟机(配置为ubuntu linux x86 64bit），并指定此虚拟机的虚拟硬盘为你刚才解压的文件。创建完虚拟机后，就可以运行此虚拟幻镜，并可以开始学习
 ucore OS实验了。
 ```
 用户名是 moocos
 口令是 <空格键>
+```
+
+> [NOTICE]  如果正确安装了virtualbox并配置好虚拟机，但无法运行虚拟机或无法加入虚拟硬盘， 可以尝试删除virtualbox的一些配置目录，比如：
+```
+C:\Users\VirtualBox VMs\
 ```
 
 ### 手动在物理PC或VirtualBox中安装ubuntu 14.04 64bit 和实验环境相关软件
