@@ -75,7 +75,7 @@ ucore OS实验了。
 C:\Users\VirtualBox VMs\
 ```
 
-### 手动在物理PC或VirtualBox中重写安装
+### 手动在物理PC或VirtualBox中安装环境
 -------------------------------------
 （这里假定安装的要是ubuntu14.04 x86-64的系统）
 
