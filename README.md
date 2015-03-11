@@ -12,11 +12,10 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
 6. 可进一步在[学堂在线](https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about)或[在线的操作系统课程练习题](https://www.gitbook.io/book/xuyongjiande/os_exercises)完成实验相关的练习题；
 
 【注意】
+  - **筑基内功**--请提前学习计算机原理、C语言、数据结构课程
   - **工欲善其事，必先利其器**--请掌握七种武器  [实验常用工具列表](https://github.com/objectkuan/ucore_docs/blob/master/lab0/lab0_ref_ucore-tools.md)
   - **学至于行之而止矣**--请在实验中体会操作系统的精髓
  
-  
-
 # 实验内容
 ## 实验指导书
  - [实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/) 
