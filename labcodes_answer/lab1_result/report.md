@@ -42,12 +42,12 @@ bin/ucore.img
 |	|	| 	-nostdinc  -fno-stack-protector -Ilibs/ -Os -nostdinc \
 |	|	| 	-c boot/bootasm.S -o obj/boot/bootasm.o
 |	|	| 其中关键的参数为
-|	|	| 	-ggdb  生成可供gdb使用的调试信息
-|	|	|	-m32  生成适用于32位环境的代码
-|	|	| 	-gstabs  生成stabs格式的调试信息
-|	|	| 	-nostdinc  不使用标准库
-|	|	|	-fno-stack-protector  不生成用于检测缓冲区溢出的代码
-|	|	| 	-Os  为减小代码大小而进行优化
+|	|	| 	-ggdb  生成可供gdb使用的调试信息。这样才能用qemu+gdb来调试bootloader or ucore。
+|	|	|	-m32  生成适用于32位环境的代码。我们用的模拟硬件是32bit的80386，所以ucore也要是32位的软件。
+|	|	| 	-gstabs  生成stabs格式的调试信息。这样要ucore的monitor可以显示出便于开发者阅读的函数调用栈信息
+|	|	| 	-nostdinc  不使用标准库。标准库是给应用程序用的，我们是编译ucore内核，OS内核是提供服务的，所以所有的服务要自给自足。
+|	|	|	-fno-stack-protector  不生成用于检测缓冲区溢出的代码。这是for 应用程序的，我们是编译内核，ucore内核好像还用不到此功能。
+|	|	| 	-Os  为减小代码大小而进行优化。根据硬件spec，主引导扇区只有512字节，我们写的简单bootloader的最终大小不能大于510字节。
 |	|	| 	-I<dir>  添加搜索头文件的路径
 |	|	| 
 |	|	| 生成bootmain.o需要bootmain.c
