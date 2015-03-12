@@ -11,11 +11,11 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
 5. 每天（一周七日）都有助教或老师在piazza在线答疑。如在[在线OS课程问题集](http://xuyongjiande.gitbooks.io/os-qa/)没找到解答，可到[piazza在线OS课程问答和交流区](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)提问。（QQ群 181873534主要用于本课程和OS相关事件发布，以及各种一般性交流）；
 6. 可进一步在[学堂在线](https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about)或[在线的操作系统课程练习题](https://www.gitbook.io/book/xuyongjiande/os_exercises)完成实验相关的练习题；
 
-【注意】
+【**注意**】
   - **筑基内功**--请提前学习计算机原理、C语言、数据结构课程
   - **工欲善其事，必先利其器**--请掌握七种武器  [实验常用工具列表](https://github.com/objectkuan/ucore_docs/blob/master/lab0/lab0_ref_ucore-tools.md)
   - **学至于行之而止矣**--请在实验中体会操作系统的精髓
-  - **打通任督二脉**--lab1和lab2比较困难，有些同学由于畏难而止步与此，很可惜。通过lab1和lab2后，等同于打通了任督二脉，后面的实验将一片坦途。
+  - **打通任督二脉**--lab1和lab2比较困难，有些同学由于畏难而止步与此，很可惜。通过lab1和lab2后，对计算机原理中的中断、段页表机制、特权级等的理解会更深入，等会有等同于打通了任督二脉，后面的实验将一片坦途。
   
  
 # 实验内容
