@@ -183,6 +183,8 @@ build_run() {
     run_qemu
 
     show_time
+
+    cp $qemu_out .`echo $tag | tr '[:upper:]' '[:lower:]' | sed 's/ /_/g'`.log
 }
 
 check_result() {

@@ -15,5 +15,5 @@ tags
 *.project
 *.workspace
 a.out
-make.log
+*.log
 *.exe
