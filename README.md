@@ -88,35 +88,32 @@ ucore OS实验了。
 C:\Users\VirtualBox VMs\
 ```
 
-### 四、手动在物理PC或VirtualBox中安装环境
--------------------------------------
-（这里假定安装的要是ubuntu14.04 x86-64的系统）
-
-1) 在物理PC或VirtualBox上安装ubuntu 
-
-下载ubuntu 14.04 64bit img镜像，
-   
-  1.1) 需要把镜像刻录到可启动的光盘或闪盘中,把光盘或闪盘放入物理P，并在物理PC上重启安装。
-  
-  1.2）在配置VirtuaBo虚拟环境中，选择虚拟光盘的来源为下载的ubuntu 14.04 64bit img镜，然后启动irtualBox中新建的虚拟系统进行安装。
-
 建议a: 设置虚拟硬盘的大小为8GB以上，虚拟内存在1B以上。
 建议b: 如果你的机器安装的是32位的windows，则下载32位的ubuntu 14.04 32bit img镜像。
+
+### 四、手动在物理PC中安装环境
+-------------------------------------
+特点：性能最好，但安装有一定难度，需要对Linux比较熟悉
+
+（这里假定安装的要是ubuntu14.04 x86-64的系统）
+
+1) 在物理PC上安装ubuntu 
+
+下载ubuntu 14.04 64bit img镜像，需要把镜像刻录到可启动的光盘或闪盘中,把光盘或闪盘放入物理PC，并在物理PC上重启安装。
 
 2) 在ubuntu系统中安装实验环境相关软件
 在shell（比如gnome-terminal）下可执行如下命令来安装相关软件 (“$”是shell的提示符，不用输入)
 ```
   $ sudo apt-get update
   $ sudo apt-get upgrade
-  $ sudo apt-get install build-essential git qemu-system-x86 vim-gnome gdb cgdb eclipse-cdt make diffutils exuberant-ctags tmux openssh-server cscope meld gcc-multilib gcc-multilib g++-multilib
+  $ sudo apt-get install build-essential git qemu-system-x86 vim-gnome gdb cgdb eclipse-cdt make diffutils exuberant-ctags tmux openssh-server cscope meld qgit gitg gcc-multilib gcc-multilib g++-multilib
 ```
 [NOTICE] 最小需要的安装包： build-essential git qemu-system-x86 gdb make diffutils gcc-multilib
 
 [NOTICE] 如要源码编译qemu,需要执行  `apt-get install zlib1g-dev libsdl1.2-dev libesd0-dev automake`
 
 ## 实验中的练习步骤
-
-进入VirtualBox中运行的ubuntu，点击左侧的gnome-terminal软件图标，可启动gnome-terminal
+以VirtualBox为例，进入VirtualBox中运行的ubuntu，点击左侧的gnome-terminal软件图标，可启动gnome-terminal
 软件。在此软件中，执行如下命令：
 
 1) 目前环境中已经有ucore lab源码，可进一步取得最新ucore lab源码
