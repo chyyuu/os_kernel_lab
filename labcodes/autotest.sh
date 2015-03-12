@@ -6,7 +6,7 @@ pushd `dirname "$0"` > /dev/null
 if [ -n "$1" ]; then
     RESULT_SAVETO=`realpath $1`
 fi
-BASE_COMMIT=95a80f598fc57c60aed3737c60ee437d94eb8540
+BASE_COMMIT=1d8c85670d03ce745e32bbc57147835b210fe560
 if [ -n "$2" ] && git log $2 > /dev/null 2>&1; then
     BASE_COMMIT=$2
 elif ! git log $BASE_COMMIT > /dev/null 2>&1; then
