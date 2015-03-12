@@ -41,14 +41,20 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
 
 
 ## 实验环境
-ucore OS实验主要在Linux环境下开发。如果你使用的是非Linux环境，则建议参考下面两种方法。
+ucore OS实验主要在Linux环境下开发，有如下四种方法。
 
-### Windows下基于MingW进行实验
+### 一、[在线实验](http://www.shiyanlou.com/courses/221)
+特点：不用在本机配置环境或安装虚拟机，你需要的是可以可以上网的网络浏览器，实验都可在网上完成！感谢[实验楼](http://www.shiyanlou.com/)提供的支持！
+
+### 二、Windows下基于MingW进行实验
+特点：可在Windows环境下完成实验。不用安装Linux，只需在Windows上安装相关软件即可。不过安装较复杂。
+
 - windows下如何配置ucore实验环境：这种方式不用安装Linux，感谢“下来障”同学提供的[配置教程](http://pan.baidu.com/s/1i3JxZZR)
 
 [NOTICE] 没有足够的技术支持，希望有感兴趣的生成一个安装软件包和中文使用说明，方便大家使用！
 
-### Windows下基于VirtualBox or VMWare进行实验
+### 三、Windows下基于VirtualBox or VMWare进行实验
+特点：可在Windows环境下完成实验。不用安装Linux，安装VirtualBox等虚拟机软件即可，可以用已经配好环的虚拟硬盘。安装简单，但性能受一定影响。
 
 #### 1. 安装VirtualBox or VMWare软件
 
@@ -82,7 +88,7 @@ ucore OS实验了。
 C:\Users\VirtualBox VMs\
 ```
 
-### 手动在物理PC或VirtualBox中安装环境
+### 四、手动在物理PC或VirtualBox中安装环境
 -------------------------------------
 （这里假定安装的要是ubuntu14.04 x86-64的系统）
 
