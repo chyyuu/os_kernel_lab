@@ -105,7 +105,7 @@ show_msg() {
     echo $1
     shift
     if [ $# -gt 0 ]; then
-        echo "$@" | awk '{printf "   %s\n", $0}'
+        echo -e "$@" | awk '{printf "   %s\n", $0}'
         echo
     fi
 }
