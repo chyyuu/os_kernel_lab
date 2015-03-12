@@ -146,9 +146,13 @@ run_qemu() {
     if [ -n "$brkfun" ]; then
         # find the address of the kernel $brkfun function
         brkaddr=`$grep " $brkfun\$" $sym_table | $sed -e's/ .*$//g'`
+        brkaddr_phys=`echo $brkaddr | sed "s/^c0/00/g"`
         (
             echo "target remote localhost:$gdbport"
             echo "break *0x$brkaddr"
+            if [ "$brkaddr" != "$brkaddr_phys" ]; then
+                echo "break *0x$brkaddr_phys"
+            fi
             echo "continue"
         ) > $gdb_in
 
@@ -365,4 +369,3 @@ quick_check 'check initproc'                                    \
 
 ## print final-score
 show_final
-
