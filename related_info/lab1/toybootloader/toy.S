@@ -26,5 +26,5 @@ dispstr:
 	int $0x10                                              /* 调用BIOS提供的int服务0x10的0x13功能：显示字符串 */ 
 	ret
 		
-.org    0x1fe, 0x90 
-.word 0xaa55 
+.org    0x1fe, 0x90                                       /* 0x1fe=510，表示从ret后的位置开始，直到510处结束的代码/数据空间，填写0x90 */
+.word 0xaa55                                              /* 合法的主引导扇区标识 */
