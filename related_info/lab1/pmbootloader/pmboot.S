@@ -16,9 +16,9 @@ start:
  jmpl $0x0, $code 
 		
 GDT_START:	
-Descriptor_DUMMY:Descriptor(0x0,0x0,0x0)
-Descript_CODE32 :Descriptor(0x0,0xffffffff,DA_C+DA_32)
-Descriptor_VIDEO:Descriptor(0xb8000,0x0ffff,DA_DRW)
+Descriptor_DUMMY:Descriptor(0x0,0x0,0x0)                        /* 第0项里面全是0，不会用到 */
+Descript_CODE32 :Descriptor(0x0,0xffffffff,DA_C+DA_32)    /* 32位代码段的段基址，段界限，访问类型 */
+Descriptor_VIDEO:Descriptor(0xb8000,0x0ffff,DA_DRW)     /* 显存的段基址，段界限，访问类型 */
 GDT_END:
 
 GdtPtr:
