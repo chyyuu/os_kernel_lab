@@ -52,7 +52,6 @@ static uint16_t *crt_buf;
 static uint16_t crt_pos;
 static uint16_t addr_6845;
 
-/* TEXT-mode CGA/VGA display output */
 // 显示器初始化，CGA 是 Color Graphics Adapter 的缩写
 // CGA显存按照下面的方式映射：
 //   -- 0xB0000 - 0xB7777 单色字符模式
@@ -61,6 +60,8 @@ static uint16_t addr_6845;
 // CPU通过IO地址0x3B4-0x3B5来驱动6845控制单色显示，通过IO地址0x3D4-0x3D5来控制彩色显示。
 //    -- 数据寄存器 映射 到 端口 0x3D5或0x3B5 
 //    -- 索引寄存器 0x3D4或0x3B4,决定在数据寄存器中的数据表示什么。
+
+/* TEXT-mode CGA/VGA display output */
 static void
 cga_init(void) {
     volatile uint16_t *cp = (uint16_t *)CGA_BUF;   //CGA_BUF: 0xB8000 (彩色显示的显存物理基址)
