@@ -65,14 +65,14 @@ static uint16_t addr_6845;
 static void
 cga_init(void) {
     volatile uint16_t *cp = (uint16_t *)CGA_BUF;   //CGA_BUF: 0xB8000 (彩色显示的显存物理基址)
-    uint16_t was = *cp;                                            //保存当前光标所在值
-    *cp = (uint16_t) 0xA55A;
-    if (*cp != 0xA55A) {
-        cp = (uint16_t*)MONO_BUF;                         //黑白显示的显存基址 MONO_BUF： 0xB0000
-        addr_6845 = MONO_BASE;                           //黑白显示控制的IO地址，MONO_BASE: 0x3B4
-    } else {
-        *cp = was;                                                      //还原原来的光标所在值
-        addr_6845 = CGA_BASE;                               // 彩色显示控制的IO地址， CGA_BASE: 0x3D4 
+    uint16_t was = *cp;                                            //保存当前显存0xB8000处的值
+    *cp = (uint16_t) 0xA55A;                                   // 给这个地址随便写个值，看看能否再读出同样的值
+    if (*cp != 0xA55A) {                                            // 如果读不出来，说明没有这块显存，即是单显配置
+        cp = (uint16_t*)MONO_BUF;                         //设置为单显的显存基址 MONO_BUF： 0xB0000
+        addr_6845 = MONO_BASE;                           //设置为单显控制的IO地址，MONO_BASE: 0x3B4
+    } else {                                                                // 如果读出来了，有这块显存，即是彩显配置
+        *cp = was;                                                      //还原原来显存位置的值
+        addr_6845 = CGA_BASE;                               // 设置为彩显控制的IO地址，CGA_BASE: 0x3D4 
     }
 
     // Extract cursor location
