@@ -41,7 +41,7 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
 
 
 ## 实验环境
-ucore OS实验主要在Linux环境下开发，有如下四种方法。
+ucore OS实验主要在Linux环境下开发，有如下种方法。
 
 ### 一、[在线实验--基于"实验楼"在线平台](http://www.shiyanlou.com/courses/221)
 特点：不用在本机配置环境或安装虚拟机，你需要的是可以可以上网的网络浏览器，实验都可在网上完成！感谢[实验楼](http://www.shiyanlou.com/)提供的支持！
@@ -91,7 +91,26 @@ C:\Users\VirtualBox VMs\
 建议a: 设置虚拟硬盘的大小为8GB以上，虚拟内存在1B以上。
 建议b: 如果你的机器安装的是32位的windows，则下载32位的ubuntu 14.04 32bit img镜像。
 
-### 四、手动在物理PC中安装环境
+
+### 四、在MAC OS下进行实验
+
+Using gcc49
+
+#### 1.install [homebrew](http://brew.sh/)
+
+#### 2.install binutils, gcc, gdb targeting i386-elf
+
+* `brew tap altkatz/homebrew-gcc_cross_compilers` 
+* `brew install i386-elf-gcc` # may take an hour
+* `brew install i386-elf-gdb` 
+
+#### 3. install qemu-system-i386
+
+* `brew install qemu`
+
+### 五、手动在物理PC中安装环境
+
+
 -------------------------------------
 特点：性能最好，但安装有一定难度，需要对Linux比较熟悉
 
