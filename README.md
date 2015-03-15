@@ -41,7 +41,7 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
 
 
 ## 实验环境
-ucore OS实验主要在Linux环境下开发，有如下种方法。
+ucore OS实验主要在Linux环境下开发，有如下五种方法。
 
 ### 一、[在线实验--基于"实验楼"在线平台](http://www.shiyanlou.com/courses/221)
 特点：不用在本机配置环境或安装虚拟机，你需要的是可以可以上网的网络浏览器，实验都可在网上完成！感谢[实验楼](http://www.shiyanlou.com/)提供的支持！
