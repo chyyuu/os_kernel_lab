@@ -55,7 +55,8 @@ ucore OS实验主要在Linux环境下开发，有如下五种方法。
 ### 二、Windows下基于MingW进行实验
 特点：可在Windows环境下完成实验。不用安装Linux，只需在Windows上安装相关软件即可。不过安装较复杂。
 
-- windows下如何配置ucore实验环境：这种方式不用安装Linux，感谢“下来障”同学提供的[配置教程](http://pan.baidu.com/s/1i3JxZZR)
+- [windows下的ucore实验环境安装包](http://pan.baidu.com/s/1qWPtHxy)：感谢杨海宇同学提供
+- [windows下手动配置ucore实验环境说明文档](http://pan.baidu.com/s/1i3JxZZR)：感谢“下来障”同学提供
 
 [NOTICE] 没有足够的技术支持，希望有感兴趣的生成一个安装软件包和中文使用说明，方便大家使用！
 
