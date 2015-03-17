@@ -94,6 +94,8 @@ C:\Users\VirtualBox VMs\
 
 ### 四、在MAC OS下进行实验
 
+感谢 altkatz！
+
 Using gcc49
 
 #### 1.install [homebrew](http://brew.sh/)
