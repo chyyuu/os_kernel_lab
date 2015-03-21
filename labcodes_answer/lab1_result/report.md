@@ -153,9 +153,34 @@ bin/ucore.img
 
 [练习2.1] 从 CPU 加电后执行的第一条指令开始,单步跟踪 BIOS 的执行。
 
-通过改写Makefile文件
+练习2可以单步跟踪，方法如下：
+ 
+1 修改 lab1/tools/gdbinit,内容为:
+```
+set architecture i8086
+target remote :1234
+```
+
+2 在 lab1目录下，执行
+```
+make debug
+```
+
+3 在看到gdb的调试界面(gdb)后，在gdb调试界面下执行如下命令
+```
+si
+```
+即可单步跟踪BIOS了。
+
+4 在gdb界面下，可通过如下命令来看BIOS的代码
+```
+ x /2i $pc  //显示当前eip处的汇编指令
+```
+
+> [进一步的补充]
 
 ```
+改写Makefile文件
 	debug: $(UCOREIMG)
 		$(V)$(TERMINAL) -e "$(QEMU) -S -s -d in_asm -D $(BINDIR)/q.log -parallel stdio -hda $< -serial null"
 		$(V)sleep 2
