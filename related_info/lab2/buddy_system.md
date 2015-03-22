@@ -7,7 +7,6 @@ From
 try to 
 ```
 gcc -g -O0 -o buddy_system buddy_system.c
-酷 壳 – CoolShell.cn
 gdb buddy_system
 ```
 
