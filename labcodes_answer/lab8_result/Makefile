@@ -335,6 +335,9 @@ run-%: build-%
 sh-%: script-%
 	$(V)$(QEMU) -parallel stdio $(QEMUOPTS) -serial null
 
+run-nox-%: build-%
+	$(V)$(QEMU) -serial mon:stdio $(QEMUOPTS) -nographic
+
 build-%: touch
 	$(V)$(MAKE) $(MAKEOPTS) "DEFS+=-DTEST=$*" 
 
