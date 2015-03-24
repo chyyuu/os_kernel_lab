@@ -261,6 +261,9 @@ endef
 
 $(foreach p,$(USER_BINS),$(eval $(call fscopy,$(p),$(SFSROOT)$(SLASH))))
 
+$(SFSROOT):
+	$(V)$(MKDIR) $@
+
 $(SFSIMG): $(SFSROOT) $(SFSBINS) | $(call totarget,mksfs)
 	$(V)dd if=/dev/zero of=$@ bs=1M count=128
 	@$(call totarget,mksfs) $@ $(SFSROOT)
