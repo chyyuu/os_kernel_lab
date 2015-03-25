@@ -5,7 +5,7 @@
 
 #define TOTAL 5
 /* to get enough accuracy, MAX_TIME (the running time of each process) should >1000 mseconds. */
-#define MAX_TIME  2000
+#define MAX_TIME  1000
 unsigned int acc[TOTAL];
 int status[TOTAL];
 int pids[TOTAL];

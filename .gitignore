@@ -18,3 +18,5 @@ a.out
 *.log
 *.exe
 chytesting
+disk0
+*.orig
