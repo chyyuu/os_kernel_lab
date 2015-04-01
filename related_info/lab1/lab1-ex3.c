@@ -1,5 +1,5 @@
 void inline ex1(void){
-        asm ("movl $0xffff, %%eax\n");
+        asm ("movl $0xffff, %eax\n");
 }
 
 void inline ex2(void){
