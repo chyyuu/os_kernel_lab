@@ -2,7 +2,7 @@
 
 ## SPOC小组思考题
 
-(1) (spoc)设计一个简化的进程管理子系统，可以管理并调度如下简化进程.给出了[参考代码](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab5/process-cpu-cpuio-homework.py)，请理解代码，并完成＂YOUR CODE"部分的内容．　可２个人一组
+(1) (spoc)设计一个简化的进程管理子系统，可以管理并调度如下简化进程.给出了[参考代码](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab5/process-cpuio-homework.py)，请理解代码，并完成＂YOUR CODE"部分的内容．　可２个人一组
 
 ### 进程的状态 
 ```
