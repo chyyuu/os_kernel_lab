@@ -23,7 +23,10 @@
 ```
  - 进程切换行为：系统决定何时(when)切换进程:进程结束或进程发出yield请求
 
-
+### 进程执行
+```
+instruction_to_execute = self.proc_info[self.curr_proc][PROC_CODE].pop(0)
+```
 ### 执行实例
 
 #### 例１
