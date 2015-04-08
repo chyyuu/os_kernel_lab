@@ -224,32 +224,32 @@ endif
 
 # files for grade script
 
-targets: $(TARGETS)
+TARGETS: $(TARGETS)
 
-.DEFAULT_GOAL := targets
+.DEFAULT_GOAL := TARGETS
 
 QEMUOPTS = -hda $(UCOREIMG)
 
-.PHONY: qemu qemu-nox gdb debug debug-mon debug-nox
-qemu-mon: targets
+.PHONY: qemu qemu-nox debug debug-nox
+qemu-mon: $(UCOREIMG)
 	$(V)$(QEMU)  -no-reboot -monitor stdio $(QEMUOPTS) -serial null
-qemu: targets
+qemu: $(UCOREIMG)
 	$(V)$(QEMU)  -no-reboot -parallel stdio $(QEMUOPTS) -serial null
 
 qemu-nox: targets
 	$(V)$(QEMU)  -no-reboot -serial mon:stdio $(QEMUOPTS) -nographic
 
-gdb:
-	$(V)$(GDB) -q -x tools/gdbinit
+TERMINAL := gnome-terminal
 
-debug: targets
-	$(V)$(QEMU) -S -s -parallel stdio $(QEMUOPTS) -serial null
+debug: $(UCOREIMG)
+	$(V)$(QEMU) -S -s -parallel stdio $(QEMUOPTS) -serial null &
+	$(V)sleep 2
+	$(V)$(TERMINAL) -e "$(GDB) -q -x tools/gdbinit"
 
-debug-mon: targets
-	$(V)$(QEMU) -S -s -monitor stdio $(QEMUOPTS) -parallel null -serial null
-
-debug-nox: targets
-	$(V)$(QEMU) -S -s -serial mon:stdio $(QEMUOPTS) -nographic
+debug-nox: $(UCOREIMG)
+	$(V)$(QEMU) -S -s -serial mon:stdio $(QEMUOPTS) -nographic &
+	$(V)sleep 2
+	$(V)$(TERMINAL) -e "$(GDB) -q -x tools/gdbinit"
 
 .PHONY: grade touch
 
