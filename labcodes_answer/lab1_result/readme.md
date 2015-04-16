@@ -9,10 +9,12 @@ make qemu
 
 # for kernel with grub loading in real x86 machine
 
-compile command:
+compiling command:
 ```
 $make mboot
 ```
+> need `nasm`, try to use `sudo apt-get install nasm` to install this soft.
+
 after this, will generate `bin/grub_kernel`
 
 we could 
