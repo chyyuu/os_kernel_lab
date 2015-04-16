@@ -8,5 +8,5 @@ challenge2: 用敲键盘实现用户模式内核模式切换
 
 
 challenge3: 可以在真实x86机器上用grub bootloader引导ucore kernel
-状态：已完成 在branch master中的labcodes_answer/lab1_result
+状态：已完成 在branch lab1_X中的labcodes_answer/lab1_result
 完成人：王欢 (mikewang.exe@gmail.com)
