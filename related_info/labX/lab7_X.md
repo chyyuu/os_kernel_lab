@@ -9,4 +9,7 @@ http://www.diybl.com/course/6_system/linux/Linuxjs/20081117/151814.html
 状态：未完成
 完成人：
 
+challenge3: 在内核中增加相应机制，能够探测死锁或破坏互斥现象
+状态：未完成
+完成人：
 
