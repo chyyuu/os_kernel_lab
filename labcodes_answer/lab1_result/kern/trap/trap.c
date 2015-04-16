@@ -19,6 +19,24 @@ static void print_ticks() {
 #endif
 }
 
+static void
+lab1_print_cur_status(void) {
+    static int round = 0;
+    uint16_t reg1, reg2, reg3, reg4;
+    asm volatile (
+		"mov %%cs, %0;"
+		"mov %%ds, %1;"
+		"mov %%es, %2;"
+		"mov %%ss, %3;"
+		: "=m"(reg1), "=m"(reg2), "=m"(reg3), "=m"(reg4));
+    cprintf("%d: @ring %d\n", round, reg1 & 3);
+    cprintf("%d:  cs = %x\n", round, reg1);
+    cprintf("%d:  ds = %x\n", round, reg2);
+    cprintf("%d:  es = %x\n", round, reg3);
+    cprintf("%d:  ss = %x\n", round, reg4);
+    round ++;
+}
+
 /* *
  * Interrupt descriptor table:
  *
@@ -171,10 +189,57 @@ trap_dispatch(struct trapframe *tf) {
     case IRQ_OFFSET + IRQ_KBD:
         c = cons_getc();
         cprintf("kbd [%03d] %c\n", c, c);
-        break;
+		
+		/*********************/
+		//Hardware Interrupt is different with software trap, so no need use temp stack
+		
+		//if keyboard input '3' it will go to USER mode
+		
+		if ( c =='3'){
+			
+			tf->tf_eflags |= 0x3000;
+			if (tf->tf_cs != USER_CS) {
+				
+				tf->tf_cs = USER_CS;
+				tf->tf_ds = tf->tf_es = tf->tf_ss = USER_DS;
+				//tf.tf_esp = (uint32_t)tf + sizeof(struct trapframe) - 8;
+				
+				// set eflags, make sure ucore can use io under user mode.
+				// if CPL > IOPL, then cpu will generate a general protection.
+				tf->tf_eflags |= FL_IOPL_MASK;
+				
+				// set temporary stack
+				// then iret will jump to the right stack
+				//*((uint32_t *)tf - 1) = (uint32_t)&switchk2u;
+			}
+			
+			//the status can show in trapframe, 
+			//however register value change at iret in trapentry.s,
+			//so lab1_print_cur_status() does not work
+			print_trapframe(tf);
+			//lab1_print_cur_status();
+		}
+		
+		//if keyboard input '0' it will go to Kernel mode
+		if ( c =='0'){
+
+			if (tf->tf_cs != KERNEL_CS) {
+				tf->tf_cs = KERNEL_CS;
+				tf->tf_ds = tf->tf_es = KERNEL_DS;
+				tf->tf_eflags &= ~FL_IOPL_MASK;
+		
+			}
+			print_trapframe(tf);
+			//lab1_print_cur_status();
+		}   
+		/*******************/
+		
+		break;
+		
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
     case T_SWITCH_TOU:
-        if (tf->tf_cs != USER_CS) {
+		tf->tf_eflags |= 0x3000;
+		if (tf->tf_cs != USER_CS) {
             switchk2u = *tf;
             switchk2u.tf_cs = USER_CS;
             switchk2u.tf_ds = switchk2u.tf_es = switchk2u.tf_ss = USER_DS;
