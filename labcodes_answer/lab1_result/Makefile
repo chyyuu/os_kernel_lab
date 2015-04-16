@@ -112,14 +112,16 @@ $(call add_files_cc,$(call listf_cc,$(LIBDIR)),libs,)
 KINCLUDE	+= kern/debug/ \
 			   kern/driver/ \
 			   kern/trap/ \
-			   kern/mm/
+			   kern/mm/ \
+			   mboot/
 
 KSRCDIR		+= kern/init \
 			   kern/libs \
 			   kern/debug \
 			   kern/driver \
 			   kern/trap \
-			   kern/mm
+			   kern/mm \
+			   mboot/
 
 KCFLAGS		+= $(addprefix -I,$(KINCLUDE))
 
@@ -129,12 +131,22 @@ KOBJS	= $(call read_packet,kernel libs)
 
 # create kernel target
 kernel = $(call totarget,kernel)
+grub_kernel = $(call totarget,grub_kernel)
 
 $(kernel): tools/kernel.ld
 
 $(kernel): $(KOBJS)
 	@echo + ld $@
 	$(V)$(LD) $(LDFLAGS) -T tools/kernel.ld -o $@ $(KOBJS)
+	@$(OBJDUMP) -S $@ > $(call asmfile,kernel)
+	@$(OBJDUMP) -t $@ | $(SED) '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(call symfile,kernel)
+	
+$(grub_kernel): mboot/link.ld
+
+$(grub_kernel): $(KOBJS)
+	nasm -felf32 -g -o obj/mboot/entry.o mboot/entry.asm
+	@echo + ld $@
+	$(V)$(LD) $(LDFLAGS) -T mboot/link.ld -o $@ $(KOBJS) obj/mboot/entry.o
 	@$(OBJDUMP) -S $@ > $(call asmfile,kernel)
 	@$(OBJDUMP) -t $@ | $(SED) '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(call symfile,kernel)
 
@@ -262,3 +274,6 @@ packall: clean
 	@$(RM) -f $(HANDIN)
 	@tar -czf $(HANDIN) `find . -type f -o -type d | grep -v '^\.*$$' | grep -vF '$(HANDIN)'`
 
+
+mboot: $(grub_kernel)
+	@echo build ucore for mboot
