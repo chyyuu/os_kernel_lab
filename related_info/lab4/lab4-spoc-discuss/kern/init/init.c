@@ -32,8 +32,10 @@ kern_init(void) {
     clock_init();               // init clock interrupt
     intr_enable();              // enable irq interrupt
 
+    cprintf("[SPOC] schedule after proc_init. This will let idel_proc run\n");
 	schedule();   //let init proc run
 	while (do_wait(1, NULL) == 0) {
+        cprintf("[SPOC] schedule after do_wait\n");
         schedule();
     }
 }
