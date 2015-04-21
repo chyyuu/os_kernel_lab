@@ -15,5 +15,8 @@ tags
 *.project
 *.workspace
 a.out
-make.log
+*.log
 *.exe
+chytesting
+disk0
+*.orig

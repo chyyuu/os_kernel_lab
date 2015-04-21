@@ -105,7 +105,7 @@ show_msg() {
     echo $1
     shift
     if [ $# -gt 0 ]; then
-        echo "$@" | awk '{printf "   %s\n", $0}'
+        echo -e "$@" | awk '{printf "   %s\n", $0}'
         echo
     fi
 }
@@ -146,9 +146,13 @@ run_qemu() {
     if [ -n "$brkfun" ]; then
         # find the address of the kernel $brkfun function
         brkaddr=`$grep " $brkfun\$" $sym_table | $sed -e's/ .*$//g'`
+        brkaddr_phys=`echo $brkaddr | sed "s/^c0/00/g"`
         (
             echo "target remote localhost:$gdbport"
             echo "break *0x$brkaddr"
+            if [ "$brkaddr" != "$brkaddr_phys" ]; then
+                echo "break *0x$brkaddr_phys"
+            fi
             echo "continue"
         ) > $gdb_in
 
@@ -179,6 +183,8 @@ build_run() {
     run_qemu
 
     show_time
+
+    cp $qemu_out .`echo $tag | tr '[:upper:]' '[:lower:]' | sed 's/ /_/g'`.log
 }
 
 check_result() {
@@ -341,7 +347,6 @@ default_check() {
     'PDE(001) fac00000-fb000000 00400000 -rw'                   \
     '  |-- PTE(000e0) faf00000-fafe0000 000e0000 urw'           \
     '  |-- PTE(00001) fafeb000-fafec000 00001000 -rw'		\
-    'check_slob() succeeded!'					\
     'check_vma_struct() succeeded!'                             \
     'page fault at 0x00000100: K/W [no page found].'            \
     'check_pgfault() succeeded!'                                \
@@ -636,4 +641,3 @@ run_test -prog 'matrix'     -check default_check                \
 
 ## print final-score
 show_final
-

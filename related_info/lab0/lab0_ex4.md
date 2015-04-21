@@ -7,6 +7,4 @@ If you get gcc's error, try to read make.log and fix the bugs.
 
 If gcc successed, then you will get a.out. 
 
-Try to answer below question. 
-
 
