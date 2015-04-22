@@ -11,3 +11,14 @@ challenge3:理解ucore lab，基于ucore lab源码，给ucore lab生成参考文
 状态：类似 http://pdos.csail.mit.edu/6.828/2011/xv6/xv6-rev6.pdf 和它自动生成方式
 要求：添加对于ucore lab的函数和重要数据结构的说明（中文注释，基于doxygen的格式），能对函数进行分类（比如memory::pmm....），这样可以采用doxygen自动生成ucore lab参考文档。lab1～lab8的很多注释内容应该可以复用。
 完成人：
+
+challenge4: porting ucore labs 在Intel galieo gen2开发板上(板子可到FIT楼3-124找助教要，需要留下小组的个人信息)
+状态：Intel galieo gen2开发板有详细的软硬件文档和linux软件，且Intel galieo gen2开发板采用的是本质是intel pentium５的intel Quark SoC X1000处理器。系统采用的是grub bootloader.
+要求：lab1~lab8可以在Intel galieo gen2开发板上跑起来。需要写出移植报告，说明移植的过程等。
+完成人:
+
+
+challenge4: porting ucore labs 1~8在x86的笔记本电脑上,可以通过u盘启动并在grub bootloader上选择执行lab1～lab8
+状态：lab1已经完成了，可以作为参考
+要求：lab1~lab8可以在x86的笔记本电脑上跑起来。需要写出移植报告，说明移植的过程等。
+完成人:
