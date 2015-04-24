@@ -1,6 +1,10 @@
 challenge1: buddy system（伙伴系统）的page分配算法
 提示：参考“http://coolshell.cn/articles/10427.html
-状态：基本完成 (有bug)
+状态：
+基本完成 (有bug)
+
+https://github.com/chyyuu/ucore_lab/tree/lab2_X/labcodes_answer/lab2_result
+
 完成人： 
 黄杰 2012011272   huangjie_cpp@163.com
 袁源 2012011294   thuyuany12@163.com
