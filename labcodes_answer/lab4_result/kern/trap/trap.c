@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include <console.h>
-#include <vmm.h>
-#include <swap.h>
+//#include <vmm.h>
+//#include <swap.h>
 #include <kdebug.h>
 
 #define TICK_NUM 100
@@ -36,7 +36,7 @@ static struct pseudodesc idt_pd = {
 /* idt_init - initialize IDT to each of the entry points in kern/trap/vectors.S */
 void
 idt_init(void) {
-     /* LAB1 YOUR CODE : STEP 2 */
+     /* LAB1 2012011346 : STEP 2 */
      /* (1) Where are the entry addrs of each Interrupt Service Routine (ISR)?
       *     All ISR's entry addrs are stored in __vectors. where is uintptr_t __vectors[] ?
       *     __vectors[] is in kern/trap/vector.S which is produced by tools/vector.c
@@ -50,8 +50,12 @@ idt_init(void) {
       */
     extern uintptr_t __vectors[];
     int i;
-    for (i = 0; i < sizeof(idt) / sizeof(struct gatedesc); i ++) {
-        SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);
+    for (i = 0; i < 256; i++) {
+        if (i != T_SYSCALL) {
+            SETGATE(idt[i], 0, 8, __vectors[i], 0);
+        } else {
+            SETGATE(idt[i], 1, 8, __vectors[i], 3);
+        }
     }
     lidt(&idt_pd);
 }
@@ -142,6 +146,7 @@ print_regs(struct pushregs *regs) {
     cprintf("  eax  0x%08x\n", regs->reg_eax);
 }
 
+/* trap_dispatch - dispatch based on what type of trap occurred */
 static inline void
 print_pgfault(struct trapframe *tf) {
     /* error_code:
@@ -155,15 +160,15 @@ print_pgfault(struct trapframe *tf) {
             (tf->tf_err & 1) ? "protection fault" : "no page found");
 }
 
-static int
-pgfault_handler(struct trapframe *tf) {
-    extern struct mm_struct *check_mm_struct;
-    print_pgfault(tf);
-    if (check_mm_struct != NULL) {
-        return do_pgfault(check_mm_struct, tf->tf_err, rcr2());
-    }
-    panic("unhandled page fault.\n");
-}
+//static int
+//pgfault_handler(struct trapframe *tf) {
+//    extern struct mm_struct *check_mm_struct;
+//    print_pgfault(tf);
+//    if (check_mm_struct != NULL) {
+//        return do_pgfault(check_mm_struct, tf->tf_err, rcr2());
+//    }
+//    panic("unhandled page fault.\n");
+//}
 
 static volatile int in_swap_tick_event = 0;
 extern struct mm_struct *check_mm_struct;
@@ -171,30 +176,29 @@ extern struct mm_struct *check_mm_struct;
 static void
 trap_dispatch(struct trapframe *tf) {
     char c;
+    static int count = 0;
 
     int ret;
 
     switch (tf->tf_trapno) {
     case T_PGFLT:  //page fault
-        if ((ret = pgfault_handler(tf)) != 0) {
-            print_trapframe(tf);
-            panic("handle pgfault failed. %e\n", ret);
-        }
+        panic("pgfault execption!!!\n");
         break;
     case IRQ_OFFSET + IRQ_TIMER:
 #if 0
     LAB3 : If some page replacement algorithm(such as CLOCK PRA) need tick to change the priority of pages, 
     then you can add code here. 
 #endif
-        /* LAB1 YOUR CODE : STEP 3 */
+        /* LAB1 2012011346 : STEP 3 */
         /* handle the timer interrupt */
         /* (1) After a timer interrupt, you should record this event using a global variable (increase it), such as ticks in kern/driver/clock.c
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
-        ticks ++;
-        if (ticks % TICK_NUM == 0) {
+        count++;
+        if (count % 100 == 0) {
             print_ticks();
+            count = 0;
         }
         break;
     case IRQ_OFFSET + IRQ_COM1:
@@ -205,7 +209,7 @@ trap_dispatch(struct trapframe *tf) {
         c = cons_getc();
         cprintf("kbd [%03d] %c\n", c, c);
         break;
-    //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
+    //LAB1 CHALLENGE 1 : 2012011346 you should modify below codes.
     case T_SWITCH_TOU:
     case T_SWITCH_TOK:
         panic("T_SWITCH_** ??\n");

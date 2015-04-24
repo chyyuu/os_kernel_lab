@@ -186,30 +186,25 @@ static void slob_free(void *block, int size)
 
 
 
-void check_slab(void) {
-  cprintf("check_slab() success\n");
-}
-
 void
-slab_init(void) {
+slob_init(void) {
   cprintf("use SLOB allocator\n");
-  check_slab();
 }
 
 inline void 
 kmalloc_init(void) {
-    slab_init();
+    slob_init();
     cprintf("kmalloc_init() succeeded!\n");
 }
 
 size_t
-slab_allocated(void) {
+slob_allocated(void) {
   return 0;
 }
 
 size_t
 kallocated(void) {
-   return slab_allocated();
+   return slob_allocated();
 }
 
 static int find_order(int size)

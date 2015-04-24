@@ -6,7 +6,7 @@
 #include <error.h>
 #include <sched.h>
 #include <elf.h>
-#include <vmm.h>
+//#include <vmm.h>
 #include <trap.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,17 +61,12 @@ SYS_getpid      : get the process's pid
 // the process set's list
 list_entry_t proc_list;
 
-#define HASH_SHIFT          10
-#define HASH_LIST_SIZE      (1 << HASH_SHIFT)
-#define pid_hashfn(x)       (hash32(x, HASH_SHIFT))
-
-// has list for process set based on pid
-static list_entry_t hash_list[HASH_LIST_SIZE];
-
 // idle proc
 struct proc_struct *idleproc = NULL;
-// init proc
-struct proc_struct *initproc = NULL;
+// init procs
+struct proc_struct *initproc1 = NULL;
+struct proc_struct *initproc2 = NULL;
+struct proc_struct *initproc3 = NULL;
 // current proc
 struct proc_struct *current = NULL;
 
@@ -86,7 +81,7 @@ static struct proc_struct *
 alloc_proc(void) {
     struct proc_struct *proc = kmalloc(sizeof(struct proc_struct));
     if (proc != NULL) {
-    //LAB4:EXERCISE1 YOUR CODE
+    //LAB4:EXERCISE1 2012011346
     /*
      * below fields in proc_struct need to be initialized
      *       enum proc_state state;                      // Process state
@@ -102,18 +97,10 @@ alloc_proc(void) {
      *       uint32_t flags;                             // Process flag
      *       char name[PROC_NAME_LEN + 1];               // Process name
      */
+        memset(proc, 0, sizeof(struct proc_struct));
         proc->state = PROC_UNINIT;
         proc->pid = -1;
-        proc->runs = 0;
-        proc->kstack = 0;
-        proc->need_resched = 0;
-        proc->parent = NULL;
-        proc->mm = NULL;
-        memset(&(proc->context), 0, sizeof(struct context));
-        proc->tf = NULL;
         proc->cr3 = boot_cr3;
-        proc->flags = 0;
-        memset(proc->name, 0, PROC_NAME_LEN);
     }
     return proc;
 }
@@ -194,19 +181,14 @@ forkret(void) {
     forkrets(current->tf);
 }
 
-// hash_proc - add proc into proc hash_list
-static void
-hash_proc(struct proc_struct *proc) {
-    list_add(hash_list + pid_hashfn(proc->pid), &(proc->hash_link));
-}
 
 // find_proc - find proc frome proc hash_list according to pid
 struct proc_struct *
 find_proc(int pid) {
     if (0 < pid && pid < MAX_PID) {
-        list_entry_t *list = hash_list + pid_hashfn(pid), *le = list;
+        list_entry_t *list = &proc_list,  *le = list;
         while ((le = list_next(le)) != list) {
-            struct proc_struct *proc = le2proc(le, hash_link);
+            struct proc_struct *proc = le2proc(le, list_link);
             if (proc->pid == pid) {
                 return proc;
             }
@@ -247,14 +229,6 @@ put_kstack(struct proc_struct *proc) {
     free_pages(kva2page((void *)(proc->kstack)), KSTACKPAGE);
 }
 
-// copy_mm - process "proc" duplicate OR share process "current"'s mm according clone_flags
-//         - if clone_flags & CLONE_VM, then "share" ; else "duplicate"
-static int
-copy_mm(uint32_t clone_flags, struct proc_struct *proc) {
-    assert(current->mm == NULL);
-    /* do nothing in this project */
-    return 0;
-}
 
 // copy_thread - setup the trapframe on the  process's kernel stack top and
 //             - setup the kernel entry point and stack of process
@@ -283,14 +257,12 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto fork_out;
     }
     ret = -E_NO_MEM;
-    //LAB4:EXERCISE2 YOUR CODE
+    //LAB4:EXERCISE2 2012011346
     /*
      * Some Useful MACROs, Functions and DEFINEs, you can use them in below implementation.
      * MACROs or Functions:
      *   alloc_proc:   create a proc struct and init fields (lab4:exercise1)
      *   setup_kstack: alloc pages with size KSTACKPAGE as process kernel stack
-     *   copy_mm:      process "proc" duplicate OR share process "current"'s mm according clone_flags
-     *                 if clone_flags & CLONE_VM, then "share" ; else "duplicate"
      *   copy_thread:  setup the trapframe on the  process's kernel stack top and
      *                 setup the kernel entry point and stack of process
      *   hash_proc:    add proc into proc hash_list
@@ -302,39 +274,22 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
      */
 
     //    1. call alloc_proc to allocate a proc_struct
+    proc = alloc_proc();
+    proc->pid = get_pid();
+    cprintf("[SPOC]* now setting %d to PROC_UNINIT in do_fork\n", proc->pid);
     //    2. call setup_kstack to allocate a kernel stack for child process
-    //    3. call copy_mm to dup OR share mm according clone_flag
-    //    4. call copy_thread to setup tf & context in proc_struct
-    //    5. insert proc_struct into hash_list && proc_list
-    //    6. call wakup_proc to make the new child process RUNNABLE
-    //    7. set ret vaule using child proc's pid
-    if ((proc = alloc_proc()) == NULL) {
-        goto fork_out;
-    }
-
-    proc->parent = current;
-
-    if (setup_kstack(proc) != 0) {
-        goto bad_fork_cleanup_proc;
-    }
-    if (copy_mm(clone_flags, proc) != 0) {
-        goto bad_fork_cleanup_kstack;
-    }
+    setup_kstack(proc);
+    //    3. call copy_thread to setup tf & context in proc_struct
     copy_thread(proc, stack, tf);
-
-    bool intr_flag;
-    local_intr_save(intr_flag);
-    {
-        proc->pid = get_pid();
-        hash_proc(proc);
-        list_add(&proc_list, &(proc->list_link));
-        nr_process ++;
-    }
-    local_intr_restore(intr_flag);
-
+    //    4. insert proc_struct into  proc_list
+    list_add_before(&proc_list, &proc->list_link);
+    //    5. call wakup_proc to make the new child process RUNNABLE
     wakeup_proc(proc);
-
+    //    7. set ret vaule using child proc's pid
+    nr_process++;
     ret = proc->pid;
+	//  8. set parent
+	proc->parent=current;
 fork_out:
     return ret;
 
@@ -345,21 +300,100 @@ bad_fork_cleanup_proc:
     goto fork_out;
 }
 
+// remove_links - clean the relation links of process
+static void
+remove_links(struct proc_struct *proc) {
+    list_del(&(proc->list_link));
+    nr_process --;
+}
+
+// do_wait - wait one OR any children with PROC_ZOMBIE state, and free memory space of kernel stack
+//         - proc struct of this child.
+// NOTE: only after do_wait function, all resources of the child proces are free.
+int
+do_wait(int pid, int *code_store) {
+    struct proc_struct *proc;
+    bool intr_flag, haskid;
+repeat:
+	cprintf("do_wait: begin\n");
+    haskid = 0;
+	list_entry_t *list = &proc_list,  *le = list;
+	while ((le = list_next(le)) != list) {
+		proc = le2proc(le, list_link);
+		if (proc != NULL) {
+			 haskid = 1;
+		    if (proc->state == PROC_ZOMBIE) {
+			     goto found;
+		   }
+		}
+	}
+    if (haskid) {
+		cprintf("do_wait: has kid begin\n");
+        current->state = PROC_SLEEPING;
+        current->wait_state = WT_CHILD;
+        schedule();
+        goto repeat;
+    }
+    return -E_BAD_PROC;
+
+found:
+	cprintf("do_wait: has kid find child  pid%d\n",proc->pid);
+    if (proc == idleproc ) {
+        panic("wait idleproc \n");
+    }
+
+    local_intr_save(intr_flag);
+    {
+        cprintf("[SPOC] remove %s from links\n", get_proc_name(proc));
+        remove_links(proc);
+    }
+    local_intr_restore(intr_flag);
+    put_kstack(proc);
+    kfree(proc);
+    return 0;
+}
+
 // do_exit - called by sys_exit
-//   1. call exit_mmap & put_pgdir & mm_destroy to free the almost all memory space of process
-//   2. set process' state as PROC_ZOMBIE, then call wakeup_proc(parent) to ask parent reclaim itself.
-//   3. call scheduler to switch to other process
+//   1. set process' state as PROC_ZOMBIE, then call wakeup_proc(parent) to ask parent reclaim itself.
+//   2. call scheduler to switch to other process
 int
 do_exit(int error_code) {
-    panic("process exit!!.\n");
+    if (current == idleproc) {
+        panic("idleproc exit.\n");
+    }
+	cprintf(" do_exit: proc pid %d will exit\n", current->pid);
+	cprintf(" do_exit: proc  parent %x\n", current->parent);
+    current->state = PROC_ZOMBIE;
+    cprintf("[SPOC]* now setting %d to PROC_ZOMBIE in do_exit\n", current->pid);
+	bool intr_flag;
+    struct proc_struct *proc;
+    local_intr_save(intr_flag);
+    {
+        proc = current->parent;
+        if (proc->wait_state == WT_CHILD) {
+            cprintf("[SPOC]* wakeup parent proc %s pid=%d\n", get_proc_name(proc), proc->pid);
+            wakeup_proc(proc);
+        }
+	}
+    local_intr_restore(intr_flag);
+    cprintf("[SPOC] schedule in do_exit\n");
+	schedule();
+    panic("do_exit will not return!! %d.\n", current->pid);
 }
 
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
-    cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, get_proc_name(current));
-    cprintf("To U: \"%s\".\n", (const char *)arg);
-    cprintf("To U: \"en.., Bye, Bye. :)\"\n");
+    cprintf(" kernel_thread, pid = %d, name = %s\n", current->pid, get_proc_name(current));
+    cprintf("[SPOC] schedule by thread itself\n");
+	schedule();
+    cprintf(" kernel_thread, pid = %d, name = %s , arg  %s \n", current->pid, get_proc_name(current), (const char *)arg);
+    cprintf("[SPOC] schedule by thread itself\n");
+	schedule();
+    cprintf("[SPOC] schedule by thread itself\n");
+    cprintf(" kernel_thread, pid = %d, name = %s ,  en.., Bye, Bye. :)\n",current->pid, get_proc_name(current));
+    
+    cprintf("[SPOC] This thread is about to exit, will then execute do_exit\n");
     return 0;
 }
 
@@ -370,9 +404,6 @@ proc_init(void) {
     int i;
 
     list_init(&proc_list);
-    for (i = 0; i < HASH_LIST_SIZE; i ++) {
-        list_init(hash_list + i);
-    }
 
     if ((idleproc = alloc_proc()) == NULL) {
         panic("cannot alloc idleproc.\n");
@@ -387,16 +418,23 @@ proc_init(void) {
 
     current = idleproc;
 
-    int pid = kernel_thread(init_main, "Hello world!!", 0);
-    if (pid <= 0) {
-        panic("create init_main failed.\n");
+    int pid1= kernel_thread(init_main, "init main1: Hello world!!", 0);
+    int pid2= kernel_thread(init_main, "init main2: Hello world!!", 0);
+    int pid3= kernel_thread(init_main, "init main2: Hello world!!", 0);
+    if (pid1 <= 0 || pid2<=0 || pid3 <= 0) {
+        panic("create kernel thread init_main1 or 2 failed.\n");
     }
 
-    initproc = find_proc(pid);
-    set_proc_name(initproc, "init");
-
+    initproc1 = find_proc(pid1);
+    initproc2 = find_proc(pid2);
+	initproc3 = find_proc(pid3);
+    set_proc_name(initproc1, "init1");
+    set_proc_name(initproc2, "init2");
+	set_proc_name(initproc3, "init3");
+    cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc1->pid, initproc1->name);
+    cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc2->pid, initproc2->name);
+	cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc3->pid, initproc3->name);
     assert(idleproc != NULL && idleproc->pid == 0);
-    assert(initproc != NULL && initproc->pid == 1);
 }
 
 // cpu_idle - at the end of kern_init, the first kernel thread idleproc will do below works

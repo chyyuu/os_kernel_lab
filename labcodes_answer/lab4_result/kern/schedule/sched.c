@@ -8,6 +8,7 @@ void
 wakeup_proc(struct proc_struct *proc) {
     assert(proc->state != PROC_ZOMBIE && proc->state != PROC_RUNNABLE);
     proc->state = PROC_RUNNABLE;
+    cprintf("[SPOC]* now setting %d to PROC_RUNNABLE in wakeup_proc\n", proc->pid);
 }
 
 void
@@ -33,8 +34,13 @@ schedule(void) {
         }
         next->runs ++;
         if (next != current) {
+            cprintf("[SPOC] --will run %s:\n", get_proc_name(next));
             proc_run(next);
         }
+        else{
+            cprintf("[SPOC] --proccess remains in: %s\n", get_proc_name(current));           
+        }
+
     }
     local_intr_restore(intr_flag);
 }
