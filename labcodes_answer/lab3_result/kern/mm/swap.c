@@ -1,5 +1,6 @@
 #include <swap.h>
 #include <swapfs.h>
+#include <swap_extended_clock.h>
 #include <swap_fifo.h>
 #include <stdio.h>
 #include <string.h>
@@ -38,7 +39,10 @@ swap_init(void)
      }
      
 
-     sm = &swap_manager_fifo;
+     sm = &swap_manager_extended_clock;
+	// sm = &swap_manager_fifo;
+     //for challenge
+
      int r = sm->init();
      
      if (r == 0)
@@ -106,7 +110,7 @@ swap_out(struct mm_struct *mm, int n, int in_tick)
                     continue;
           }
           else {
-                    cprintf("swap_out: i %d, store page in vaddr 0x%x to disk swap entry %d\n", i, v, page->pra_vaddr/PGSIZE+1);
+                    //cprintf("swap_out: i %d, store page in vaddr 0x%x to disk swap entry %d\n", i, v, page->pra_vaddr/PGSIZE+1);
                     *ptep = (page->pra_vaddr/PGSIZE+1)<<8;
                     free_page(page);
           }
@@ -120,6 +124,7 @@ int
 swap_in(struct mm_struct *mm, uintptr_t addr, struct Page **ptr_result)
 {
      struct Page *result = alloc_page();
+	 //cprintf("aaaaa %x\n",result->pra_vaddr);
      assert(result!=NULL);
 
      pte_t *ptep = get_pte(mm->pgdir, addr, 0);
@@ -130,7 +135,7 @@ swap_in(struct mm_struct *mm, uintptr_t addr, struct Page **ptr_result)
      {
         assert(r!=0);
      }
-     cprintf("swap_in: load disk swap entry %d with swap_page in vadr 0x%x\n", (*ptep)>>8, addr);
+     //cprintf("swap_in: load disk swap entry %d with swap_page in vadr 0x%x\n", (*ptep)>>8, addr);
      *ptr_result=result;
      return 0;
 }
@@ -156,6 +161,7 @@ check_content_set(void)
      assert(pgfault_num==4);
      *(unsigned char *)0x4010 = 0x0d;
      assert(pgfault_num==4);
+
 }
 
 static inline int

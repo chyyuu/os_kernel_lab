@@ -417,8 +417,14 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
                 cprintf("swap_in in do_pgfault failed\n");
                 goto failed;
             }    
+			//cprintf("????????%x %x\n",addr,page->pra_vaddr);
             page_insert(mm->pgdir, page, addr, perm);
+			//cprintf("????????%x %x\n",addr,page->pra_vaddr);
+
+
+
             swap_map_swappable(mm, addr, page, 1);
+			page->pra_vaddr=addr;
         }
         else {
             cprintf("no swap_init_ok but ptep is %x, failed\n",*ptep);

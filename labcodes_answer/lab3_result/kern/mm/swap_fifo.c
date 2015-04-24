@@ -45,13 +45,45 @@ static int
 _fifo_map_swappable(struct mm_struct *mm, uintptr_t addr, struct Page *page, int swap_in)
 {
     list_entry_t *head=(list_entry_t*) mm->sm_priv;
+	
+	/*
+	cprintf("swappable1\n");
+	list_entry_t *le = head->prev;
+	int num=0;
+	while (le!=head)
+	{
+		num++;
+		cprintf("!!!!!%d!!!!!!!%x\n",num,le2page(le, pra_page_link)->pra_vaddr);
+		le = le->prev;
+	}
+	le = le->prev;
+	cprintf("%d\n",num);
+	cprintf("\n");
+	*/
+	
     list_entry_t *entry=&(page->pra_page_link);
  
     assert(entry != NULL && head != NULL);
     //record the page access situlation
     /*LAB3 EXERCISE 2: YOUR CODE*/ 
     //(1)link the most recent arrival page at the back of the pra_list_head qeueue.
+	cprintf("-----------------------%x %x\n",addr,page->pra_vaddr);
     list_add(head, entry);
+	
+	
+	/*
+	cprintf("swappable2\n");
+	le = head->prev;
+	num=0;
+	while (le!=head)
+	{
+		num++;
+		cprintf("!!!!!%d!!!!!!!%x\n",num,le2page(le, pra_page_link)->pra_vaddr);
+		le = le->prev;
+	}
+	le = le->prev;
+	cprintf("%d\n",num);
+	cprintf("\n");*/
     return 0;
 }
 /*
@@ -69,12 +101,38 @@ _fifo_swap_out_victim(struct mm_struct *mm, struct Page ** ptr_page, int in_tick
      //(1)  unlink the  earliest arrival page in front of pra_list_head qeueue
      //(2)  set the addr of addr of this page to ptr_page
      /* Select the tail */
+	 cprintf("vitim1\n");
      list_entry_t *le = head->prev;
+	 int num=0;
+	 while (le!=head)
+	 {
+		 num++;
+		cprintf("!!!!!%d!!!!!!!%x\n",num,le2page(le, pra_page_link)->pra_vaddr);
+		 le = le->prev;
+	 }
+	 le = le->prev;
+	 cprintf("%d\n",num);
+	 cprintf("\n");
      assert(head!=le);
      struct Page *p = le2page(le, pra_page_link);
      list_del(le);
      assert(p !=NULL);
+	 cprintf("!!!!!!!!!!!!%x\n",p->pra_vaddr);
      *ptr_page = p;
+	 
+	 
+	 cprintf("vitim2\n");
+     le = head->prev;
+	 num=0;
+	 while (le!=head)
+	 {
+		 num++;
+		 cprintf("!!!!!%d!!!!!!!%x\n",num,le2page(le, pra_page_link)->pra_vaddr);
+		 le = le->prev;
+	 }
+	 le = le->prev;
+	 cprintf("%d\n",num);
+	 cprintf("\n");
      return 0;
 }
 
