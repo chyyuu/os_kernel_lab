@@ -5,6 +5,7 @@ challenge1:完善ucore lab smp实现，扩展ticket lock机制（参考linux的t
 
 challenge2:改进并简化一个简化的CPU模拟器（这个简化CPU的目的就是为了支持ucore OS的进一步简化），把ucore lab8移植到此简化CPU上。
 ===================================================
+提示: 基于　https://com.github/chyyuu/swieros ，已经在ubuntu 14.04上实验过，参考00README.txt　很容易测试运行起来。
 状态：已有一个简化的CPU模拟器ex，一个简化的C子集编译器4c，一个基于此C子集的简化的xv6，4c编译的xv6可以运行在ex上。ex,4c,xv6的源码都在2000行以内。
 要求：改进简化CPU模拟器ex，使得它像一个稍微扩展一点的Y86，修改C子集编译器4c,支持改进的ex，把xv6改成lab1~lab8的code.体现lab1~lab8的特点。此项目比较有意思，有一定的综合性，给分也会偏多一些。
 完成人：
@@ -27,3 +28,35 @@ challenge4: porting ucore labs 1~8在x86的笔记本电脑上,可以通过u盘�
 状态：lab1已经完成了，可以作为参考
 要求：lab1~lab8可以在x86的笔记本电脑上跑起来。需要写出移植报告，说明移植的过程等。
 完成人:
+
+
+challenge5:简化ucore lab1-3，使其能在一个简化的CPU模拟器ex上。
+===================================================
+提示: 基于　https://com.github/chyyuu/swieros ，已经在ubuntu 14.04上实验过，参考00README.txt　很容易测试运行起来。
+状态：已有一个简化的CPU模拟器ex，一个简化的C子集编译器4c，一个基于此C子集的简化的xv6，4c编译的xv6可以运行在ex上。ex,4c,xv6的源码都在2000行以内。
+要求：参考xv6 for 简化CPU模拟器ex, 简化ucore lab1~lab3的code，使其能够在CPU模拟器ex.体现lab1~lab3的特点。此项目比较有意思，有一定的综合性。
+完成人：
+
+
+challenge６:简化ucore lab4-5，使其能在一个简化的CPU模拟器ex上。
+===================================================
+提示: 基于　https://com.github/chyyuu/swieros ，已经在ubuntu 14.04上实验过，参考00README.txt　很容易测试运行起来。
+状态：已有一个简化的CPU模拟器ex，一个简化的C子集编译器4c，一个基于此C子集的简化的xv6，4c编译的xv6可以运行在ex上。ex,4c,xv6的源码都在2000行以内。
+要求：参考xv6 for 简化CPU模拟器ex, 简化ucore lab4~lab5的code，使其能够在CPU模拟器ex.体现lab4~lab5的特点。此项目比较有意思，有一定的综合性。
+完成人：
+
+
+challenge７:简化ucore lab6-7，使其能在一个简化的CPU模拟器ex上。
+===================================================
+提示: 基于　https://com.github/chyyuu/swieros ，已经在ubuntu 14.04上实验过，参考00README.txt　很容易测试运行起来。
+状态：已有一个简化的CPU模拟器ex，一个简化的C子集编译器4c，一个基于此C子集的简化的xv6，4c编译的xv6可以运行在ex上。ex,4c,xv6的源码都在2000行以内。
+要求：参考xv6 for 简化CPU模拟器ex, 简化ucore lab6~lab7的code，使其能够在CPU模拟器ex.体现lab6~lab7的特点。此项目比较有意思，有一定的综合性。
+完成人：
+
+
+challenge8:简化ucore lab8，使其能在一个简化的CPU模拟器ex上。
+===================================================
+提示: 基于　https://com.github/chyyuu/swieros ，已经在ubuntu 14.04上实验过，参考00README.txt　很容易测试运行起来。
+状态：已有一个简化的CPU模拟器ex，一个简化的C子集编译器4c，一个基于此C子集的简化的xv6，4c编译的xv6可以运行在ex上。ex,4c,xv6的源码都在2000行以内。
+要求：参考xv6 for 简化CPU模拟器ex, 简化ucore lab8的code，使其能够在CPU模拟器ex.体现lab8的特点。此项目比较有意思，有一定的综合性。
+完成人：

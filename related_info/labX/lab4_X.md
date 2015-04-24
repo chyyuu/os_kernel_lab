@@ -11,7 +11,7 @@ challenge1: 实现精简版内核线程管理与切换（分有中断和没中�
 https://github.com/chyyuu/ucore_lab/tree/lab4_X/labcodes_answer/lab4_result
 
 完成人：
-yhy13@mails.tsinghua.edu.cn
+杨海宇 清华大学热能工程系　yhy13@mails.tsinghua.edu.cn
 
 
 challenge2: 实现内核线程的按需分页（demanding page）机制
