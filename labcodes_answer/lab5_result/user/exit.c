@@ -29,6 +29,7 @@ main(void) {
     cprintf("waitpid %d ok.\n", pid);
 
     cprintf("exit pass.\n");
+	
     return 0;
 }
 

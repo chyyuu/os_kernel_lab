@@ -156,20 +156,21 @@ alloc_pages(size_t n) {
     struct Page *page=NULL;
     bool intr_flag;
     
-    while (1)
-    {
+    //Disable swap.
+    //while (1)
+    //{
          local_intr_save(intr_flag);
          {
               page = pmm_manager->alloc_pages(n);
          }
          local_intr_restore(intr_flag);
 
-         if (page != NULL || n > 1 || swap_init_ok == 0) break;
+        // if (page != NULL || n > 1 || swap_init_ok == 0) break;
          
-         extern struct mm_struct *check_mm_struct;
-         //cprintf("page %x, call swap_out in alloc_pages %d\n",page, n);
-         swap_out(check_mm_struct, n, 0);
-    }
+        // extern struct mm_struct *check_mm_struct;
+        // cprintf("page %x, call swap_out in alloc_pages %d\n",page, n);
+         //swap_out(check_mm_struct, n, 0);
+   // }
     //cprintf("n %d,get page %x, No %d in alloc_pages\n",n,page,(page-pages));
     return page;
 }
@@ -522,12 +523,16 @@ copy_range(pde_t *to, pde_t *from, uintptr_t start, uintptr_t end, bool share) {
             }
         uint32_t perm = (*ptep & PTE_USER);
         //get page from ptep
-        struct Page *page = pte2page(*ptep);
+        assert(ptep!=NULL);
+        assert(nptep!=NULL);
+		
+		    cprintf("Copy Range\n");
+		
         // alloc a page for process B
-        struct Page *npage=alloc_page();
-        assert(page!=NULL);
-        assert(npage!=NULL);
-        int ret=0;
+        //struct Page *npage=alloc_page();
+        //assert(ptep!=NULL);
+        //assert(nptep!=NULL);
+        
         /* LAB5:EXERCISE2 YOUR CODE
          * replicate content of page to npage, build the map of phy addr of nage with the linear addr start
          *
@@ -542,13 +547,19 @@ copy_range(pde_t *to, pde_t *from, uintptr_t start, uintptr_t end, bool share) {
          * (3) memory copy from src_kvaddr to dst_kvaddr, size is PGSIZE
          * (4) build the map of phy addr of  nage with the linear addr start
          */
-        void * kva_src = page2kva(page);
+        /*void * kva_src = page2kva(page);
         void * kva_dst = page2kva(npage);
     
         memcpy(kva_dst, kva_src, PGSIZE);
-
-        ret = page_insert(to, npage, start, perm);
-        assert(ret == 0);
+		*/
+		        int ret=0;
+        		struct Page *page = pte2page(*ptep);
+        		if(*ptep & PTE_W){
+        			perm &= (~PTE_W);
+        			page_insert(from,page,start,perm);
+        		}
+            ret = page_insert(to, page, start, perm);
+            assert(ret == 0);
         }
         start += PGSIZE;
     } while (start != 0 && start < end);

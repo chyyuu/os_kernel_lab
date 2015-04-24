@@ -1,0 +1,91 @@
++ cc user/exit.c
++ ld bin/kernel
+(THU.CST) os is loading ...
+
+Special kernel symbols:
+  entry  0xc010002a (phys)
+  etext  0xc010d486 (phys)
+  edata  0xc019ff2a (phys)
+  end    0xc01a30b8 (phys)
+Kernel executable memory footprint: 653KB
+ebp:0xc012df38 eip:0xc0101f62 args:0x00010094 0x00000000 0xc012df68 0xc01000d3 
+    kern/debug/kdebug.c:350: print_stackframe+21
+ebp:0xc012df48 eip:0xc0102251 args:0x00000000 0x00000000 0x00000000 0xc012dfb8 
+    kern/debug/kmonitor.c:129: mon_backtrace+10
+ebp:0xc012df68 eip:0xc01000d3 args:0x00000000 0xc012df90 0xffff0000 0xc012df94 
+    kern/init/init.c:57: grade_backtrace2+33
+ebp:0xc012df88 eip:0xc01000fc args:0x00000000 0xffff0000 0xc012dfb4 0x0000002a 
+    kern/init/init.c:62: grade_backtrace1+38
+ebp:0xc012dfa8 eip:0xc010011a args:0x00000000 0xc010002a 0xffff0000 0x0000001d 
+    kern/init/init.c:67: grade_backtrace0+23
+ebp:0xc012dfc8 eip:0xc010013f args:0xc010d4bc 0xc010d4a0 0x0000318e 0x00000000 
+    kern/init/init.c:72: grade_backtrace+34
+ebp:0xc012dff8 eip:0xc010007f args:0x00000000 0x00000000 0x0000ffff 0x40cf9a00 
+    kern/init/init.c:32: kern_init+84
+memory management: default_pmm_manager
+e820map:
+  memory: 0009fc00, [00000000, 0009fbff], type = 1.
+  memory: 00000400, [0009fc00, 0009ffff], type = 2.
+  memory: 00010000, [000f0000, 000fffff], type = 2.
+  memory: 07efe000, [00100000, 07ffdfff], type = 1.
+  memory: 00002000, [07ffe000, 07ffffff], type = 2.
+  memory: 00040000, [fffc0000, ffffffff], type = 2.
+check_alloc_page() succeeded!
+check_pgdir() succeeded!
+check_boot_pgdir() succeeded!
+-------------------- BEGIN --------------------
+PDE(0e0) c0000000-f8000000 38000000 urw
+  |-- PTE(38000) c0000000-f8000000 38000000 -rw
+PDE(001) fac00000-fb000000 00400000 -rw
+  |-- PTE(000e0) faf00000-fafe0000 000e0000 urw
+  |-- PTE(00001) fafeb000-fafec000 00001000 -rw
+--------------------- END ---------------------
+use SLOB allocator
+check_slab() success
+kmalloc_init() succeeded!
+check_vma_struct() succeeded!
+page fault at 0x00000100: K/W [no page found].
+check_pgfault() succeeded!
+check_vmm() succeeded.
+current free pages: 31830
+current free pages: 31830
+ide 0:      10000(sectors), 'QEMU HARDDISK'.
+ide 1:     262144(sectors), 'QEMU HARDDISK'.
+SWAP: manager = fifo swap manager
+++ setup timer interrupts
+current free pages: 31828
+current free pages: 31828
+kernel_execve: pid = 2, name = "exit".
+I am the parent. Forking the child...
+current free pages: 31811
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+current free pages: 31807
+HIT COW! Alloc_a_Page!
+write a non-writable pte: COW!
+COW! ref will be dec
+I am parent, fork a child pid 3
+I am the parent, waiting now..
+HIT COW! Alloc_a_Page!
+write a non-writable pte: COW!
+cow = 1 But npage != null; Means ref has been dec to 1
+I am the child.
+waitpid 3 ok.
+exit pass.
+all user-mode processes have quit.
+init check memory pass.
+kernel panic at kern/process/proc.c:456:
+    initproc exit.
+
+Welcome to the kernel debug monitor!!
+Type 'help' for a list of commands.
+K> 

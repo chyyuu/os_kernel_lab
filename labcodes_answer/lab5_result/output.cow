@@ -1,0 +1,91 @@
+(THU.CST) os is loading ...
+
+Special kernel symbols:
+  entry  0xc010002a (phys)
+  etext  0xc010d486 (phys)
+  edata  0xc019ff2a (phys)
+  end    0xc01a30b8 (phys)
+Kernel executable memory footprint: 653KB
+ebp:0xc012df38 eip:0xc0101f62 args:0x00010094 0x00000000 0xc012df68 0xc01000d3 
+    kern/debug/kdebug.c:350: print_stackframe+21
+ebp:0xc012df48 eip:0xc0102251 args:0x00000000 0x00000000 0x00000000 0xc012dfb8 
+    kern/debug/kmonitor.c:129: mon_backtrace+10
+ebp:0xc012df68 eip:0xc01000d3 args:0x00000000 0xc012df90 0xffff0000 0xc012df94 
+    kern/init/init.c:57: grade_backtrace2+33
+ebp:0xc012df88 eip:0xc01000fc args:0x00000000 0xffff0000 0xc012dfb4 0x0000002a 
+    kern/init/init.c:62: grade_backtrace1+38
+ebp:0xc012dfa8 eip:0xc010011a args:0x00000000 0xc010002a 0xffff0000 0x0000001d 
+    kern/init/init.c:67: grade_backtrace0+23
+ebp:0xc012dfc8 eip:0xc010013f args:0xc010d4bc 0xc010d4a0 0x0000318e 0x00000000 
+    kern/init/init.c:72: grade_backtrace+34
+ebp:0xc012dff8 eip:0xc010007f args:0x00000000 0x00000000 0x0000ffff 0x40cf9a00 
+    kern/init/init.c:32: kern_init+84
+memory management: default_pmm_manager
+e820map:
+  memory: 0009fc00, [00000000, 0009fbff], type = 1.
+  memory: 00000400, [0009fc00, 0009ffff], type = 2.
+  memory: 00010000, [000f0000, 000fffff], type = 2.
+  memory: 07efe000, [00100000, 07ffdfff], type = 1.
+  memory: 00002000, [07ffe000, 07ffffff], type = 2.
+  memory: 00040000, [fffc0000, ffffffff], type = 2.
+check_alloc_page() succeeded!
+check_pgdir() succeeded!
+check_boot_pgdir() succeeded!
+-------------------- BEGIN --------------------
+PDE(0e0) c0000000-f8000000 38000000 urw
+  |-- PTE(38000) c0000000-f8000000 38000000 -rw
+PDE(001) fac00000-fb000000 00400000 -rw
+  |-- PTE(000e0) faf00000-fafe0000 000e0000 urw
+  |-- PTE(00001) fafeb000-fafec000 00001000 -rw
+--------------------- END ---------------------
+use SLOB allocator
+check_slab() success
+kmalloc_init() succeeded!
+check_vma_struct() succeeded!
+page fault at 0x00000100: K/W [no page found].
+check_pgfault() succeeded!
+check_vmm() succeeded.
+current free pages: 31830
+current free pages: 31830
+ide 0:      10000(sectors), 'QEMU HARDDISK'.
+ide 1:     262144(sectors), 'QEMU HARDDISK'.
+SWAP: manager = fifo swap manager
+++ setup timer interrupts
+current free pages: 31828                   //在do_fork函数调用copy_mm的前后输出两次空闲物理页的数量
+current free pages: 31828                   //此时正在执行kernel_thread(user_main)，内核线程的copy_mm并不发生物理页复制，free pages不变
+kernel_execve: pid = 2, name = "exit".
+I am the parent. Forking the child...       //执行用户程序exit.c，该程序执行了fork系统调用。用户进程的copy_mm可以看到COW的效果
+current free pages: 31811                   //copy_mm前的空闲物理页数量，与之后的做比较
+Copy Range
+Copy Range
+Copy Range                                  //pmm.c中copy_range函数设定为每共享一页输出一次"Copy Range"
+Copy Range                                  //输出11次Copy Range，说明有11个页被共享
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range
+Copy Range                                  //用户进程执行copy_mm前后，空闲页减少了4个
+current free pages: 31807                   //这是因为copy_range中调用了get_pte函数，其中有alloc_page，是在为子进程分配二级页表
+                                            //共计有11+4=15个页被使用，可以在正常lab5中加入free pages的输出，发现确实使用了15个页（见output.norm）
+HIT COW! Alloc_a_Page!                      //这部分代码在do_pgfault中，子进程对某一个共享页进行了写操作
+write a non-writable pte: COW!              //触发写只读页的异常，为子进程重新分配一个页
+COW! ref will be dec
+I am parent, fork a child pid 3
+I am the parent, waiting now..              //父子进程均能够正常执行，输出与原lab5输出相同，而且可以在写时分配物理页
+                                            //因此基本可以判断COW机制正常实现
+HIT COW! Alloc_a_Page!
+write a non-writable pte: COW!
+cow = 1 But npage != null; Means ref has been dec to 1
+I am the child.
+waitpid 3 ok.
+exit pass.
+all user-mode processes have quit.
+init check memory pass.
+kernel panic at kern/process/proc.c:456:
+    initproc exit.
+
+Welcome to the kernel debug monitor!!
+Type 'help' for a list of commands.
+K> 

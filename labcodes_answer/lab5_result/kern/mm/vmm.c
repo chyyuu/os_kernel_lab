@@ -502,14 +502,19 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
         }
     }
     else {
-        struct Page *page=NULL;
-        cprintf("do pgfault: ptep %x, pte %x\n",ptep, *ptep);
+		struct Page *page, *npage=NULL;
+		bool cow = ((vma->vm_flags &  VM_WRITE) == VM_WRITE);
+		if(cow) {
+			npage = alloc_page();
+			cprintf("HIT COW! Alloc_a_Page!\n");
+		}
         if (*ptep & PTE_P) {
             //if process write to this existed readonly page (PTE_P means existed), then should be here now.
             //we can implement the delayed memory space copy for fork child process (AKA copy on write, COW).
             //we didn't implement now, we will do it in future.
-            panic("error write a non-writable pte");
-            //page = pte2page(*ptep);
+            //panic("error write a non-writable pte");
+			cprintf("write a non-writable pte: COW!\n");
+            page = pte2page(*ptep);
         } else{
            // if this pte is a swap entry, then load data from disk to a page with phy addr
            // and call page_insert to map the phy addr with logical addr
@@ -518,15 +523,32 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
                    cprintf("swap_in in do_pgfault failed\n");
                    goto failed;
                }    
-
            }  
            else {
             cprintf("no swap_init_ok but ptep is %x, failed\n",*ptep);
             goto failed;
            }
        } 
+	   if(cow)
+	   {
+		   if (page_ref(page) > 1) {
+			   if (npage == NULL) {
+				   goto failed;
+			   }
+               //Here is the copy on write!
+			   memcpy(page2kva(npage), page2kva(page),
+					  PGSIZE);
+			   cprintf("COW! ref will be dec\n");
+			   page = npage, npage = NULL;
+		   }
+	   }
        page_insert(mm->pgdir, page, addr, perm);
        swap_map_swappable(mm, addr, page, 1);
+	   if (npage != NULL) {
+		   cprintf("cow = 1 But npage != null; Means ref has been dec to 1\n");
+		   free_page(npage);
+	   }
+	   
    }
    ret = 0;
 failed:

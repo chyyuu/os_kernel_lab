@@ -1,0 +1,111 @@
+(THU.CST) os is loading ...
+
+Special kernel symbols:
+  entry  0xc010002a (phys)
+  etext  0xc010c5d4 (phys)
+  edata  0xc019eeb0 (phys)
+  end    0xc01a2120 (phys)
+Kernel executable memory footprint: 649KB
+ebp:0xc012cf48 eip:0xc0101e9b args:0x00010094 0x00000000 0xc012cf78 0xc01000c0 
+    kern/debug/kdebug.c:350: print_stackframe+21
+ebp:0xc012cf58 eip:0xc0102199 args:0x00000000 0x00000000 0x00000000 0xc012cfc8 
+    kern/debug/kmonitor.c:129: mon_backtrace+10
+ebp:0xc012cf78 eip:0xc01000c0 args:0x00000000 0xc012cfa0 0xffff0000 0xc012cfa4 
+    kern/init/init.c:57: grade_backtrace2+19
+ebp:0xc012cf98 eip:0xc01000e1 args:0x00000000 0xffff0000 0xc012cfc4 0x0000002a 
+    kern/init/init.c:62: grade_backtrace1+27
+ebp:0xc012cfb8 eip:0xc01000fd args:0x00000000 0xc010002a 0xffff0000 0xc010006d 
+    kern/init/init.c:67: grade_backtrace0+19
+ebp:0xc012cfd8 eip:0xc010011d args:0x00000000 0x00000000 0x00000000 0xc010c600 
+    kern/init/init.c:72: grade_backtrace+26
+ebp:0xc012cff8 eip:0xc010007a args:0x00000000 0x00000000 0x0000ffff 0x40cf9a00 
+    kern/init/init.c:32: kern_init+79
+memory management: default_pmm_manager
+e820map:
+  memory: 0009fc00, [00000000, 0009fbff], type = 1.
+  memory: 00000400, [0009fc00, 0009ffff], type = 2.
+  memory: 00010000, [000f0000, 000fffff], type = 2.
+  memory: 07ee0000, [00100000, 07fdffff], type = 1.
+  memory: 00020000, [07fe0000, 07ffffff], type = 2.
+  memory: 00040000, [fffc0000, ffffffff], type = 2.
+check_alloc_page() succeeded!
+check_pgdir() succeeded!
+check_boot_pgdir() succeeded!
+-------------------- BEGIN --------------------
+PDE(0e0) c0000000-f8000000 38000000 urw
+  |-- PTE(38000) c0000000-f8000000 38000000 -rw
+PDE(001) fac00000-fb000000 00400000 -rw
+  |-- PTE(000e0) faf00000-fafe0000 000e0000 urw
+  |-- PTE(00001) fafeb000-fafec000 00001000 -rw
+--------------------- END ---------------------
+use SLOB allocator
+check_slab() success
+kmalloc_init() succeeded!
+check_vma_struct() succeeded!
+page fault at 0x00000100: K/W [no page found].
+check_pgfault() succeeded!
+check_vmm() succeeded.
+current free pages: 31801
+current free pages: 31801
+ide 0:      10000(sectors), 'QEMU HARDDISK'.
+ide 1:     262144(sectors), 'QEMU HARDDISK'.
+SWAP: manager = fifo swap manager
+BEGIN check_swap: count 31801, total 31801
+setup Page Table for vaddr 0X1000, so alloc a page
+setup Page Table vaddr 0~4MB OVER!
+set up init env for check_swap begin!
+page fault at 0x00001000: K/W [no page found].
+page fault at 0x00002000: K/W [no page found].
+page fault at 0x00003000: K/W [no page found].
+page fault at 0x00004000: K/W [no page found].
+set up init env for check_swap over!
+write Virt Page c in fifo_check_swap
+write Virt Page a in fifo_check_swap
+write Virt Page d in fifo_check_swap
+write Virt Page b in fifo_check_swap
+write Virt Page e in fifo_check_swap
+page fault at 0x00005000: K/W [no page found].
+swap_out: i 0, store page in vaddr 0x1000 to disk swap entry 2
+write Virt Page b in fifo_check_swap
+write Virt Page a in fifo_check_swap
+page fault at 0x00001000: K/W [no page found].
+do pgfault: ptep c03a7004, pte 200
+swap_out: i 0, store page in vaddr 0x2000 to disk swap entry 3
+swap_in: load disk swap entry 2 with swap_page in vadr 0x1000
+write Virt Page b in fifo_check_swap
+page fault at 0x00002000: K/W [no page found].
+do pgfault: ptep c03a7008, pte 300
+swap_out: i 0, store page in vaddr 0x3000 to disk swap entry 4
+swap_in: load disk swap entry 3 with swap_page in vadr 0x2000
+write Virt Page c in fifo_check_swap
+page fault at 0x00003000: K/W [no page found].
+do pgfault: ptep c03a700c, pte 400
+swap_out: i 0, store page in vaddr 0x4000 to disk swap entry 5
+swap_in: load disk swap entry 4 with swap_page in vadr 0x3000
+write Virt Page d in fifo_check_swap
+page fault at 0x00004000: K/W [no page found].
+do pgfault: ptep c03a7010, pte 500
+swap_out: i 0, store page in vaddr 0x5000 to disk swap entry 6
+swap_in: load disk swap entry 5 with swap_page in vadr 0x4000
+count is 5, total is 5
+check_swap() succeeded!
+++ setup timer interrupts
+current free pages: 31794
+current free pages: 31794
+kernel_execve: pid = 2, name = "exit".
+I am the parent. Forking the child...
+current free pages: 31777                       //与output.cow相同，在copy_mm前后输出free pages
+current free pages: 31762                       //可以看到用户程序exit.c在fork过程中共消耗15个物理页
+I am parent, fork a child pid 3                 //与output.cow中的11+4=15个页正好吻合
+I am the parent, waiting now..
+I am the child.
+waitpid 3 ok.
+exit pass.
+all user-mode processes have quit.
+init check memory pass.
+kernel panic at kern/process/proc.c:459:
+    initproc exit.
+
+Welcome to the kernel debug monitor!!
+Type 'help' for a list of commands.
+K> 

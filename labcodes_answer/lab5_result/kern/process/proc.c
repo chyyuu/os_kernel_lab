@@ -413,9 +413,11 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     if (setup_kstack(proc) != 0) {
         goto bad_fork_cleanup_proc;
     }
+	cprintf("current free pages: %d\n",nr_free_pages());
     if (copy_mm(clone_flags, proc) != 0) {
         goto bad_fork_cleanup_kstack;
     }
+	cprintf("current free pages: %d\n",nr_free_pages());
     copy_thread(proc, stack, tf);
 
     bool intr_flag;
@@ -651,6 +653,7 @@ bad_mm:
 //           - call load_icode to setup new memory space accroding binary prog.
 int
 do_execve(const char *name, size_t len, unsigned char *binary, size_t size) {
+	//cprintf("%d\n",nr_free_pages());
     struct mm_struct *mm = current->mm;
     if (!user_mem_check(mm, (uintptr_t)name, len, 0)) {
         return -E_INVAL;
@@ -677,6 +680,7 @@ do_execve(const char *name, size_t len, unsigned char *binary, size_t size) {
         goto execve_exit;
     }
     set_proc_name(current, local_name);
+	//cprintf("%d\n",nr_free_pages());
     return 0;
 
 execve_exit:
@@ -737,6 +741,7 @@ repeat:
     return -E_BAD_PROC;
 
 found:
+	//print_stackframe();
     if (proc == idleproc || proc == initproc) {
         panic("wait idleproc or initproc.\n");
     }
@@ -814,13 +819,17 @@ user_main(void *arg) {
     panic("user_main execve failed.\n");
 }
 
+//extern free_area_t free_area;
+//#define nr_free (free_area.nr_free)
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
     size_t nr_free_pages_store = nr_free_pages();
     size_t kernel_allocated_store = kallocated();
 
+	//cprintf("%d\n", nr_free_pages());
     int pid = kernel_thread(user_main, NULL, 0);
+	//cprintf("%d\n", nr_free_pages());
     if (pid <= 0) {
         panic("create user_main failed.\n");
     }
