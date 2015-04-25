@@ -1,8 +1,8 @@
 challenge1: buddy system（伙伴系统）的page分配算法
 提示：参考“http://coolshell.cn/articles/10427.html
 状态：
-基本完成 (有bug)
-
+基本完成 (fix 了一个bug)
+感觉在buddy system的管理数据结构的所占空间效率和合并的效率上还有进一步优化的可能
 https://github.com/chyyuu/ucore_lab/tree/lab2_X/labcodes_answer/lab2_result
 
 完成人： 
