@@ -17,11 +17,9 @@ $make mboot
 
 after this, will generate `bin/grub_kernel`
 
-we could 
-
 ## a) run it in qemu
 
-use 
+we could use 
 ```
 qemu-system-i386 -kernel bin/grub_kernel
 ```
