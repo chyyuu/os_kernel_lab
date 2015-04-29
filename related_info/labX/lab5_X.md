@@ -25,3 +25,21 @@ challenge3: 实现用户线程，且内核无法“看到”用户线程（即�
 ===================================================
 状态：未完成
 完成人：
+
+
+challenge4: 分析ucore 内存申请与释放，发现潜在的内存泄露现象
+===================================================
+目前ucore lab5_answer中，存在潜在的内存泄露现象，请通过设计一个方法来解决这个问题。
+```
+Lab5内存泄露？
+实现完Lab5要求后，
+执行make run-forktest，输出
+ assertion failed: nr_free_pages_store == nr_free_pages()
+Welcome to the kernel debug monitor!!
+发现当fork的进程数max_child超过12时，会出现内存泄露。。。
+打印上面两个值，输出如下：
+should remain:31861 actually remain:31860
+有1页没有被回收
+```
+状态：未完成
+完成人：
