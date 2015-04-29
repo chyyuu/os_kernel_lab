@@ -57,7 +57,7 @@ grub-install --force --no-floppy --root-directory=/media/MULTIBOOT/ /dev/sdb1   
 其内容如下：
 ```
 menuentry 'ucore-lab1' {
-	knetbsd /boot/ucore-lab1
+	knetbsd /boot/grub_kernel
 }
 ```
 创建完`grub.cfg`文件后，再把编译生成的`grub_kernel`拷贝到`/media/MULTIBOOT/boot`目录下。
