@@ -100,6 +100,7 @@ default_alloc_pages(size_t n) {
         if (page->property > n) {
             struct Page *p = page + n;
             p->property = page->property - n;
+            SetPageProperty(p);
             list_add(&free_list, &(p->page_link));
     }
         nr_free -= n;
