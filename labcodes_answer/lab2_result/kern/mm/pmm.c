@@ -402,7 +402,7 @@ get_page(pde_t *pgdir, uintptr_t la, pte_t **ptep_store) {
         *ptep_store = ptep;
     }
     if (ptep != NULL && *ptep & PTE_P) {
-        return pa2page(*ptep);
+        return pte2page(*ptep);
     }
     return NULL;
 }
@@ -512,7 +512,7 @@ check_pgdir(void) {
 
     pte_t *ptep;
     assert((ptep = get_pte(boot_pgdir, 0x0, 0)) != NULL);
-    assert(pa2page(*ptep) == p1);
+    assert(pte2page(*ptep) == p1);
     assert(page_ref(p1) == 1);
 
     ptep = &((pte_t *)KADDR(PDE_ADDR(boot_pgdir[0])))[1];
@@ -530,7 +530,7 @@ check_pgdir(void) {
     assert(page_ref(p1) == 2);
     assert(page_ref(p2) == 0);
     assert((ptep = get_pte(boot_pgdir, PGSIZE, 0)) != NULL);
-    assert(pa2page(*ptep) == p1);
+    assert(pte2page(*ptep) == p1);
     assert((*ptep & PTE_U) == 0);
 
     page_remove(boot_pgdir, 0x0);
@@ -541,8 +541,8 @@ check_pgdir(void) {
     assert(page_ref(p1) == 0);
     assert(page_ref(p2) == 0);
 
-    assert(page_ref(pa2page(boot_pgdir[0])) == 1);
-    free_page(pa2page(boot_pgdir[0]));
+    assert(page_ref(pde2page(boot_pgdir[0])) == 1);
+    free_page(pde2page(boot_pgdir[0]));
     boot_pgdir[0] = 0;
 
     cprintf("check_pgdir() succeeded!\n");
@@ -576,7 +576,7 @@ check_boot_pgdir(void) {
     assert(strlen((const char *)0x100) == 0);
 
     free_page(p);
-    free_page(pa2page(PDE_ADDR(boot_pgdir[0])));
+    free_page(pde2page(boot_pgdir[0]));
     boot_pgdir[0] = 0;
 
     cprintf("check_boot_pgdir() succeeded!\n");
