@@ -262,7 +262,7 @@ check_swap(void)
      } 
 
      //free_page(pte2page(*temp_ptep));
-    free_page(pa2page(pgdir[0]));
+    free_page(pde2page(pgdir[0]));
      pgdir[0] = 0;
      mm->pgdir = NULL;
      mm_destroy(mm);
