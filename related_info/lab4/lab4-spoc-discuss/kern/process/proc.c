@@ -266,7 +266,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
      *                 setup the kernel entry point and stack of process
      *   hash_proc:    add proc into proc hash_list
      *   get_pid:      alloc a unique pid for process
-     *   wakup_proc:   set proc->state = PROC_RUNNABLE
+     *   wakeup_proc:   set proc->state = PROC_RUNNABLE
      * VARIABLES:
      *   proc_list:    the process set's list
      *   nr_process:   the number of process set
@@ -281,7 +281,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     copy_thread(proc, stack, tf);
     //    4. insert proc_struct into  proc_list
     list_add_before(&proc_list, &proc->list_link);
-    //    5. call wakup_proc to make the new child process RUNNABLE
+    //    5. call wakeup_proc to make the new child process RUNNABLE
     wakeup_proc(proc);
     //    7. set ret vaule using child proc's pid
     nr_process++;
