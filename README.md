@@ -5,17 +5,18 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
 
 # 实验总体流程
 1. 在[学堂在线](https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about)查看OS相关原理和labX的视频；
-2. 在[实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/)上阅读实验指导书，并参考其内容完成练习和实验报告；
-3. 在实验环境中完成实验并提交实验到git server（清华学生需要在学校内部的git server上，其他同学可提交在其他git server上）；
-4. 如实验中碰到问题，在[在线OS课程问题集](http://xuyongjiande.gitbooks.io/os-qa/)查找是否已经有解答；
+2. 可进一步在[学堂在线](https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/info)或[在线操作系统课程练习题](https://www.gitbook.io/book/xuyongjiande/os_exercises)完成相关的练习题；如碰到问题，在[在线OS课程问题集](http://xuyongjiande.gitbooks.io/os-qa/)查找是否已经有解答；
+3. 在[实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/)上阅读实验指导书，并参考其内容完成练习和实验报告；
+4. 在实验环境中完成实验并提交实验到git server（清华学生需要在学校内部的git server上，其他同学可提交在其他git server上）；
 5. 每天（一周七日）都有助教或老师在piazza在线答疑。如在[在线OS课程问题集](http://xuyongjiande.gitbooks.io/os-qa/)没找到解答，可到[piazza在线OS课程问答和交流区](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)提问。（QQ群 181873534主要用于本课程和OS相关事件发布，以及各种一般性交流）；
-6. 可进一步在[学堂在线](https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/about)或[在线的操作系统课程练习题](https://www.gitbook.io/book/xuyongjiande/os_exercises)完成实验相关的练习题；
+
 
 ## 四种学习目标和对应手段
-1. 掌握OS基本概念：看在线课程，能理解OS原理与概念；看在线实验指导书并分析源码，能理解labcodes_answer的labs运行结果
-2. 掌握OS设计实现：在1的基础上，能够通过编程完成labcodes的8个lab实验中的基本练习和实验报告
-3. 掌握OS核心功能：在2的基础上，能够通过编程完成labcodes的8个lab实验中的challenge练习
-4. 掌握OS科学研究：在3的基础上，能够通过阅读论文、设计、编程、实验评价等过程来完成课程设计（大实验）
+1. 略知OS基本概念：看在线课程原理部分的视频，可大致知道OS的概念；
+2. 理解OS基本原理：在1的基础上，完成[学堂在线练习题](https://www.xuetangx.com/courses/TsinghuaX/30240243X/2015_T1/info)和[与OS原相关的在线操作系统课程练习题](https://www.gitbook.io/book/xuyongjiande/os_exercises)，可理解OS基本原理
+3. 掌握OS设计实现：在2的基础上，能够通过编程完成labcodes的8个lab实验中的基本练习和实验报告
+4. 深入OS核心功能：在3的基础上，能够通过编程完成labcodes的8个lab实验中的challenge练习
+5. 体验OS科学研究：在4的基础上，能够通过阅读论文、设计、编程、实验评价等过程来完成课程设计（大实验）
 
 【**注意**】
   - **筑基内功**--请提前学习计算机原理、C语言、数据结构课程
