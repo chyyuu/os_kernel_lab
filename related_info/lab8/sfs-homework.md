@@ -3,7 +3,7 @@
 ## 面向文件系统的用户操作
 - mkdir() - 创建一个新目录
 - creat() - 创建一个空文件
-- open(), write(), close() - 对文件写一个数据buffer
+- open(), write(), close() - 对文件写一个数据buffer,注意常规文件的最大size是一个data block，所以第二次写（写文件的语义是在上次写的位置后再写一个data block）会报错（文件大小满了）。或者如果data block也满了，也会报错。
 - link()   - 对文件创建一个硬链接（hard link）
 - unlink() - 对文件取消一个硬链接 (如果文件的链接数为0，则删除文件
 
