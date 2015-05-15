@@ -119,16 +119,16 @@ $(call add_files_cc,$(call listf_cc,$(LIBDIR)),libs,)
 # -------------------------------------------------------------------
 # kernel
 
-KINCLUDE	+= kern/debug/ \
+KINCLUDE	+= kern/debug/  \
 			   kern/driver/ \
-			   kern/trap/ \
-			   kern/mm/
+			   kern/trap/   \
+			   kern/mm/     
 
-KSRCDIR		+= kern/init \
-			   kern/libs \
-			   kern/debug \
-			   kern/driver \
-			   kern/trap \
+KSRCDIR		+= kern/init    \
+			   kern/libs    \
+			   kern/debug   \
+			   kern/driver  \
+			   kern/trap    \
 			   kern/mm
 
 KCFLAGS		+= $(addprefix -I,$(KINCLUDE))
@@ -152,6 +152,19 @@ $(call create_target,kernel)
 
 # -------------------------------------------------------------------
 
+mbootfiles = $(call listf_cc,mboot)
+$(foreach f,$(mbootfiles),$(call cc_compile,$(f),$(CC),$(CFLAGS) -Os -nostdinc))
+
+multiboot = $(call totarget,multiboot)
+
+$(multiboot): $(call toobj,$(mbootfiles)) 
+	@echo + ld $@ $^
+	
+
+
+$(call create_target,multiboot)
+
+# -------------------------------------------------------------------
 # create bootblock
 bootfiles = $(call listf_cc,boot)
 $(foreach f,$(bootfiles),$(call cc_compile,$(f),$(CC),$(CFLAGS) -Os -nostdinc))
@@ -174,6 +187,10 @@ $(call add_files_host,tools/sign.c,sign,sign)
 $(call create_target_host,sign,sign)
 
 # -------------------------------------------------------------------
+
+STEST:$(call toobj,$(mbootfiles)) $(kernel) 
+	$(V)$(LD) $(LDFLAGS) -T mboot/link.ld $^ -o stest
+	#echo $(call toobj,$(mbootfiles)) 
 
 # create ucore.img
 UCOREIMG	:= $(call totarget,ucore.img)
