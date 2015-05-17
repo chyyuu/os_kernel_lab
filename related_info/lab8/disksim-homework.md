@@ -14,7 +14,6 @@ $ ./disksim.py -a 10 -G
 `-a 10`表示访问扇区10， `-G`表示显示图形动画。
 可以看到磁头在外侧磁道的扇区6的中间位置， 扇区10与扇区6在一个磁道上。在图形界面上按`s`键，将启动模拟执行过程。并在执行结束后，按`q`键，则退出图形，并显示统计结果如下：
 
-
 ```
 REQUESTS ['10']
 
@@ -47,6 +46,9 @@ TOTALS      Seek:  0  Rotate:105  Transfer: 60  Total: 165
 ```
 $ ./disksim.py -a 10，18 -G
 ```
+
+执结果如下
+```
 REQUESTS ['10', '18’]
 Sector:  10  Seek:  0  Rotate:105  Transfer: 30  Total: 135
 Sector:  18  Seek: 40  Rotate:170  Transfer: 30  Total: 240
@@ -56,7 +58,9 @@ TOTALS      Seek: 40  Rotate:275  Transfer: 60  Total: 375
 
 
 请回答如下问题：
-问题 1：请执行 FIFO磁盘调度策略
+
+## 问题 1：请执行 FIFO磁盘调度策略
+
 ```
 ./disksim.py  采用FIFO -a 0
 ./disksim.py   -a 6
@@ -66,14 +70,15 @@ TOTALS      Seek: 40  Rotate:275  Transfer: 60  Total: 375
 ```
 请回答每个磁盘请求序列的IO访问时间
 
-问题 2：请执行 SSTF磁盘调度策略
+## 问题 2：请执行 SSTF磁盘调度策略
+
 ```
 ./disksim.py   -a 10,11,12,13，24,1
 ```
 请回答每个磁盘请求序列的IO访问时间
 
+## 问题 3：请执行 SCAN, C-SCAN磁盘调度策略
 
-问题 3：请执行 SCAN, C-SCAN磁盘调度策略
 ```
 ./disksim.py   -a 10,11,12,13，24,1
 ```
