@@ -3,7 +3,7 @@
 ## 面向文件系统的用户操作
 - mkdir() - 创建一个新目录
 - creat() - 创建一个空文件
-- open(), write(), close() - 对文件写一个数据buffer
+- open(), write(), close() - 对文件写一个数据buffer,注意常规文件的最大size是一个data block，所以第二次写（写文件的语义是在上次写的位置后再写一个data block）会报错（文件大小满了）。或者如果data block也满了，也会报错。
 - link()   - 对文件创建一个硬链接（hard link）
 - unlink() - 对文件取消一个硬链接 (如果文件的链接数为0，则删除文件
 
@@ -31,14 +31,20 @@
 
 
 #### 数据块内容结构
- - 一般文件的内容的表示：只是包含单个字符的list，比如`['a']`, `['b']` .....
- - 目录内容的表示： 多个两元组`（name, inode_number）`形成的list，比如， 根目录 `[(.,0) (..,0)]`， 或者包含了一个`'f'`文件的根目录[(.,0) (..,0) (f,1)] 
+ - 一般文件的内容的表示：只是包含单个字符的list，即占一个data block，比如`['a']`, `['b']` .....
+ - 目录内容的表示： 多个两元组`（name, inode_number）`形成的list，比如， 根目录 `[(.,0) (..,0)]`， 或者包含了一个`'f'`文件的根目录[(.,0) (..,0) (f,1)] 。 
+
+> 注意：一个目录的目录项的个数是有限的。 `block.maxUsed = 32`
+
+> 注意：data block的个数是有限的,为 fs.numData
+
+> 注意：inode的个数是有限的,为 fs.numInodes
  
  
 ### 完整文件系统的例子 
 ```
 fs.ibitmap: inode bitmap 11110000
-fs.inodes:       [d a:0 r:6] [f a:1 r:1] [f a:-1 r:1] [d a:2 r:2] [] ...
+fs.inodes:       [d a:0 r:5] [f a:1 r:1] [f a:-1 r:1] [d a:2 r:2] [] ...
 fs.dbitmap: data bitmap  11100000
 fs.data:         [(.,0) (..,0) (y,1) (z,2) (x,3)] [u] [(.,3) (..,0)] [] ...
 ```
@@ -103,7 +109,7 @@ fs.data:         [(.,0) (..,0) (y,1) (z,2) (x,3)] [u] [(.,3) (..,0)] [] ...
    
 
 ## 问题1： 
-根据[sfs文件系统的状态变化信息](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab8/sfs-states.txt)，给出具体的文件相关操作内容.
+根据[sfs文件系统的状态变化信息](./sfs_states.txt)，给出具体的文件相关操作内容.
 
 ## 问题2：
 在[sfs-homework.py 参考代码的基础上](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab8/sfs-homework.py)，实现 `writeFile, createFile, createLink, deleteFile`，使得你的实现能够达到与问题1的正确结果一致
