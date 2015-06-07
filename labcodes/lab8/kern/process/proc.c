@@ -609,7 +609,7 @@ failed_cleanup:
     return ret;
 }
 
-// do_execve - call exit_mmap(mm)&pug_pgdir(mm) to reclaim memory space of current process
+// do_execve - call exit_mmap(mm)&put_pgdir(mm) to reclaim memory space of current process
 //           - call load_icode to setup new memory space accroding binary prog.
 int
 do_execve(const char *name, int argc, const char **argv) {
