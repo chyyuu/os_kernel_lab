@@ -7,7 +7,7 @@
    on receiving a request for memory, scans along the list for the first block that is large enough to
    satisfy the request. If the chosen block is significantly larger than that requested, then it is 
    usually split, and the remainder added to the list as another free block.
-   Please see Page 196~198, Section 8.2 of Yan Wei Ming's chinese book "Data Structure -- C programming language"
+   Please see Page 196~198, Section 8.2 of Yan Wei Min's chinese book "Data Structure -- C programming language"
 */
 // LAB2 EXERCISE 1: YOUR CODE
 // you should rewrite functions: default_init,default_init_memmap,default_alloc_pages, default_free_pages.
