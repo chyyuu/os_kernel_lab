@@ -124,7 +124,7 @@ alloc_proc(void) {
         proc->wait_state = 0;
         proc->cptr = proc->optr = proc->yptr = NULL;
         proc->rq = NULL;
-        proc->run_link.prev = proc->run_link.next = NULL;
+        list_init(&(proc->run_link));
         proc->time_slice = 0;
         proc->lab6_run_pool.left = proc->lab6_run_pool.right = proc->lab6_run_pool.parent = NULL;
         proc->lab6_stride = 0;
