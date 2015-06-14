@@ -524,9 +524,9 @@ copy_range(pde_t *to, pde_t *from, uintptr_t start, uintptr_t end, bool share) {
         //get page from ptep
         assert(ptep!=NULL);
         assert(nptep!=NULL);
-		
-		    cprintf("Copy Range\n");
-		
+        
+            cprintf("Copy Range\n");
+        
         // alloc a page for process B
         //struct Page *npage=alloc_page();
         //assert(ptep!=NULL);
@@ -550,13 +550,13 @@ copy_range(pde_t *to, pde_t *from, uintptr_t start, uintptr_t end, bool share) {
         void * kva_dst = page2kva(npage);
     
         memcpy(kva_dst, kva_src, PGSIZE);
-		*/
-		        int ret=0;
-        		struct Page *page = pte2page(*ptep);
-        		if(*ptep & PTE_W){
-        			perm &= (~PTE_W);
-        			page_insert(from,page,start,perm);
-        		}
+        */
+                int ret=0;
+                struct Page *page = pte2page(*ptep);
+                if(*ptep & PTE_W){
+                    perm &= (~PTE_W);
+                    page_insert(from,page,start,perm);
+                }
             ret = page_insert(to, page, start, perm);
             assert(ret == 0);
         }
