@@ -503,11 +503,7 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     }
     else {
 		struct Page *page, *npage=NULL;
-		bool cow = ((vma->vm_flags &  VM_WRITE) == VM_WRITE);
-		if(cow) {
-			npage = alloc_page();
-			cprintf("HIT COW! Alloc_a_Page!\n");
-		}
+		bool cow = ((vma->vm_flags &  VM_WRITE) == VM_WRITE), may_copy = 1;
         if (*ptep & PTE_P) {
             //if process write to this existed readonly page (PTE_P means existed), then should be here now.
             //we can implement the delayed memory space copy for fork child process (AKA copy on write, COW).
@@ -523,15 +519,20 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
                    cprintf("swap_in in do_pgfault failed\n");
                    goto failed;
                }    
+               if (!(error_code & 2) && cow) {
+                   perm &= ~PTE_W;
+                   may_copy = 0;
+               }
            }  
            else {
             cprintf("no swap_init_ok but ptep is %x, failed\n",*ptep);
             goto failed;
            }
        } 
-	   if(cow)
+	   if(cow && may_copy)
 	   {
 		   if (page_ref(page) > 1) {
+			   npage = alloc_page();
 			   if (npage == NULL) {
 				   goto failed;
 			   }
@@ -544,11 +545,7 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
 	   }
        page_insert(mm->pgdir, page, addr, perm);
        swap_map_swappable(mm, addr, page, 1);
-	   if (npage != NULL) {
-		   cprintf("cow = 1 But npage != null; Means ref has been dec to 1\n");
-		   free_page(npage);
-	   }
-	   
+       page->pra_vaddr = addr;
    }
    ret = 0;
 failed:
