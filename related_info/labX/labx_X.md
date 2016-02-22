@@ -29,34 +29,3 @@ challenge4: porting ucore labs 1~8在x86的笔记本电脑上,可以通过u盘�
 要求：lab1~lab8可以在x86的笔记本电脑上跑起来。需要写出移植报告，说明移植的过程等。
 完成人:
 
-
-challenge5:简化ucore lab1-3，使其能在一个简化的CPU模拟器ex上。
-===================================================
-提示: 基于　https://com.github/chyyuu/swieros ，已经在ubuntu 14.04上实验过，参考00README.txt　很容易测试运行起来。
-状态：已有一个简化的CPU模拟器ex，一个简化的C子集编译器4c，一个基于此C子集的简化的xv6，4c编译的xv6可以运行在ex上。ex,4c,xv6的源码都在2000行以内。
-要求：参考xv6 for 简化CPU模拟器ex, 简化ucore lab1~lab3的code，使其能够在CPU模拟器ex.体现lab1~lab3的特点。此项目比较有意思，有一定的综合性。
-完成人：
-
-
-challenge６:简化ucore lab4-5，使其能在一个简化的CPU模拟器ex上。
-===================================================
-提示: 基于　https://com.github/chyyuu/swieros ，已经在ubuntu 14.04上实验过，参考00README.txt　很容易测试运行起来。
-状态：已有一个简化的CPU模拟器ex，一个简化的C子集编译器4c，一个基于此C子集的简化的xv6，4c编译的xv6可以运行在ex上。ex,4c,xv6的源码都在2000行以内。
-要求：参考xv6 for 简化CPU模拟器ex, 简化ucore lab4~lab5的code，使其能够在CPU模拟器ex.体现lab4~lab5的特点。此项目比较有意思，有一定的综合性。
-完成人：
-
-
-challenge７:简化ucore lab6-7，使其能在一个简化的CPU模拟器ex上。
-===================================================
-提示: 基于　https://com.github/chyyuu/swieros ，已经在ubuntu 14.04上实验过，参考00README.txt　很容易测试运行起来。
-状态：已有一个简化的CPU模拟器ex，一个简化的C子集编译器4c，一个基于此C子集的简化的xv6，4c编译的xv6可以运行在ex上。ex,4c,xv6的源码都在2000行以内。
-要求：参考xv6 for 简化CPU模拟器ex, 简化ucore lab6~lab7的code，使其能够在CPU模拟器ex.体现lab6~lab7的特点。此项目比较有意思，有一定的综合性。
-完成人：
-
-
-challenge8:简化ucore lab8，使其能在一个简化的CPU模拟器ex上。
-===================================================
-提示: 基于　https://com.github/chyyuu/swieros ，已经在ubuntu 14.04上实验过，参考00README.txt　很容易测试运行起来。
-状态：已有一个简化的CPU模拟器ex，一个简化的C子集编译器4c，一个基于此C子集的简化的xv6，4c编译的xv6可以运行在ex上。ex,4c,xv6的源码都在2000行以内。
-要求：参考xv6 for 简化CPU模拟器ex, 简化ucore lab8的code，使其能够在CPU模拟器ex.体现lab8的特点。此项目比较有意思，有一定的综合性。
-完成人：
