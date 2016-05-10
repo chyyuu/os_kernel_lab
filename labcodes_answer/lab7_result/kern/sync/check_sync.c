@@ -167,7 +167,7 @@ int philosopher_using_semaphore(void * arg) /* i：哲学家号码，从0到N-1 
 
 struct proc_struct *philosopher_proc_condvar[N]; // N philosopher
 int state_condvar[N];                            // the philosopher's state: EATING, HUNGARY, THINKING  
-monitor_t mt, *mtp=&mt;                                    // mp is mutex semaphore for monitor's procedures
+monitor_t mt, *mtp=&mt;                          // monitor
 
 void phi_test_condvar (i) { 
     if(state_condvar[i]==HUNGRY&&state_condvar[LEFT]!=EATING
