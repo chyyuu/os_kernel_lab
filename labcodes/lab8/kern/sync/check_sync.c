@@ -13,6 +13,66 @@
 #define TIMES  4 /* 吃4次饭 */
 #define SLEEP_TIME 10
 
+//-----------------philosopher problem using monitor ------------
+/*PSEUDO CODE :philosopher problem using semaphore
+system DINING_PHILOSOPHERS
+
+VAR
+me:    semaphore, initially 1;                    # for mutual exclusion 
+s[5]:  semaphore s[5], initially 0;               # for synchronization 
+pflag[5]: {THINK, HUNGRY, EAT}, initially THINK;  # philosopher flag 
+
+# As before, each philosopher is an endless cycle of thinking and eating.
+
+procedure philosopher(i)
+  {
+    while TRUE do
+     {
+       THINKING;
+       take_chopsticks(i);
+       EATING;
+       drop_chopsticks(i);
+     }
+  }
+
+# The take_chopsticks procedure involves checking the status of neighboring 
+# philosophers and then declaring one's own intention to eat. This is a two-phase 
+# protocol; first declaring the status HUNGRY, then going on to EAT.
+
+procedure take_chopsticks(i)
+  {
+    DOWN(me);               # critical section 
+    pflag[i] := HUNGRY;
+    test[i];
+    UP(me);                 # end critical section 
+    DOWN(s[i])              # Eat if enabled 
+   }
+
+void test(i)                # Let phil[i] eat, if waiting 
+  {
+    if ( pflag[i] == HUNGRY
+      && pflag[i-1] != EAT
+      && pflag[i+1] != EAT)
+       then
+        {
+          pflag[i] := EAT;
+          UP(s[i])
+         }
+    }
+
+
+# Once a philosopher finishes eating, all that remains is to relinquish the 
+# resources---its two chopsticks---and thereby release waiting neighbors.
+
+void drop_chopsticks(int i)
+  {
+    DOWN(me);                # critical section 
+    test(i-1);               # Let phil. on left eat if possible 
+    test(i+1);               # Let phil. on rght eat if possible 
+    UP(me);                  # up critical section 
+   }
+
+*/
 //---------- philosophers problem using semaphore ----------------------
 int state_sema[N]; /* 记录每个人状态的数组 */
 /* 信号量是一个特殊的整型变量 */
