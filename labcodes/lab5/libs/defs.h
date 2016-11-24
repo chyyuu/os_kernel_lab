@@ -9,6 +9,8 @@
 #define __noinline __attribute__((noinline))
 #define __noreturn __attribute__((noreturn))
 
+#TEST
+
 /* Represents true-or-false values */
 typedef int bool;
 
