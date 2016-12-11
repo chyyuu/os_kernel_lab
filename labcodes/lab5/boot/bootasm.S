@@ -28,20 +28,20 @@ start:
     #  address line 20 is tied low, so that addresses higher than
     #  1MB wrap around to zero by default. This code undoes this.
 seta20.1:
-    inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
+    inb $0x64, %al                                  # Wait for not busy
     testb $0x2, %al
     jnz seta20.1
 
     movb $0xd1, %al                                 # 0xd1 -> port 0x64
-    outb %al, $0x64                                 # 0xd1 means: write data to 8042's P2 port
+    outb %al, $0x64
 
 seta20.2:
-    inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
+    inb $0x64, %al                                  # Wait for not busy
     testb $0x2, %al
     jnz seta20.2
 
     movb $0xdf, %al                                 # 0xdf -> port 0x60
-    outb %al, $0x60                                 # 0xdf = 11011111, means set P2's A20 bit(the 1 bit) to 1
+    outb %al, $0x60
 
 probe_memory:
     movl $0, 0x8000
