@@ -4,8 +4,7 @@ SPACE	:= $(EMPTY) $(EMPTY)
 SLASH	:= /
 
 V       := @
-#need llvm/cang-3.5+
-#USELLVM := 1
+
 # try to infer the correct GCCPREFX
 ifndef GCCPREFIX
 GCCPREFIX := $(shell if i386-ucore-elf-objdump -i 2>&1 | grep '^elf32-i386$$' >/dev/null 2>&1; \
@@ -26,10 +25,8 @@ endif
 ifndef QEMU
 QEMU := $(shell if which qemu-system-i386 > /dev/null; \
 	then echo 'qemu-system-i386'; exit; \
-	elif which i386-elf-qemu > /dev/null; \
-	then echo 'i386-elf-qemu'; exit; \
-	elif which qemu > /dev/null; \
-	then echo 'qemu'; exit; \
+	elif which i386-ucore-elf-qemu > /dev/null; \
+	then echo 'i386-ucore-elf-qemu'; exit; \
 	else \
 	echo "***" 1>&2; \
 	echo "*** Error: Couldn't find a working QEMU executable." 1>&2; \
@@ -44,21 +41,15 @@ endif
 .DELETE_ON_ERROR:
 
 # define compiler and flags
-ifndef  USELLVM
+
 HOSTCC		:= gcc
 HOSTCFLAGS	:= -g -Wall -O2
+
+GDB		:= $(GCCPREFIX)gdb
+
 CC		:= $(GCCPREFIX)gcc
 CFLAGS	:= -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc $(DEFS)
 CFLAGS	+= $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
-else
-HOSTCC		:= clang
-HOSTCFLAGS	:= -g -Wall -O2
-CC		:= clang
-CFLAGS	:= -fno-builtin -Wall -g -m32 -mno-sse -nostdinc $(DEFS)
-CFLAGS	+= $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
-endif
-
-GDB		:= $(GCCPREFIX)gdb
 CTYPE	:= c S
 
 LD      := $(GCCPREFIX)ld
@@ -268,13 +259,13 @@ TARGETS: $(TARGETS)
 QEMUOPTS = -hda $(UCOREIMG) -drive file=$(SWAPIMG),media=disk,cache=writeback
 
 .PHONY: qemu qemu-nox debug debug-nox
-qemu-mon: $(UCOREIMG)  $(SWAPIMG)
-	$(V)$(QEMU)  -no-reboot -monitor stdio $(QEMUOPTS) -serial null
+qemu-mon: $(UCOREIMG) $(SWAPIMG)
+	$(V)$(QEMU) -monitor stdio $(QEMUOPTS) -serial null
 qemu: $(UCOREIMG) $(SWAPIMG)
-	$(V)$(QEMU)  -no-reboot -parallel stdio $(QEMUOPTS) -serial null
+	$(V)$(QEMU) -parallel stdio $(QEMUOPTS) -serial null
 
 qemu-nox: $(UCOREIMG) $(SWAPIMG)
-	$(V)$(QEMU)  -no-reboot -serial mon:stdio $(QEMUOPTS) -nographic
+	$(V)$(QEMU) -serial mon:stdio $(QEMUOPTS) -nographic
 
 TERMINAL := gnome-terminal
 
@@ -320,9 +311,9 @@ touch:
 print-%:
 	@echo $($(shell echo $(patsubst print-%,%,$@) | $(TR) [a-z] [A-Z]))
 
-.PHONY: clean dist-clean handin packall tags
+.PHONY: clean dist-clean handin packall
 clean:
-	$(V)$(RM) $(GRADE_GDB_IN) $(GRADE_QEMU_OUT) cscope* tags
+	$(V)$(RM) $(GRADE_GDB_IN) $(GRADE_QEMU_OUT)
 	-$(RM) -r $(OBJDIR) $(BINDIR)
 
 dist-clean: clean
@@ -335,9 +326,3 @@ packall: clean
 	@$(RM) -f $(HANDIN)
 	@tar -czf $(HANDIN) `find . -type f -o -type d | grep -v '^\.*$$' | grep -vF '$(HANDIN)'`
 
-tags:
-	@echo TAGS ALL
-	$(V)rm -f cscope.files cscope.in.out cscope.out cscope.po.out tags
-	$(V)find . -type f -name "*.[chS]" >cscope.files
-	$(V)cscope -bq 
-	$(V)ctags -L cscope.files

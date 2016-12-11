@@ -73,6 +73,8 @@ void drop_chopsticks(int i)
    }
 
 */
+
+
 //---------- philosophers problem using semaphore ----------------------
 int state_sema[N]; /* 记录每个人状态的数组 */
 /* 信号量是一个特殊的整型变量 */
@@ -184,6 +186,14 @@ void phi_take_forks_condvar(int i) {
      // LAB7 EXERCISE1: YOUR CODE
      // I am hungry
      // try to get fork
+      // I am hungry
+      state_condvar[i]=HUNGRY; 
+      // try to get fork
+      phi_test_condvar(i); 
+      if (state_condvar[i] != EATING) {
+          cprintf("phi_take_forks_condvar: %d didn't get fork and will wait\n",i);
+          cond_wait(&mtp->cv[i]);
+      }
 //--------leave routine in monitor--------------
       if(mtp->next_count>0)
          up(&(mtp->next));
@@ -198,6 +208,11 @@ void phi_put_forks_condvar(int i) {
      // LAB7 EXERCISE1: YOUR CODE
      // I ate over
      // test left and right neighbors
+      // I ate over 
+      state_condvar[i]=THINKING;
+      // test left and right neighbors
+      phi_test_condvar(LEFT);
+      phi_test_condvar(RIGHT);
 //--------leave routine in monitor--------------
      if(mtp->next_count>0)
         up(&(mtp->next));
