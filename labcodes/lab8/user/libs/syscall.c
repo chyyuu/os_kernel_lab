@@ -84,7 +84,7 @@ sys_sleep(unsigned int time) {
     return syscall(SYS_sleep, time);
 }
 
-int
+size_t
 sys_gettime(void) {
     return syscall(SYS_gettime);
 }

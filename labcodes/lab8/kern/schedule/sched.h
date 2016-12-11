@@ -5,20 +5,17 @@
 #include <list.h>
 #include <skew_heap.h>
 
-#define MAX_TIME_SLICE 5
-
 struct proc_struct;
 
 typedef struct {
-    unsigned int expires;       //the expire time
-    struct proc_struct *proc;   //the proc wait in this timer. If the expire time is end, then this proc will be scheduled
-    list_entry_t timer_link;    //the timer list
+    unsigned int expires;
+    struct proc_struct *proc;
+    list_entry_t timer_link;
 } timer_t;
 
 #define le2timer(le, member)            \
 to_struct((le), timer_t, member)
 
-// init a timer
 static inline timer_t *
 timer_init(timer_t *timer, struct proc_struct *proc, int expires) {
     timer->expires = expires;
@@ -65,9 +62,9 @@ struct run_queue {
 void sched_init(void);
 void wakeup_proc(struct proc_struct *proc);
 void schedule(void);
-void add_timer(timer_t *timer);     // add timer to timer_list
-void del_timer(timer_t *timer);     // del timer from timer_list
-void run_timer_list(void);          // call scheduler to update tick related info, and check the timer is expired? If expired, then wakup proc
+void add_timer(timer_t *timer);
+void del_timer(timer_t *timer);
+void run_timer_list(void);
 
 #endif /* !__KERN_SCHEDULE_SCHED_H__ */
 
