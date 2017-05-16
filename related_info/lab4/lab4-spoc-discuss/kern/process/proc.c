@@ -66,6 +66,7 @@ struct proc_struct *idleproc = NULL;
 // init procs
 struct proc_struct *initproc1 = NULL;
 struct proc_struct *initproc2 = NULL;
+struct proc_struct *initproc3 = NULL;
 // current proc
 struct proc_struct *current = NULL;
 
@@ -275,6 +276,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     //    1. call alloc_proc to allocate a proc_struct
     proc = alloc_proc();
     proc->pid = get_pid();
+    cprintf("[SPOC]* now setting %d to PROC_UNINIT in do_fork\n", proc->pid);
     //    2. call setup_kstack to allocate a kernel stack for child process
     setup_kstack(proc);
     //    3. call copy_thread to setup tf & context in proc_struct
@@ -342,6 +344,7 @@ found:
 
     local_intr_save(intr_flag);
     {
+        cprintf("[SPOC] remove %s from links\n", get_proc_name(proc));
         remove_links(proc);
     }
     local_intr_restore(intr_flag);
@@ -361,16 +364,19 @@ do_exit(int error_code) {
 	cprintf(" do_exit: proc pid %d will exit\n", current->pid);
 	cprintf(" do_exit: proc  parent %x\n", current->parent);
     current->state = PROC_ZOMBIE;
+    cprintf("[SPOC]* now setting %d to PROC_ZOMBIE in do_exit\n", current->pid);
 	bool intr_flag;
     struct proc_struct *proc;
     local_intr_save(intr_flag);
     {
         proc = current->parent;
         if (proc->wait_state == WT_CHILD) {
+            cprintf("[SPOC]* wakeup parent proc %s pid=%d\n", get_proc_name(proc), proc->pid);
             wakeup_proc(proc);
         }
 	}
     local_intr_restore(intr_flag);
+    cprintf("[SPOC] schedule in do_exit\n");
 	schedule();
     panic("do_exit will not return!! %d.\n", current->pid);
 }
@@ -379,10 +385,15 @@ do_exit(int error_code) {
 static int
 init_main(void *arg) {
     cprintf(" kernel_thread, pid = %d, name = %s\n", current->pid, get_proc_name(current));
+    cprintf("[SPOC] schedule by thread itself\n");
 	schedule();
     cprintf(" kernel_thread, pid = %d, name = %s , arg  %s \n", current->pid, get_proc_name(current), (const char *)arg);
+    cprintf("[SPOC] schedule by thread itself\n");
 	schedule();
+    cprintf("[SPOC] schedule by thread itself\n");
     cprintf(" kernel_thread, pid = %d, name = %s ,  en.., Bye, Bye. :)\n",current->pid, get_proc_name(current));
+    
+    cprintf("[SPOC] This thread is about to exit, will then execute do_exit\n");
     return 0;
 }
 
@@ -409,16 +420,20 @@ proc_init(void) {
 
     int pid1= kernel_thread(init_main, "init main1: Hello world!!", 0);
     int pid2= kernel_thread(init_main, "init main2: Hello world!!", 0);
-    if (pid1 <= 0 || pid2<=0) {
+    int pid3= kernel_thread(init_main, "init main2: Hello world!!", 0);
+    if (pid1 <= 0 || pid2<=0 || pid3 <= 0) {
         panic("create kernel thread init_main1 or 2 failed.\n");
     }
 
     initproc1 = find_proc(pid1);
-	initproc2 = find_proc(pid2);
+    initproc2 = find_proc(pid2);
+	initproc3 = find_proc(pid3);
     set_proc_name(initproc1, "init1");
-	set_proc_name(initproc2, "init2");
+    set_proc_name(initproc2, "init2");
+	set_proc_name(initproc3, "init3");
     cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc1->pid, initproc1->name);
-	cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc2->pid, initproc2->name);
+    cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc2->pid, initproc2->name);
+	cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc3->pid, initproc3->name);
     assert(idleproc != NULL && idleproc->pid == 0);
 }
 

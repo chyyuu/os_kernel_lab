@@ -136,7 +136,15 @@ default_free_pages(struct Page *base, size_t n) {
         }
     }
     nr_free += n;
-    list_add(&free_list, &(base->page_link));
+    //list_add(&free_list, &(base->page_link));
+
+    le = list_next(&free_list);
+    // Find insertion position
+    while (le2page(le, page_link) < base && le != &free_list) {
+        le = list_next(le);
+    }
+    le = list_prev(le);
+    list_add(le, &(base->page_link));
 }
 
 static size_t
