@@ -426,6 +426,9 @@ cons_init(void) {
     cga_init();
     serial_init();
     kbd_init();
+    
+    cons.rpos = cons.wpos = 0;
+    
     if (!serial_exists) {
         cprintf("serial port does not exist!!\n");
     }
