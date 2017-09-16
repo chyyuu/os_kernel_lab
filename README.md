@@ -221,6 +221,8 @@ OR
 S郭晓林、薛天凡、胡刚、刘超、粟裕、袁昕颢...
 欢迎加入我们的OS兴趣小组，共同进步！
 
+## [兴趣](https://github.com/chyyuu/os_course_info/blob/master/README.md#兴趣)
+
 ## 版权信息
 
 ucore OS起源于MIT CSAIL PDOS课题组开发的xv6&jos、哈佛大学开发的
