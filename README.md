@@ -70,8 +70,8 @@ lab8: filesystem
 Detailed documentation can be found in docs directory.
 
 # Maintainers
-```
-Yu Chen: yuchen AT tsinghua.edu.cn
-Wei Zhang:  zhangwei15 AT mails.tsinghua.edu.cn
-```
+- Yu Chen: yuchen AT tsinghua.edu.cn
+- Yong, Xiang: xyong@tsinghua.edu.cn
+- Mao, Junjie: eternal.n08@gmail.com
+- Wei Zhang:  zhangwei15 AT mails.tsinghua.edu.cn
 
