@@ -1,4 +1,0 @@
-file obj/bootblock.o
-target remote :1234
-break bootmain
-continue

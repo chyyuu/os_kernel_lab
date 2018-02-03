@@ -1,0 +1,4 @@
+AC_ARG_ENABLE([fp-emulation], AS_HELP_STRING([--disable-fp-emulation], [Disable floating-point emulation]))
+AS_IF([test "x$enable_fp_emulation" != "xno"], [
+  AC_DEFINE([PK_ENABLE_FP_EMULATION],,[Define if floating-point emulation is enabled])
+])

@@ -1,0 +1,12 @@
+AC_ARG_ENABLE([logo], AS_HELP_STRING([--enable-logo], [Enable boot logo]))
+AS_IF([test "x$enable_logo" == "xyes"], [
+  AC_DEFINE([PK_ENABLE_LOGO],,[Define if the RISC-V logo is to be displayed])
+])
+
+AC_ARG_WITH([payload], AS_HELP_STRING([--with-payload], [Set ELF payload for bbl]),
+  [AC_SUBST([BBL_PAYLOAD], $with_payload, [Kernel payload for bbl])],
+  [AC_SUBST([BBL_PAYLOAD], [dummy_payload], [Kernel payload for bbl])])
+
+AC_ARG_WITH([logo], AS_HELP_STRING([--with-logo], [Specify a better logo]),
+  [AC_SUBST([BBL_LOGO_FILE], $with_logo, [Logo for bbl])],
+  [AC_SUBST([BBL_LOGO_FILE], [riscv_logo.txt], [Logo for bbl])])

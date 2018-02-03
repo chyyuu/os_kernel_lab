@@ -1,0 +1,4 @@
+AC_ARG_ENABLE([vm], AS_HELP_STRING([--disable-vm], [Disable virtual memory]))
+AS_IF([test "x$enable_vm" != "xno"], [
+  AC_DEFINE([PK_ENABLE_VM],,[Define if virtual memory support is enabled])
+])
