@@ -116,7 +116,7 @@ AC_SUBST(install_subdir)
 # The '*' suffix indicates an optional subproject. The '**' suffix
 # indicates an optional subproject which is also the name of a group.
 
-MCPPBS_SUBPROJECTS([ pk, bbl, softfloat, dummy_payload, machine, util ])
+MCPPBS_SUBPROJECTS([ pk, bbl, dummy_payload, machine, util ])
 
 #-------------------------------------------------------------------------
 # MCPPBS subproject groups

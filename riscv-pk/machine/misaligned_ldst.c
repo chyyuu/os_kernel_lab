@@ -1,15 +1,20 @@
 #include "emulation.h"
-#include "fp_emulation.h"
+//#include "fp_emulation.h"
 #include "unprivileged_memory.h"
 #include "mtrap.h"
 #include "config.h"
-#include "pk.h"
+//#include "pk.h"
 
 union byte_array {
   uint8_t bytes[8];
   uintptr_t intx;
   uint64_t int64;
 };
+
+static inline int insn_len(long insn)
+{
+  return (insn & 0x3) < 0x3 ? 2 : 4;
+}
 
 void misaligned_load_trap(uintptr_t* regs, uintptr_t mcause, uintptr_t mepc)
 {
@@ -71,11 +76,12 @@ void misaligned_load_trap(uintptr_t* regs, uintptr_t mcause, uintptr_t mepc)
 
   if (!fp)
     SET_RD(insn, regs, (intptr_t)val.intx << shift >> shift);
+#ifdef PK_ENABLE_FP_EMULATION
   else if (len == 8)
     SET_F64_RD(insn, regs, val.int64);
   else
     SET_F32_RD(insn, regs, val.intx);
-
+#endif
   write_csr(mepc, npc);
 }
 

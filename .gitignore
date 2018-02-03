@@ -20,3 +20,4 @@ a.out
 chytesting
 disk0
 *.orig
+setenv-rv32.sh

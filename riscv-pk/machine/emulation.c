@@ -1,5 +1,5 @@
 #include "emulation.h"
-#include "fp_emulation.h"
+//#include "fp_emulation.h"
 #include "config.h"
 #include "unprivileged_memory.h"
 #include "mtrap.h"
@@ -214,6 +214,7 @@ DECLARE_EMULATION_FUNC(emulate_system_opcode)
     return truly_illegal_insn(regs, mcause, mepc, mstatus, insn);
 
   int do_write = rs1_num;
+#if 0
   switch (GET_RM(insn))
   {
     case 0: return truly_illegal_insn(regs, mcause, mepc, mstatus, insn);
@@ -225,7 +226,7 @@ DECLARE_EMULATION_FUNC(emulate_system_opcode)
     case 6: new_csr_val = csr_val | rs1_num; break;
     case 7: new_csr_val = csr_val & ~rs1_num; break;
   }
-
+#endif
   if (do_write && emulate_write_csr(csr_num, new_csr_val, mstatus))
     return truly_illegal_insn(regs, mcause, mepc, mstatus, insn);
 

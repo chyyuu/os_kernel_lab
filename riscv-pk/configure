@@ -578,14 +578,14 @@ MFLAGS=
 MAKEFLAGS=
 
 # Identity of this package.
-PACKAGE_NAME='RISC-V Proxy Kernel'
-PACKAGE_TARNAME='riscv-pk'
-PACKAGE_VERSION='?'
-PACKAGE_STRING='RISC-V Proxy Kernel ?'
-PACKAGE_BUGREPORT='Andrew Waterman'
-PACKAGE_URL=''
+#PACKAGE_NAME='RISC-V Proxy Kernel'
+#PACKAGE_TARNAME='riscv-pk'
+#PACKAGE_VERSION='?'
+#PACKAGE_STRING='RISC-V Proxy Kernel ?'
+#PACKAGE_BUGREPORT='Andrew Waterman'
+#PACKAGE_URL=''
 
-ac_unique_file="pk/pk.h"
+#ac_unique_file="pk/pk.h"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 subprojects_enabled
@@ -4158,7 +4158,7 @@ fi
 
     # Add subproject to our running list
 
-    subprojects="$subprojects pk"
+#    subprojects="$subprojects pk"
 
     # Process the subproject appropriately. If enabled add it to the
     # $enabled_subprojects running shell variable, set a
@@ -4166,12 +4166,12 @@ fi
     # 'subproject.ac'.
 
 
-      { $as_echo "$as_me:${as_lineno-$LINENO}: configuring default subproject : pk" >&5
-$as_echo "$as_me: configuring default subproject : pk" >&6;}
-      ac_config_files="$ac_config_files pk.mk:pk/pk.mk.in"
+#      { $as_echo "$as_me:${as_lineno-$LINENO}: configuring default subproject : pk" >&5
+#$as_echo "$as_me: configuring default subproject : pk" >&6;}
+#      ac_config_files="$ac_config_files pk.mk:pk/pk.mk.in"
 
-      enable_pk_sproj="yes"
-      subprojects_enabled="$subprojects_enabled pk"
+#      enable_pk_sproj="yes"
+#      subprojects_enabled="$subprojects_enabled pk"
 
 $as_echo "#define PK_ENABLED /**/" >>confdefs.h
 
@@ -4294,7 +4294,7 @@ fi
 
     # Add subproject to our running list
 
-    subprojects="$subprojects softfloat"
+#    subprojects="$subprojects softfloat"
 
     # Process the subproject appropriately. If enabled add it to the
     # $enabled_subprojects running shell variable, set a
@@ -4302,14 +4302,14 @@ fi
     # 'subproject.ac'.
 
 
-      { $as_echo "$as_me:${as_lineno-$LINENO}: configuring default subproject : softfloat" >&5
-$as_echo "$as_me: configuring default subproject : softfloat" >&6;}
-      ac_config_files="$ac_config_files softfloat.mk:softfloat/softfloat.mk.in"
+#      { $as_echo "$as_me:${as_lineno-$LINENO}: configuring default subproject : softfloat" >&5
+#$as_echo "$as_me: configuring default subproject : softfloat" >&6;}
+#      ac_config_files="$ac_config_files softfloat.mk:softfloat/softfloat.mk.in"
 
-      enable_softfloat_sproj="yes"
-      subprojects_enabled="$subprojects_enabled softfloat"
+#      enable_softfloat_sproj="yes"
+#      subprojects_enabled="$subprojects_enabled softfloat"
 
-$as_echo "#define SOFTFLOAT_ENABLED /**/" >>confdefs.h
+#$as_echo "#define SOFTFLOAT_ENABLED /**/" >>confdefs.h
 
 
 

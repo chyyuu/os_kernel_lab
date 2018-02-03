@@ -1,7 +1,8 @@
 #include "mtrap.h"
 #include "atomic.h"
 #include "vm.h"
-#include "fp_emulation.h"
+//#include "fp_emulation.h"
+#include "bits.h"
 #include "fdt.h"
 #include "uart.h"
 #include "uart16550.h"
@@ -65,9 +66,9 @@ static void fp_init()
   assert(read_csr(mstatus) & MSTATUS_FS);
 
 #ifdef __riscv_flen
-  for (int i = 0; i < 32; i++)
-    init_fp_reg(i);
-  write_csr(fcsr, 0);
+//  for (int i = 0; i < 32; i++)
+//    init_fp_reg(i);
+//  write_csr(fcsr, 0);
 #else
   uintptr_t fd_mask = (1 << ('F' - 'A')) | (1 << ('D' - 'A'));
   clear_csr(misa, fd_mask);

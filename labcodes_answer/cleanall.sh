@@ -6,3 +6,4 @@ cd lab5; make clean; cd ..
 cd lab6; make clean; cd ..
 cd lab7; make clean; cd ..
 cd lab8; make clean; cd ..
+cd ../riscv-pk; rm -rf build; cd ../labcodes_answer
