@@ -11,7 +11,7 @@ MAINTAINERS
 
 OS course for Dept. CS. in Tsinghua Univ., and MOOC OS course
 -----------------------------------
-- Chen, Yu: http://soft.cs.tsinghua.edu.cn/~chen
+- Chen, Yu: yuchen@tsinghua.edu.cn http://soft.cs.tsinghua.edu.cn/~chen
 - Yong, Xiang: xyong@tsinghua.edu.cn
 - Mao, Junjie: eternal.n08@gmail.com
 - Zhang, Wei: zhangwei15@mails.tsinghua.edu.cn
