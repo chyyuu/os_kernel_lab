@@ -2,24 +2,13 @@ INTRODUCTION
 ============
 ucore labs was used as OS Experiments in OS Course Of Dept. of Computer Science & Technology, Tsinghua University.
 
-ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux.
-
-ucore was developed and used in Department of Computer Science & Technology, Institute for Interdisciplinary Information Sciences, Tsinghua University.
-
-The codes in the files that constitute xv6&jos are Copyright (2006-Current) Frans Kaashoek, Robert Morris, and Russ Cox and uses MIT License.
-
-The codes in the files that constitute OS/161 are written by David A. Holland.
-
-The codes in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Naizheng Wang, Yong Xiang and uses GPL License.
-
-The documents in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Yong Xiang and uses Creative Commons Attribution/Share-Alike (CC-BY-SA) License. 
-
 MAINTAINERS
-========
+===========
 
 OS course for Dept. CS. in Tsinghua Univ., and MOOC OS course
 -----------------------------------
 - Chen, Yu: http://soft.cs.tsinghua.edu.cn/~chen
+- Yong, Xiang: xyong@tsinghua.edu.cn
 - Mao, Junjie: eternal.n08@gmail.com
 - Zhang, Wei: zhangwei15@mails.tsinghua.edu.cn
 
@@ -38,35 +27,6 @@ lab5: user process management
 lab6: scheduling
 lab7: mutex/sync
 lab8: filesystem
-```
-
-WORK IN MS WINDOWS
-==================
-```
-Working in Linux is encouraged. But If you like to work in MS Windows, we provide virtual machine environment (Runnint Ubuntu in VirtualBox) in
-Windows to help you to finish the labs. If you don't want to install ubuntu and other softs to finish these labs in Windows, you can use 
-VirtualBox soft (https://www.virtualbox.org/) and a virtual disk image with all these softs. Below example is shown how to setup lab environment in Windows.
-You can download this virtual disk image -- oslabs_for_student_2012.zip (576.2MB,) from  http://pan.baidu.com/share/link?shareid=69868&uk=2585194235, which
-is an VirtualBox disk image (contains ubuntu 12.04 and needed softs, and is zipped with zip and xz format), and can be unzipped 
-by haozip software (http://www.haozip.com). 
-After unzip oslabs_for_student_XXX.zip, you will get 
----
-C:\vms\ubuntu-14.04.vbox.xz
-C:\vms\ubuntu-14.04.vmdk.vmdk.xz
-C:\vms\ubuntu-14.04.vmdk-flat.vmdk.xz
----
-then you will continue unzip all these files, and get
----
-C:\vms\ubuntu-14.04.vbox
-C:\vms\ubuntu-14.04.vmdk.vmdk
-C:\vms\ubuntu-14.04.vmdk-flat.vmdk
----
-If you installed VirtualBox soft, then the last step is: double clik file "ubuntu-12.04.vbox" and run ubuntu 12.04 in VirtualBox.
-In ubuntu 12.04 login Interface:
-username: chy
-password: <SPACE KEY>
-
-After you login, you will see the directory ucore_lab in HOME directory.
 ```
 
 TESTED ENVIRONMENT
@@ -136,3 +96,17 @@ UCORERS (Contributors)
 
 Junjie Mao, Yuheng Chen, Cong Liu, Yang Yang, Zhun Qu, Shengwei Ren, Wenlei Zhu, Cao Zhang, Tong Sen, Xu Chen, 
 Cang Nan, Yujian Fang, Wentao Han, Kaichen Zhang, Xiaolin Guo, Tianfan Xue, Gang Hu, Cao Liu, Yu Su,Xinhao Yuan, Wei Zhang, Kaixiang Lei...
+
+OTHER INFO
+==========
+ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux.
+
+ucore was developed and used in Department of Computer Science & Technology, Institute for Interdisciplinary Information Sciences, Tsinghua University.
+
+The codes in the files that constitute xv6&jos are Copyright (2006-Current) Frans Kaashoek, Robert Morris, and Russ Cox and uses MIT License.
+
+The codes in the files that constitute OS/161 are written by David A. Holland.
+
+The codes in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Naizheng Wang, Yong Xiang and uses GPL License.
+
+The documents in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Yong Xiang and uses Creative Commons Attribution/Share-Alike (CC-BY-SA) License. 
