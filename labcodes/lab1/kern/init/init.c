@@ -111,7 +111,9 @@ lab1_switch_test(void) {
     //LAB1 CHALLENGE 2 : 2015011278
     while (1) {
         if (ticks % 100 == 0) {
-            while (ticks % 100 == 0);
+            while (ticks % 100 == 0) {
+                asm volatile ("pause");
+            }
             lab1_print_cur_status();
         }
     }
