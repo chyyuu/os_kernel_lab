@@ -171,33 +171,32 @@ trap_dispatch(struct trapframe *tf) {
         c = cons_getc();
         cprintf("kbd [%03d] %c\n", c, c);
         //LAB1 CHALLENGE 2 : 2015011278
-        if (c == '3' && trap_in_kernel(tf)) {
-            struct trapframe *new_tf = ((uintptr_t)tf) - 2 * sizeof(uint32_t);
-            //                                           dummy ss, esp
-            // copy
-            for (int i = 0; i < sizeof(struct trapframe) / sizeof(uint32_t); ++i) {
-                ((uint32_t *)new_tf)[i] = ((uint32_t *)tf)[i];
-            }
-            new_tf->tf_gs = new_tf->tf_fs = new_tf->tf_es = new_tf->tf_ds = USER_DS;
-            new_tf->tf_cs = USER_CS;
-            new_tf->tf_esp = ((uintptr_t)new_tf) + sizeof(struct trapframe);
-            new_tf->tf_ss = USER_DS;
-            new_tf->tf_eflags |= 0x3000; // IOPL=3
-            asm volatile ("movl %0, %%esp\n" // change stack
-                          "jmp __trapret"
-                          :
-                          : "g"(new_tf));
-        }
+        if (c == '3' && trap_in_kernel(tf)) goto __T_SWITCH_TOU;
         if (c == '0' && !trap_in_kernel(tf)) goto __T_SWITCH_TOK;
         break;
     //LAB1 CHALLENGE 1 : 2015011278 you should modify below codes.
-    case T_SWITCH_TOU:
+    case T_SWITCH_TOU: __T_SWITCH_TOU: {
+        struct trapframe new_tf;
+        new_tf = *tf; // copy
+        new_tf.tf_gs = new_tf.tf_fs = new_tf.tf_es = new_tf.tf_ds = USER_DS;
+        new_tf.tf_cs = USER_CS;
+        new_tf.tf_esp = ((uintptr_t)tf) + (sizeof(struct trapframe) - 2 * sizeof(uint32_t));
+        new_tf.tf_ss = USER_DS;
+        new_tf.tf_eflags |= 0x3000; // IOPL=3
+        asm volatile ("movl %0, %%esp\n" // change stack
+                      "jmp __trapret"
+                      :
+                      : "g"(&new_tf));
+        break;
+    /* // Another implementation
         tf->tf_gs = tf->tf_fs = tf->tf_es = tf->tf_ds = USER_DS;
         tf->tf_cs = USER_CS;
         tf->tf_esp = ((uintptr_t)tf) + sizeof(struct trapframe);
         tf->tf_ss = USER_DS;
         tf->tf_eflags |= 0x3000; // IOPL=3
         break;
+    */
+    }
     case T_SWITCH_TOK: __T_SWITCH_TOK: {
         // now we are using kernel stack (stack0).
         struct trapframe *new_tf = tf->tf_esp - sizeof(struct trapframe);

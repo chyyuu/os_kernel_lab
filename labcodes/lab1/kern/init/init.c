@@ -83,16 +83,15 @@ lab1_print_cur_status(void) {
 
 static void
 lab1_switch_to_user(void) {
-    //LAB1 CHALLENGE 1 : TODO
-    asm volatile ("subl $8, %%esp\n" // push dummy ss, esp
-                  "int %0"
+    //LAB1 CHALLENGE 1 : DONE
+    asm volatile ("int %0"
                   :
                   : "i"(T_SWITCH_TOU));
 }
 
 static void
 lab1_switch_to_kernel(void) {
-    //LAB1 CHALLENGE 1 :  TODO
+    //LAB1 CHALLENGE 1 : DONE
     asm volatile ("int %0\n"
                   "addl $8, %%esp" // pop useless ss, esp
                   :
@@ -108,5 +107,14 @@ lab1_switch_test(void) {
     cprintf("+++ switch to kernel mode +++\n");
     lab1_switch_to_kernel();
     lab1_print_cur_status();
+#ifndef DEBUG_GRADE
+    //LAB1 CHALLENGE 2 : 2015011278
+    while (1) {
+        if (ticks % 100 == 0) {
+            while (ticks % 100 == 0);
+            lab1_print_cur_status();
+        }
+    }
+#endif
 }
 
