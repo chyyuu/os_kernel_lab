@@ -1,3 +1,6 @@
+# 新闻
+2018.02.03：ucore os labs 增加对开源的[RISC-V CPU](https://riscv.org/)的支持。请访问此repo的riscv-priv-1.10 branch。
+
 # 介绍
 
 uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学试验内容。
