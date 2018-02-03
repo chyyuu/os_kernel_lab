@@ -1,5 +1,5 @@
 # 新闻
-2018.02.03：ucore os labs 增加对开源的[RISC-V CPU](https://riscv.org/)的支持。请访问此repo的riscv-priv-1.10 branch。
+- 2018.02.03：ucore os labs 增加对开源的[RISC-V CPU](https://riscv.org/)（privileged arch spec 1.10）的支持。请访问[此repo的riscv-priv-1.10 branch](https://github.com/chyyuu/ucore_os_lab/tree/priv-1.10)。
 
 # 介绍
 
