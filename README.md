@@ -209,7 +209,7 @@ OR
 
 ## 开发维护人员 
 - [陈渝](http://soft.cs.tsinghua.edu.cn/~chen)  yuchen AT tsinghua.edu.cn
-- 茅俊杰 eternal.n08 AT gmail.com
+- 张蔚 zhangwei15 AT mails.tsinghua.edu.cn
 
 ## 课程汇总信息
  - [课程汇总](https://github.com/chyyuu/os_course_info)
@@ -218,7 +218,7 @@ OR
 
 茅俊杰、陈宇恒、刘聪、杨扬、渠准、任胜伟、朱文雷、
 曹正、沈彤、陈旭、蓝昶、方宇剑、韩文涛、张凯成、
-S郭晓林、薛天凡、胡刚、刘超、粟裕、袁昕颢...
+郭晓林、薛天凡、胡刚、刘超、粟裕、袁昕颢、张蔚...
 欢迎加入我们的OS兴趣小组，共同进步！
 
 ## [对OS感兴趣？](https://github.com/chyyuu/os_course_info/blob/master/README.md#兴趣)
