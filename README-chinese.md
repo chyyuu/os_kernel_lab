@@ -212,8 +212,8 @@ OR
 
 ## 开发维护人员 
 - [陈渝](http://soft.cs.tsinghua.edu.cn/~chen)  yuchen AT tsinghua.edu.cn
-- 向勇: xyong@tsinghua.edu.cn
-- 茅俊杰: eternal.n08@gmail.com
+- 向勇: xyong AT tsinghua.edu.cn
+- 茅俊杰: eternal.n08 AT gmail.com
 - 张蔚 zhangwei15 AT mails.tsinghua.edu.cn
 
 ## 课程汇总信息
