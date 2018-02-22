@@ -199,8 +199,11 @@ trap_dispatch(struct trapframe *tf) {
     }
     case T_SWITCH_TOK: __T_SWITCH_TOK: {
         // now we are using kernel stack (stack0).
-        struct trapframe *new_tf = tf->tf_esp - sizeof(struct trapframe);
-        *new_tf = *tf; // copy
+        struct trapframe *new_tf = tf->tf_esp - (sizeof(struct trapframe) - 2 * sizeof(uint32_t));
+        // copy
+        for (int i = 0; i < sizeof(struct trapframe) / sizeof(uint32_t) - 2; ++i) {
+            ((uint32_t *)new_tf)[i] = ((uint32_t *)tf)[i];
+        }
         new_tf->tf_gs = new_tf->tf_fs = new_tf->tf_es = new_tf->tf_ds = KERNEL_DS;
         new_tf->tf_cs = KERNEL_CS;
         new_tf->tf_eflags &= ~0x3000; // IOPL=0
