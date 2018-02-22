@@ -139,6 +139,7 @@ default_free_pages(struct Page *base, size_t n) {
     le = list_next(&free_list);
     while (le != &free_list) {
         p = le2page(le, page_link);
+        le = list_next(le);
         if (base + base->property <= p) {
             assert(base + base->property != p);
             break;
