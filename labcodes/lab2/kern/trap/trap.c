@@ -34,7 +34,7 @@ static struct pseudodesc idt_pd = {
 /* idt_init - initialize IDT to each of the entry points in kern/trap/vectors.S */
 void
 idt_init(void) {
-     /* LAB1 YOUR CODE : STEP 2 */
+     /* LAB1 2015011278 : STEP 2 */
      /* (1) Where are the entry addrs of each Interrupt Service Routine (ISR)?
       *     All ISR's entry addrs are stored in __vectors. where is uintptr_t __vectors[] ?
       *     __vectors[] is in kern/trap/vector.S which is produced by tools/vector.c
@@ -46,6 +46,17 @@ idt_init(void) {
       *     You don't know the meaning of this instruction? just google it! and check the libs/x86.h to know more.
       *     Notice: the argument of lidt is idt_pd. try to find it!
       */
+      extern uintptr_t __vectors[];
+      for (int i = 0; i < 256; ++i) {
+          int dpl = DPL_KERNEL;
+          if (i == T_SYSCALL || i == T_SWITCH_TOK) {
+              dpl = DPL_USER;
+          }
+          SETGATE(idt[i], 0, KERNEL_CS, __vectors[i], dpl);
+      }
+      asm volatile ("lidt %0"
+                    :
+                    : "m"(idt_pd));
 }
 
 static const char *
@@ -141,12 +152,16 @@ trap_dispatch(struct trapframe *tf) {
 
     switch (tf->tf_trapno) {
     case IRQ_OFFSET + IRQ_TIMER:
-        /* LAB1 YOUR CODE : STEP 3 */
+        /* LAB1 2015011278 : STEP 3 */
         /* handle the timer interrupt */
         /* (1) After a timer interrupt, you should record this event using a global variable (increase it), such as ticks in kern/driver/clock.c
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
+        ++ticks;
+        if (ticks % TICK_NUM == 0) {
+            print_ticks();
+        }
         break;
     case IRQ_OFFSET + IRQ_COM1:
         c = cons_getc();
@@ -155,12 +170,49 @@ trap_dispatch(struct trapframe *tf) {
     case IRQ_OFFSET + IRQ_KBD:
         c = cons_getc();
         cprintf("kbd [%03d] %c\n", c, c);
+        //LAB1 CHALLENGE 2 : 2015011278
+        if (c == '3' && trap_in_kernel(tf)) goto __T_SWITCH_TOU;
+        if (c == '0' && !trap_in_kernel(tf)) goto __T_SWITCH_TOK;
         break;
-    //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
-    case T_SWITCH_TOU:
-    case T_SWITCH_TOK:
-        panic("T_SWITCH_** ??\n");
+    //LAB1 CHALLENGE 1 : 2015011278 you should modify below codes.
+    case T_SWITCH_TOU: __T_SWITCH_TOU: {
+        struct trapframe new_tf;
+        new_tf = *tf; // copy
+        new_tf.tf_gs = new_tf.tf_fs = new_tf.tf_es = new_tf.tf_ds = USER_DS;
+        new_tf.tf_cs = USER_CS;
+        new_tf.tf_esp = ((uintptr_t)tf) + (sizeof(struct trapframe) - 2 * sizeof(uint32_t));
+        new_tf.tf_ss = USER_DS;
+        new_tf.tf_eflags |= 0x3000; // IOPL=3
+        asm volatile ("movl %0, %%esp\n" // change stack
+                      "jmp __trapret"
+                      :
+                      : "g"(&new_tf));
         break;
+    /* // Another implementation
+        tf->tf_gs = tf->tf_fs = tf->tf_es = tf->tf_ds = USER_DS;
+        tf->tf_cs = USER_CS;
+        tf->tf_esp = ((uintptr_t)tf) + sizeof(struct trapframe);
+        tf->tf_ss = USER_DS;
+        tf->tf_eflags |= 0x3000; // IOPL=3
+        break;
+    */
+    }
+    case T_SWITCH_TOK: __T_SWITCH_TOK: {
+        // now we are using kernel stack (stack0).
+        struct trapframe *new_tf = tf->tf_esp - (sizeof(struct trapframe) - 2 * sizeof(uint32_t));
+        // copy
+        for (int i = 0; i < sizeof(struct trapframe) / sizeof(uint32_t) - 2; ++i) {
+            ((uint32_t *)new_tf)[i] = ((uint32_t *)tf)[i];
+        }
+        new_tf->tf_gs = new_tf->tf_fs = new_tf->tf_es = new_tf->tf_ds = KERNEL_DS;
+        new_tf->tf_cs = KERNEL_CS;
+        new_tf->tf_eflags &= ~0x3000; // IOPL=0
+        asm volatile ("movl %0, %%esp\n" // change stack
+                      "jmp __trapret"
+                      :
+                      : "g"(new_tf));
+        break;
+    }
     case IRQ_OFFSET + IRQ_IDE1:
     case IRQ_OFFSET + IRQ_IDE2:
         /* do nothing */
