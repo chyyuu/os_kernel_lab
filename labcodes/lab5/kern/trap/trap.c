@@ -64,7 +64,7 @@ idt_init(void) {
       asm volatile ("lidt %0"
                     :
                     : "m"(idt_pd));
-     /* LAB5 YOUR CODE */ 
+     /* LAB5 2015011278 */
      //you should update your lab1 code (just add ONE or TWO lines of code), let user app to use syscall to get the service of ucore
      //so you should setup the syscall interrupt gate in here
 }
@@ -232,9 +232,9 @@ trap_dispatch(struct trapframe *tf) {
          */
         ++ticks;
         if (ticks % TICK_NUM == 0) {
-            print_ticks();
+            current->need_resched = 1;
         }
-        /* LAB5 YOUR CODE */
+        /* LAB5 2015011278 */
         /* you should upate you lab1 code (just add ONE or TWO lines of code):
          *    Every TICK_NUM cycle, you should set current process's current->need_resched = 1
          */
