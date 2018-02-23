@@ -46,7 +46,7 @@ kern_init(void) {
 
     //LAB1: CAHLLENGE 1 If you try to do it, uncomment lab1_switch_test()
     // user/kernel mode switch test
-    //lab1_switch_test();
+    lab1_switch_test();
 
     /* do nothing */
     while (1);
@@ -92,12 +92,18 @@ lab1_print_cur_status(void) {
 
 static void
 lab1_switch_to_user(void) {
-    //LAB1 CHALLENGE 1 : TODO
+    //LAB1 CHALLENGE 1 : DONE
+    asm volatile ("int %0"
+                  :
+                  : "i"(T_SWITCH_TOU));
 }
 
 static void
 lab1_switch_to_kernel(void) {
-    //LAB1 CHALLENGE 1 :  TODO
+    //LAB1 CHALLENGE 1 : DONE
+    asm volatile ("int %0"
+                  :
+                  : "i"(T_SWITCH_TOK));
 }
 
 static void
@@ -109,5 +115,16 @@ lab1_switch_test(void) {
     cprintf("+++ switch to kernel mode +++\n");
     lab1_switch_to_kernel();
     lab1_print_cur_status();
+#ifndef DEBUG_GRADE
+    //LAB1 CHALLENGE 2 : 2015011278
+    while (1) {
+        if (ticks % 100 == 0) {
+            while (ticks % 100 == 0) {
+                asm volatile ("pause");
+            }
+            lab1_print_cur_status();
+        }
+    }
+#endif
 }
 
