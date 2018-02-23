@@ -36,7 +36,7 @@ static struct pseudodesc idt_pd = {
 /* idt_init - initialize IDT to each of the entry points in kern/trap/vectors.S */
 void
 idt_init(void) {
-     /* LAB1 YOUR CODE : STEP 2 */
+     /* LAB1 2015011278 : STEP 2 */
      /* (1) Where are the entry addrs of each Interrupt Service Routine (ISR)?
       *     All ISR's entry addrs are stored in __vectors. where is uintptr_t __vectors[] ?
       *     __vectors[] is in kern/trap/vector.S which is produced by tools/vector.c
@@ -48,6 +48,17 @@ idt_init(void) {
       *     You don't know the meaning of this instruction? just google it! and check the libs/x86.h to know more.
       *     Notice: the argument of lidt is idt_pd. try to find it!
       */
+      extern uintptr_t __vectors[];
+      for (int i = 0; i < 256; ++i) {
+          int dpl = DPL_KERNEL;
+          if (i == T_SYSCALL || i == T_SWITCH_TOK) {
+              dpl = DPL_USER;
+          }
+          SETGATE(idt[i], 0, KERNEL_CS, __vectors[i], dpl);
+      }
+      asm volatile ("lidt %0"
+                    :
+                    : "m"(idt_pd));
 }
 
 static const char *
@@ -180,12 +191,16 @@ trap_dispatch(struct trapframe *tf) {
     LAB3 : If some page replacement algorithm(such as CLOCK PRA) need tick to change the priority of pages, 
     then you can add code here. 
 #endif
-        /* LAB1 YOUR CODE : STEP 3 */
+        /* LAB1 2015011278 : STEP 3 */
         /* handle the timer interrupt */
         /* (1) After a timer interrupt, you should record this event using a global variable (increase it), such as ticks in kern/driver/clock.c
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
+        ++ticks;
+        if (ticks % TICK_NUM == 0) {
+            print_ticks();
+        }
         break;
     case IRQ_OFFSET + IRQ_COM1:
         c = cons_getc();
