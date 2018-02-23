@@ -115,16 +115,5 @@ lab1_switch_test(void) {
     cprintf("+++ switch to kernel mode +++\n");
     lab1_switch_to_kernel();
     lab1_print_cur_status();
-#ifndef DEBUG_GRADE
-    //LAB1 CHALLENGE 2 : 2015011278
-    while (1) {
-        if (ticks % 100 == 0) {
-            while (ticks % 100 == 0) {
-                asm volatile ("pause");
-            }
-            lab1_print_cur_status();
-        }
-    }
-#endif
 }
 

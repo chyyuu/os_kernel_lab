@@ -209,49 +209,12 @@ trap_dispatch(struct trapframe *tf) {
     case IRQ_OFFSET + IRQ_KBD:
         c = cons_getc();
         cprintf("kbd [%03d] %c\n", c, c);
-        //LAB1 CHALLENGE 2 : 2015011278
-        if (c == '3' && trap_in_kernel(tf)) goto __T_SWITCH_TOU;
-        if (c == '0' && !trap_in_kernel(tf)) goto __T_SWITCH_TOK;
         break;
-    //LAB1 CHALLENGE 1 : 2015011278 you should modify below codes.
-    case T_SWITCH_TOU: __T_SWITCH_TOU: {
-        struct trapframe new_tf;
-        new_tf = *tf; // copy
-        new_tf.tf_gs = new_tf.tf_fs = new_tf.tf_es = new_tf.tf_ds = USER_DS;
-        new_tf.tf_cs = USER_CS;
-        new_tf.tf_esp = ((uintptr_t)tf) + (sizeof(struct trapframe) - 2 * sizeof(uint32_t));
-        new_tf.tf_ss = USER_DS;
-        new_tf.tf_eflags |= 0x3000; // IOPL=3
-        asm volatile ("movl %0, %%esp\n" // change stack
-                      "jmp __trapret"
-                      :
-                      : "g"(&new_tf));
+    //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
+    case T_SWITCH_TOU:
+    case T_SWITCH_TOK:
+        panic("T_SWITCH_** ??\n");
         break;
-    /* // Another implementation
-        tf->tf_gs = tf->tf_fs = tf->tf_es = tf->tf_ds = USER_DS;
-        tf->tf_cs = USER_CS;
-        tf->tf_esp = ((uintptr_t)tf) + sizeof(struct trapframe);
-        tf->tf_ss = USER_DS;
-        tf->tf_eflags |= 0x3000; // IOPL=3
-        break;
-    */
-    }
-    case T_SWITCH_TOK: __T_SWITCH_TOK: {
-        // now we are using kernel stack (stack0).
-        struct trapframe *new_tf = tf->tf_esp - (sizeof(struct trapframe) - 2 * sizeof(uint32_t));
-        // copy
-        for (int i = 0; i < sizeof(struct trapframe) / sizeof(uint32_t) - 2; ++i) {
-            ((uint32_t *)new_tf)[i] = ((uint32_t *)tf)[i];
-        }
-        new_tf->tf_gs = new_tf->tf_fs = new_tf->tf_es = new_tf->tf_ds = KERNEL_DS;
-        new_tf->tf_cs = KERNEL_CS;
-        new_tf->tf_eflags &= ~0x3000; // IOPL=0
-        asm volatile ("movl %0, %%esp\n" // change stack
-                      "jmp __trapret"
-                      :
-                      : "g"(new_tf));
-        break;
-    }
     case IRQ_OFFSET + IRQ_IDE1:
     case IRQ_OFFSET + IRQ_IDE2:
         /* do nothing */
