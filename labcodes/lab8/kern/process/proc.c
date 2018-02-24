@@ -470,6 +470,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto bad_fork_cleanup_kstack;
     }
     if ((ret = copy_files(clone_flags, proc)) != 0) {
+        // FIXME: cleanup mm
         goto bad_fork_cleanup_kstack;
     }
     copy_thread(proc, stack, tf);
