@@ -241,7 +241,7 @@ trap_dispatch(struct trapframe *tf) {
          * IMPORTANT FUNCTIONS:
 	     * sched_class_proc_tick
          */         
-        /* LAB7 YOUR CODE */
+        /* LAB7 2015011278 */
         /* you should upate you lab6 code
          * IMPORTANT FUNCTIONS:
 	     * run_timer_list
