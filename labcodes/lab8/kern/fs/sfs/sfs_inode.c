@@ -599,6 +599,64 @@ sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t offset
      * (3) If end position isn't aligned with the last block, Rd/Wr some content from begin to the (endpos % SFS_BLKSIZE) of the last block
 	 *       NOTICE: useful function: sfs_bmap_load_nolock, sfs_buf_op	
 	*/
+#define blk2ino(index) sfs_bmap_load_nolock(sfs, sin, (index), &ino)
+	  uint32_t aligned_offset = ROUNDUP(offset, SFS_BLKSIZE);
+	  uint32_t aligned_endpos = ROUNDDOWN(endpos, SFS_BLKSIZE);
+	  uint32_t blk = offset / SFS_BLKSIZE;
+	  if (nblks == 0 && offset != aligned_offset && endpos != aligned_endpos) {
+	      cprintf("case 0\n");
+	      size = endpos - offset;
+	      if ((ret = blk2ino(blk)) != 0 || ino == 0) {
+	          goto out;
+	      }
+	      if ((ret = sfs_buf_op(sfs, buf, size, ino, offset)) != 0) {
+	          goto out;
+	      }
+	      alen += size;
+	  } else {
+	      // the first unaligned block
+	      if (offset < aligned_offset) {
+	          cprintf("case 1\n");
+	          size = aligned_offset - offset;
+	          if ((ret = blk2ino(blk)) != 0 || ino == 0) {
+	              goto out;
+	          }
+	          if ((ret = sfs_buf_op(sfs, buf, size, ino, offset)) != 0) {
+	              goto out;
+	          }
+	          alen += size;
+	      }
+	      // middle aligned blocks
+	      uint32_t current_offset = aligned_offset;
+	      blk = current_offset / SFS_BLKSIZE;
+	      while (current_offset < aligned_endpos) {
+	          cprintf("case 2\n");
+	          if ((ret = blk2ino(blk)) != 0 || ino == 0) {
+	              goto out;
+	          }
+	          if ((ret = sfs_block_op(sfs, buf + alen, ino, 1)) != 0) {
+	              goto out;
+	          }
+	          current_offset += SFS_BLKSIZE;
+	          alen += SFS_BLKSIZE;
+	          ++blk;
+	      }
+	      assert(current_offset == aligned_endpos);
+	      // the last unaligned block
+	      if (aligned_endpos < endpos) {
+	          cprintf("case 3\n");
+	          size = endpos - aligned_endpos;
+	          if ((ret = blk2ino(blk)) != 0 || ino == 0) {
+	              goto out;
+	          }
+	          if ((ret = sfs_buf_op(sfs, buf + alen, size, ino, 0)) != 0) {
+	              goto out;
+	          }
+	          alen += size;
+	      }
+	  }
+    assert(alen == endpos - offset);
+#undef blk2ino
 out:
     *alenp = alen;
     if (offset + alen > sin->din->size) {

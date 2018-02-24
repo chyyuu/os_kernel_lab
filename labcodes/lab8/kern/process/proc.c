@@ -126,7 +126,7 @@ alloc_proc(void) {
      */
         list_init(&proc->run_link);
         skew_heap_init(&proc->lab6_run_pool);
-    //LAB8:EXERCISE2 YOUR CODE HINT:need add some code to init fs in proc_struct, ...
+    //LAB8:EXERCISE2 2015011278 HINT:need add some code to init fs in proc_struct, ...
     }
     return proc;
 }
@@ -432,7 +432,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     }
     ret = -E_NO_MEM;
     //LAB4:EXERCISE2 2015011278
-    //LAB8:EXERCISE2 YOUR CODE  HINT:how to copy the fs in parent's proc_struct?
+    //LAB8:EXERCISE2 2015011278  HINT:how to copy the fs in parent's proc_struct?
     /*
      * Some Useful MACROs, Functions and DEFINEs, you can use them in below implementation.
      * MACROs or Functions:
@@ -467,6 +467,9 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto bad_fork_cleanup_proc;
     }
     if (copy_mm(clone_flags, proc) != 0) {
+        goto bad_fork_cleanup_kstack;
+    }
+    if ((ret = copy_files(clone_flags, proc)) != 0) {
         goto bad_fork_cleanup_kstack;
     }
     copy_thread(proc, stack, tf);
@@ -594,6 +597,46 @@ load_icode(int fd, int argc, char **kargv) {
      * (7) setup trapframe for user environment
      * (8) if up steps failed, you should cleanup the env.
      */
+    if (current->mm != NULL) {
+        panic("load_icode: current->mm must be empty.\n");
+    }
+
+    int ret = -E_NO_MEM;
+    struct mm_struct *mm;
+    if ((mm = mm_create()) == NULL) {
+        goto bad_mm;
+    }
+    if (setup_pgdir(mm) != 0) {
+        goto bad_pgdir_cleanup_mm;
+    }
+    
+    struct elfhdr elf;
+    if ((ret = load_icode_read(fd, &elf, sizeof(elf), 0)) != 0) {
+        goto bad_elf_cleanup_pgdir;
+    }
+    cprintf("e_magic=0x%08x\n", elf.e_magic);
+    if (elf.e_magic != ELF_MAGIC) {
+        ret = -E_INVAL_ELF;
+        goto bad_elf_cleanup_pgdir;
+    }
+    
+    struct proghdr ph;
+    if ((ret = load_icode_read(fd, &ph, sizeof(ph), elf.e_phoff)) != 0) {
+        goto bad_elf_cleanup_pgdir;
+    }
+    cprintf("p_type=%d\n", ph.p_type);
+    panic("TODO load_icode(fd=%d, argc=%d, kargv=0x%08x)", fd, argc, kargv);
+    ret = 0;
+out:
+    return ret;
+bad_cleanup_mmap:
+    exit_mmap(mm);
+bad_elf_cleanup_pgdir:
+    put_pgdir(mm);
+bad_pgdir_cleanup_mm:
+    mm_destroy(mm);
+bad_mm:
+    goto out;
 }
 
 // this function isn't very correct in LAB8
