@@ -573,7 +573,7 @@ load_icode_read(int fd, void *buf, size_t len, off_t offset) {
   
 static int
 load_icode(int fd, int argc, char **kargv) {
-    /* LAB8:EXERCISE2 YOUR CODE  HINT:how to load the file with handler fd  in to process's memory? how to setup argc/argv?
+    /* LAB8:EXERCISE2 2015011278  HINT:how to load the file with handler fd  in to process's memory? how to setup argc/argv?
      * MACROs or Functions:
      *  mm_create        - create a mm
      *  setup_pgdir      - setup pgdir in mm
@@ -614,21 +614,138 @@ load_icode(int fd, int argc, char **kargv) {
     if ((ret = load_icode_read(fd, &elf, sizeof(elf), 0)) != 0) {
         goto bad_elf_cleanup_pgdir;
     }
-    cprintf("e_magic=0x%08x\n", elf.e_magic);
-    if (elf.e_magic != ELF_MAGIC) {
+    if (elf.e_magic != ELF_MAGIC ||
+        elf.e_ehsize != sizeof(struct elfhdr) ||
+        elf.e_phentsize != sizeof(struct proghdr)) {
         ret = -E_INVAL_ELF;
         goto bad_elf_cleanup_pgdir;
     }
-    
-    struct proghdr ph;
-    if ((ret = load_icode_read(fd, &ph, sizeof(ph), elf.e_phoff)) != 0) {
+    struct proghdr *ph_begin = kmalloc(sizeof(struct proghdr) * elf.e_phnum),
+                   *ph_end = ph_begin + elf.e_phnum;
+    if ((ret = load_icode_read(fd, ph_begin, sizeof(struct proghdr) * elf.e_phnum, elf.e_phoff)) != 0) {
+        kfree(ph_begin);
         goto bad_elf_cleanup_pgdir;
     }
-    cprintf("p_type=%d\n", ph.p_type);
-    panic("TODO load_icode(fd=%d, argc=%d, kargv=0x%08x)", fd, argc, kargv);
+
+    uint32_t vm_flags, perm;
+    for (struct proghdr *ph = ph_begin; ph != ph_end; ++ph) {
+        /*cprintf("p_offset=%d\n", ph->p_offset);
+        cprintf("p_flags=%c%c%c\n",
+                (ph->p_flags & ELF_PF_R) ? 'R' : '-',
+                (ph->p_flags & ELF_PF_W) ? 'W' : '-',
+                (ph->p_flags & ELF_PF_X) ? 'X' : '-');*/
+        if (ph->p_type != ELF_PT_LOAD) {
+            continue;
+        }
+        if (ph->p_filesz > ph->p_memsz) {
+            ret = -E_INVAL_ELF;
+            goto bad_free;
+        }
+        if (ph->p_filesz == 0) {
+            continue;
+        }
+
+        vm_flags = 0, perm = PTE_U;
+        if (ph->p_flags & ELF_PF_X) vm_flags |= VM_EXEC;
+        if (ph->p_flags & ELF_PF_W) vm_flags |= VM_WRITE;
+        if (ph->p_flags & ELF_PF_R) vm_flags |= VM_READ;
+        if (vm_flags & VM_WRITE) perm |= PTE_W;
+        if ((ret = mm_map(mm, ph->p_va, ph->p_memsz, vm_flags, NULL)) != 0) {
+            goto bad_free;
+        }
+        uint32_t file_offset = ph->p_offset;
+        size_t off, size;
+        uintptr_t start = ph->p_va, end, la = ROUNDDOWN(start, PGSIZE);
+
+        ret = -E_NO_MEM;
+        end = ph->p_va + ph->p_filesz;
+        struct Page *page;
+        // TEXT / DATA
+        while (start < end) {
+            if ((page = pgdir_alloc_page(mm->pgdir, la, perm)) == NULL) {
+                goto bad_free;
+            }
+            off = start - la, size = PGSIZE - off, la += PGSIZE;
+            if (end < la) {
+                size -= la - end;
+            }
+            if ((ret = load_icode_read(fd, page2kva(page) + off, size, file_offset)) != 0) {
+                goto bad_free;
+            }
+            start += size, file_offset += size;
+        }
+        // BSS
+        end = ph->p_va + ph->p_memsz;
+        if (start < la) {
+            /* ph->p_memsz == ph->p_filesz */
+            if (start == end) {
+                continue;
+            }
+            off = start + PGSIZE - la, size = PGSIZE - off;
+            if (end < la) {
+                size -= la - end;
+            }
+            memset(page2kva(page) + off, 0, size);
+            start += size;
+            assert((end < la && start == end) || (end >= la && start == la));
+        }
+        while (start < end) {
+            if ((page = pgdir_alloc_page(mm->pgdir, la, perm)) == NULL) {
+                goto bad_free;
+            }
+            off = start - la, size = PGSIZE - off, la += PGSIZE;
+            if (end < la) {
+                size -= la - end;
+            }
+            memset(page2kva(page) + off, 0, size);
+            start += size;
+        }
+    }
+    kfree(ph_begin);
+
+    vm_flags = VM_READ | VM_WRITE | VM_STACK;
+    if ((ret = mm_map(mm, USTACKTOP - USTACKSIZE, USTACKSIZE, vm_flags, NULL)) != 0) {
+        goto bad_cleanup_mmap;
+    }
+    assert(pgdir_alloc_page(mm->pgdir, USTACKTOP - 1 * PGSIZE, PTE_USER) != NULL);
+    assert(pgdir_alloc_page(mm->pgdir, USTACKTOP - 2 * PGSIZE, PTE_USER) != NULL);
+    assert(pgdir_alloc_page(mm->pgdir, USTACKTOP - 3 * PGSIZE, PTE_USER) != NULL);
+    assert(pgdir_alloc_page(mm->pgdir, USTACKTOP - 4 * PGSIZE, PTE_USER) != NULL);
+
+    mm_count_inc(mm);
+    current->mm = mm;
+    current->cr3 = PADDR(mm->pgdir);
+    lcr3(PADDR(mm->pgdir));
+
+    struct trapframe *tf = current->tf;
+    memset(tf, 0, sizeof(struct trapframe));
+    tf->tf_ds = tf->tf_es = tf->tf_fs = tf->tf_gs = USER_DS;
+    tf->tf_cs = USER_CS;
+    tf->tf_eip = elf.e_entry;
+    tf->tf_ss = USER_DS;
+    tf->tf_esp = USTACKTOP;
+    tf->tf_eflags = FL_IF;
+
+    char *uargv[EXEC_MAX_ARG_NUM];
+    uargv[argc] = NULL;
+    for (int i = argc - 1; i >= 0; --i) {
+        // push each argv
+        tf->tf_esp -= strlen(kargv[i]) + 1;
+        uargv[i] = (char *)tf->tf_esp;
+        strcpy(uargv[i], kargv[i]);
+    }
+    // push array of argv
+    tf->tf_esp -= sizeof(char *) * (argc + 1);
+    memcpy((char **)tf->tf_esp, uargv, sizeof(char *) * (argc + 1));
+    uintptr_t uargv_ptr = tf->tf_esp;
+    // push argc
+    tf->tf_esp -= sizeof(uintptr_t);
+    *(uintptr_t *)tf->tf_esp = argc;
     ret = 0;
 out:
     return ret;
+bad_free:
+    kfree(ph_begin);
 bad_cleanup_mmap:
     exit_mmap(mm);
 bad_elf_cleanup_pgdir:

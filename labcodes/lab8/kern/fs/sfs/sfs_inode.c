@@ -589,7 +589,7 @@ sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t offset
     uint32_t blkno = offset / SFS_BLKSIZE;          // The NO. of Rd/Wr begin block
     uint32_t nblks = endpos / SFS_BLKSIZE - blkno;  // The size of Rd/Wr blocks
 
-  //LAB8:EXERCISE1 YOUR CODE HINT: call sfs_bmap_load_nolock, sfs_rbuf, sfs_rblock,etc. read different kind of blocks in file
+  //LAB8:EXERCISE1 2015011278 HINT: call sfs_bmap_load_nolock, sfs_rbuf, sfs_rblock,etc. read different kind of blocks in file
 	/*
 	 * (1) If offset isn't aligned with the first block, Rd/Wr some content from offset to the end of the first block
 	 *       NOTICE: useful function: sfs_bmap_load_nolock, sfs_buf_op
@@ -604,24 +604,22 @@ sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t offset
 	  uint32_t aligned_endpos = ROUNDDOWN(endpos, SFS_BLKSIZE);
 	  uint32_t blk = offset / SFS_BLKSIZE;
 	  if (nblks == 0 && offset != aligned_offset && endpos != aligned_endpos) {
-	      cprintf("case 0\n");
 	      size = endpos - offset;
 	      if ((ret = blk2ino(blk)) != 0 || ino == 0) {
 	          goto out;
 	      }
-	      if ((ret = sfs_buf_op(sfs, buf, size, ino, offset)) != 0) {
+	      if ((ret = sfs_buf_op(sfs, buf, size, ino, offset % SFS_BLKSIZE)) != 0) {
 	          goto out;
 	      }
 	      alen += size;
 	  } else {
 	      // the first unaligned block
 	      if (offset < aligned_offset) {
-	          cprintf("case 1\n");
 	          size = aligned_offset - offset;
 	          if ((ret = blk2ino(blk)) != 0 || ino == 0) {
 	              goto out;
 	          }
-	          if ((ret = sfs_buf_op(sfs, buf, size, ino, offset)) != 0) {
+	          if ((ret = sfs_buf_op(sfs, buf, size, ino, offset % SFS_BLKSIZE)) != 0) {
 	              goto out;
 	          }
 	          alen += size;
@@ -630,7 +628,6 @@ sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t offset
 	      uint32_t current_offset = aligned_offset;
 	      blk = current_offset / SFS_BLKSIZE;
 	      while (current_offset < aligned_endpos) {
-	          cprintf("case 2\n");
 	          if ((ret = blk2ino(blk)) != 0 || ino == 0) {
 	              goto out;
 	          }
@@ -644,7 +641,6 @@ sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t offset
 	      assert(current_offset == aligned_endpos);
 	      // the last unaligned block
 	      if (aligned_endpos < endpos) {
-	          cprintf("case 3\n");
 	          size = endpos - aligned_endpos;
 	          if ((ret = blk2ino(blk)) != 0 || ino == 0) {
 	              goto out;
