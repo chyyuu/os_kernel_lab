@@ -40,8 +40,7 @@ See [Installation Manual](https://github.com/ring00/riscv-tools#the-risc-v-gcc-t
 ## Building ucore
 
 ```bash
-$ git clone -b riscv-priv-1.10 --single-branch  https://github.com/chyyuu/ucore_os_lab.git
-$ git 
+$ git clone -b riscv32-priv-1.10 --single-branch  https://github.com/chyyuu/ucore_os_lab.git
 ```
 
 To build all projects at once, run the following commands
