@@ -363,9 +363,10 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     */
     /*LAB3 EXERCISE 1: 2015011278*/
     ptep = get_pte(mm->pgdir, addr, 1); //(1) try to find a pte, if pte's PT(Page Table) isn't existed, then create a PT.
+    if (!ptep) goto failed;
     if (*ptep == 0) {
        struct Page *p = pgdir_alloc_page(mm->pgdir, addr, perm); //(2) if the phy addr isn't exist, then alloc a page & map the phy addr with logical addr
-       assert(p != NULL);
+       if (!p) goto failed;
        memset(addr, 0, PGSIZE); // avoid information leakage
     }
     else {
@@ -382,10 +383,17 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     */
         if (swap_init_ok) {
             struct Page *page=NULL;
-            swap_in(mm, addr, &page); //(1)According to the mm AND addr, try to load the content of right disk page
-                                      //    into the memory which page managed.
-            page_insert(mm->pgdir, page, addr, perm); //(2) According to the mm, addr AND page, setup the map of phy addr <---> logical addr
-            swap_map_swappable(mm, addr, page, 1); //(3) make the page swappable.
+            //(1)According to the mm AND addr, try to load the content of right disk page
+            //    into the memory which page managed.
+            if (swap_in(mm, addr, &page) != 0) {
+                goto failed;
+            }
+            //(2) According to the mm, addr AND page, setup the map of phy addr <---> logical addr
+            if (page_insert(mm->pgdir, page, addr, perm) != 0) {
+                free_page(page);
+                goto failed;
+            }
+            assert(swap_map_swappable(mm, addr, page, 1) == 0); //(3) make the page swappable.
             page->pra_vaddr = addr;
         }
         else {
