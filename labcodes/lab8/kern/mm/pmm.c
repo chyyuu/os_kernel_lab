@@ -388,6 +388,7 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
     if ((*pdep & PTE_P) == 0) {             // (2) check if entry is not present
         if (!create) return NULL;           // (3) check if creating is needed, then alloc page for page table
         struct Page *p = alloc_page();      // CAUTION: this page is used for page table, not for common data page
+        if (!p) return NULL;
         set_page_ref(p, 1);                 // (4) set page reference
         uintptr_t pa = KADDR(page2pa(p));   // (5) get linear address of page
         memset((void *)pa, 0, PGSIZE);      // (6) clear page content using memset
@@ -432,8 +433,9 @@ page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
      */
     if (*ptep & PTE_P) {                      //(1) check if this page table entry is present
         struct Page *page = pte2page(*ptep);  //(2) find corresponding page to pte
-        page_ref_dec(page);                   //(3) decrease page reference
-        if (!page_ref(page)) free_page(page); //(4) and free this page when page reference reachs 0
+        if (page_ref_dec(page) == 0) {        //(3) decrease page reference
+            free_page(page);                  //(4) and free this page when page reference reachs 0
+        }
         *ptep = 0;                            //(5) clear second page table entry
         tlb_invalidate(pgdir, la);            //(6) flush tlb
     }
