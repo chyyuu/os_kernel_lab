@@ -1,5 +1,5 @@
-#ifndef __KERN_MM_KMALLOC_H__
-#define __KERN_MM_KMALLOC_H__
+#ifndef __KERN_MM_SLAB_H__
+#define __KERN_MM_SLAB_H__
 
 #include <defs.h>
 
@@ -12,5 +12,5 @@ void kfree(void *objp);
 
 size_t kallocated(void);
 
-#endif /* !__KERN_MM_KMALLOC_H__ */
+#endif /* !__KERN_MM_SLAB_H__ */
 

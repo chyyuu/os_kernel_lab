@@ -70,7 +70,7 @@ sys_pgdir(void) {
     return syscall(SYS_pgdir);
 }
 
-int
+size_t
 sys_gettime(void) {
     return syscall(SYS_gettime);
 }

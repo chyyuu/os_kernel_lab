@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <console.h>
 #include <kdebug.h>
+#include <string.h>
 
 #define TICK_NUM 100
 
@@ -46,6 +47,15 @@ idt_init(void) {
       *     You don't know the meaning of this instruction? just google it! and check the libs/x86.h to know more.
       *     Notice: the argument of lidt is idt_pd. try to find it!
       */
+
+	extern uintptr_t __vectors[];
+	int i;
+	for(i=0; i < sizeof(idt) / sizeof(struct gatedesc); i++)
+	{
+		SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);
+	}
+	SETGATE(idt[T_SWITCH_TOK], 0, GD_KTEXT, __vectors[T_SWITCH_TOK], DPL_USER);
+	lidt(&idt_pd);
 }
 
 static const char *
@@ -134,6 +144,8 @@ print_regs(struct pushregs *regs) {
     cprintf("  eax  0x%08x\n", regs->reg_eax);
 }
 
+struct trapframe switchk2u, *switchu2k;
+
 /* trap_dispatch - dispatch based on what type of trap occurred */
 static void
 trap_dispatch(struct trapframe *tf) {
@@ -147,6 +159,12 @@ trap_dispatch(struct trapframe *tf) {
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
+
+    	ticks++;
+    	if(ticks % TICK_NUM == 0)
+    	{
+    		print_ticks();
+    	}
         break;
     case IRQ_OFFSET + IRQ_COM1:
         c = cons_getc();
@@ -158,8 +176,25 @@ trap_dispatch(struct trapframe *tf) {
         break;
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
     case T_SWITCH_TOU:
+    	if(tf->tf_cs != USER_CS)
+    	{
+    		switchk2u = *tf;
+    		switchk2u.tf_cs = USER_CS;
+    		switchk2u.tf_ds = switchk2u.tf_es = switchk2u.tf_ss = USER_DS;
+    		switchk2u.tf_esp = (uint32_t)tf + sizeof(struct trapframe) - 8;
+    		switchk2u.tf_eflags |= FL_IOPL_MASK;
+    		*((uint32_t *)tf - 1) = (uint32_t)&switchk2u;
+    	}
+    	break;
     case T_SWITCH_TOK:
-        panic("T_SWITCH_** ??\n");
+        if(tf->tf_cs != KERNEL_CS) {
+        	tf->tf_cs = KERNEL_CS;
+        	tf->tf_ds = tf->tf_es = KERNEL_DS;
+        	tf->tf_eflags &= ~FL_IOPL_MASK;
+        	switchu2k = (struct trapframe *)(tf->tf_esp - (sizeof(struct trapframe) - 8));
+        	memmove(switchu2k, tf, sizeof(struct trapframe) - 8);
+        	*((uint32_t *)tf - 1) = (uint32_t)switchu2k;
+        }
         break;
     case IRQ_OFFSET + IRQ_IDE1:
     case IRQ_OFFSET + IRQ_IDE2:

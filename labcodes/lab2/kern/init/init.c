@@ -8,10 +8,9 @@
 #include <clock.h>
 #include <intr.h>
 #include <pmm.h>
-#include <kmonitor.h>
 
 int kern_init(void) __attribute__((noreturn));
-void grade_backtrace(void);
+
 static void lab1_switch_test(void);
 
 int

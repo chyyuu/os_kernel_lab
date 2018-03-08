@@ -11,7 +11,7 @@ int sys_getpid(void);
 int sys_putc(int c);
 int sys_pgdir(void);
 int sys_sleep(unsigned int time);
-int sys_gettime(void);
+size_t sys_gettime(void);
 
 struct stat;
 struct dirent;

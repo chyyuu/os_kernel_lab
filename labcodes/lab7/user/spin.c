@@ -3,7 +3,7 @@
 
 int
 main(void) {
-    int pid, ret;
+    int pid, ret, i ,j;
     cprintf("I am the parent. Forking the child...\n");
     pid = fork();
     if (pid== 0) {

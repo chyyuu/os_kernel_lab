@@ -107,8 +107,8 @@ struct Page {
 };
 
 /* Flags describing the status of a page frame */
-#define PG_reserved                 0       // if this bit=1: the Page is reserved for kernel, cannot be used in alloc/free_pages; otherwise, this bit=0 
-#define PG_property                 1       // if this bit=1: the Page is the head page of a free memory block(contains some continuous_addrress pages), and can be used in alloc_pages; if this bit=0: if the Page is the the head page of a free memory block, then this Page and the memory block is alloced. Or this Page isn't the head page.
+#define PG_reserved                 0       // the page descriptor is reserved for kernel or unusable
+#define PG_property                 1       // the member 'property' is valid
 
 #define SetPageReserved(page)       set_bit(PG_reserved, &((page)->flags))
 #define ClearPageReserved(page)     clear_bit(PG_reserved, &((page)->flags))
