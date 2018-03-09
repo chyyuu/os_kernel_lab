@@ -49,7 +49,13 @@
 
 ### 3. 编译生成bootloader代码
 
-命令和含义几乎与1.完全类似。
+命令为`gcc -Iboot/ -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc -fno-stack-protector -Ilibs/ -Os -c boot/bootasm.S -o obj/boot/bootasm.o`。
+
+命令参数的含义几乎与1.完全类似。
+
+特别地：
+
+* `-Os`表示对生成代码的大小进行优化，开启此选项的目的是满足启动扇区510字节代码的限制，若优化后仍超过大小，就需要手动编写汇编来优化了
 
 ### 4. 链接生成bootloader映像
 
