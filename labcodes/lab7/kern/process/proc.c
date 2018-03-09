@@ -104,7 +104,8 @@ alloc_proc(void) {
      *       char name[PROC_NAME_LEN + 1];               // Process name
      */
         memset(proc, 0, sizeof(struct proc_struct));
-        proc->cr3 = rcr3();
+        proc->pid = -1;
+        proc->cr3 = boot_cr3;
      //LAB5 2015011278 : (update LAB4 steps)
     /*
      * below fields(add in LAB5) in proc_struct need to be initialized	
@@ -422,9 +423,14 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto bad_fork_cleanup_kstack;
     }
     copy_thread(proc, stack, tf);
-    proc->pid = get_pid();
-    hash_proc(proc);
-    set_links(proc);
+    bool intr_flag;
+    local_intr_save(intr_flag);
+    {
+        proc->pid = get_pid();
+        hash_proc(proc);
+        set_links(proc);
+    }
+    local_intr_restore(intr_flag);
     wakeup_proc(proc);
     ret = proc->pid;
 	//LAB5 2015011278 : (update LAB4 steps)
