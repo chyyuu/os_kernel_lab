@@ -21,6 +21,14 @@ typedef int int32_t;
 typedef unsigned int uint32_t;
 typedef long long int64_t;
 typedef unsigned long long uint64_t;
+#if __riscv_xlen == 64
+  typedef int64_t sint_t;
+  typedef uint64_t uint_t;
+#else
+  typedef int32_t sint_t;
+  typedef uint32_t uint_t;
+#endif
+
 
 /* Add fast types */
 typedef signed char int_fast8_t;
