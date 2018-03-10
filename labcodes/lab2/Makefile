@@ -236,7 +236,7 @@ qemu-mon: $(UCOREIMG)
 qemu: $(UCOREIMG)
 	$(V)$(QEMU)  -no-reboot -parallel stdio $(QEMUOPTS) -serial null
 
-qemu-nox: targets
+qemu-nox: $(UCOREIMG)
 	$(V)$(QEMU)  -no-reboot -serial mon:stdio $(QEMUOPTS) -nographic
 
 TERMINAL := gnome-terminal
