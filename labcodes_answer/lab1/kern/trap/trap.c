@@ -182,4 +182,4 @@ static inline void trap_dispatch(struct trapframe *tf) {
  * the code in kern/trap/trapentry.S restores the old CPU state saved in the
  * trapframe and then uses the iret instruction to return from the exception.
  * */
-void trap(struct trapframe *tf) { trap_dispatch(tf); }
+void trap(struct trapframe *tf) { trap_dispatch(tf);cprintf("");}

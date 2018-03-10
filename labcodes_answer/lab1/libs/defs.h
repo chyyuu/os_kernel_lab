@@ -57,12 +57,12 @@ typedef unsigned long long uint_fast64_t;
 #define UINT64_MAX  (0xffffffffffffffff)
 
 /* *
- * Pointers and addresses are 32 bits long.
+ * Pointers and addresses are 32 bits long (or 64 bits long).
  * We use pointer types to represent addresses,
  * uintptr_t to represent the numerical values of addresses.
  * */
-typedef int32_t intptr_t;
-typedef uint32_t uintptr_t;
+typedef sint_t intptr_t;
+typedef uint_t uintptr_t;
 
 /* size_t is used for memory object sizes */
 typedef uintptr_t size_t;
