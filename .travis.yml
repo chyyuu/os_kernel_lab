@@ -3,6 +3,12 @@ sudo: required
 language: c
 compiler: gcc
 before_install:
+- |
+  sudo systemctl stop apt-daily.service &&
+  sudo systemctl kill --kill-who=all apt-daily.service &&
+  while ! (systemctl list-units --all apt-daily.service | fgrep -q dead) ; do
+    sleep 0.2
+  done
 - sudo apt-get -qq update
 - sudo apt-get install -y qemu
 install:
