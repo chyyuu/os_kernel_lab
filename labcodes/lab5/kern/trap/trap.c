@@ -59,7 +59,11 @@ idt_init(void) {
           if (i == T_SYSCALL || i == T_SWITCH_TOK) {
               dpl = DPL_USER;
           }
-          SETGATE(idt[i], 0, KERNEL_CS, __vectors[i], dpl);
+          int istrap = 0;
+          if (i == T_SYSCALL) {
+              istrap = 1;
+          }
+          SETGATE(idt[i], istrap, KERNEL_CS, __vectors[i], dpl);
       }
       asm volatile ("lidt %0"
                     :
