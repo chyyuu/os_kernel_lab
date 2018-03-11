@@ -3,7 +3,7 @@
 #include <string.h>
 #include <default_pmm.h>
 
-/*  In the first fitting algorithm, the allocator keeps a list of free blocks
+/*  In the First Fit algorithm, the allocator keeps a list of free blocks
  * (known as the free list). Once receiving a allocation request for memory,
  * it scans along the list for the first block that is large enough to satisfy
  * the request. If the chosen block is significantly larger than requested, it
@@ -91,7 +91,7 @@
  *      Reset the fields of the pages, such as `p->ref` and `p->flags` (PageProperty)
  *  (5.3)
  *      Try to merge blocks at lower or higher addresses. Notice: This should
- *  change some pages's `p->property` correctly.
+ *  change some pages' `p->property` correctly.
  */
 free_area_t free_area;
 
