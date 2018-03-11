@@ -13,19 +13,19 @@ before_install:
 - sudo apt-get install -y qemu
 install:
 - cd labcodes/lab1 && make
-- cd labcodes/lab2 && make
-- cd labcodes/lab3 && make
-- cd labcodes/lab4 && make
-- cd labcodes/lab5 && make
-- cd labcodes/lab6 && make
-- cd labcodes/lab7 && make
-- cd labcodes/lab8 && make
+- cd ../lab2 && make
+- cd ../lab3 && make
+- cd ../lab4 && make
+- cd ../lab5 && make
+- cd ../lab6 && make
+- cd ../lab7 && make
+- cd ../lab8 && make
 script:
-- cd labcodes/lab1 && make grade
-- cd labcodes/lab2 && make grade
-- cd labcodes/lab3 && make grade
-- cd labcodes/lab4 && make grade
-- cd labcodes/lab5 && make grade
-- cd labcodes/lab6 && make grade
-- cd labcodes/lab7 && make grade
-- cd labcodes/lab8 && make grade
+- cd ../lab1 && make grade
+- cd ../lab2 && make grade
+- cd ../lab3 && make grade
+- cd ../lab4 && make grade
+- cd ../lab5 && make grade
+- cd ../lab6 && make grade
+- cd ../lab7 && make grade
+- cd ../lab8 && make grade
