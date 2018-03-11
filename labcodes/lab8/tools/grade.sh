@@ -137,7 +137,7 @@ run_qemu() {
     (
         ulimit -t $timeout
         exec $qemu -nographic $qemuopts -serial file:$qemu_out -monitor null -no-reboot $qemuextra
-    ) > $out 2> $err &
+    ) &
     pid=$!
 
     # wait for QEMU to start
@@ -156,7 +156,7 @@ run_qemu() {
             echo "continue"
         ) > $gdb_in
 
-        $gdb -batch -nx -x $gdb_in > /dev/null 2>&1
+        $gdb -batch -nx -x $gdb_in
 
         # make sure that QEMU is dead
         # on OS X, exiting gdb doesn't always exit qemu
