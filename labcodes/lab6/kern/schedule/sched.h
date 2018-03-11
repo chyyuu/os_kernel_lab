@@ -44,6 +44,7 @@ struct run_queue {
     skew_heap_entry_t *lab6_run_pool;
 };
 
+void sched_class_proc_tick(struct proc_struct *proc);
 void sched_init(void);
 void wakeup_proc(struct proc_struct *proc);
 void schedule(void);

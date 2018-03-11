@@ -1,0 +1,33 @@
+dist: xenial
+sudo: required
+language: c
+compiler: gcc
+before_install:
+- |
+  sudo systemctl stop apt-daily.service &&
+  sudo systemctl kill --kill-who=all apt-daily.service &&
+  while ! (systemctl list-units --all apt-daily.service | fgrep -q dead) ; do
+    sleep 0.2
+  done
+- sudo apt-get -qq update
+- sudo apt-get install -y gdb qemu
+- gdb --version
+- qemu-system-i386 --version
+install:
+- cd labcodes/lab1 && make
+- cd ../lab2 && make
+- cd ../lab3 && make
+- cd ../lab4 && make
+- cd ../lab5 && make
+- cd ../lab6 && make
+- cd ../lab7 && make
+- cd ../lab8 && make
+script:
+- cd ../lab1 && make grade
+- cd ../lab2 && make grade
+- cd ../lab3 && make grade
+- cd ../lab4 && make grade
+- cd ../lab5 && make grade
+- cd ../lab6 && make grade
+- cd ../lab7 && make grade
+- cd ../lab8 && make grade
