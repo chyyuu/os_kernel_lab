@@ -10,7 +10,8 @@ before_install:
     sleep 0.2
   done
 - sudo apt-get -qq update
-- sudo apt-get install -y qemu
+- sudo apt-get install -y gdb qemu
+- gdb --version
 - qemu-system-i386 --version
 install:
 - cd labcodes/lab1 && make
