@@ -3,6 +3,7 @@ sudo: required
 language: c
 compiler: gcc
 before_install:
+- sudo apt-get -qq update
 - sudo apt-get install -y qemu
 install:
 - cd labcodes/lab1 && make
