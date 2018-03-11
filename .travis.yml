@@ -1,0 +1,24 @@
+dist: xenial
+sudo: required
+language: c
+compiler: gcc
+before_install:
+- sudo apt-get install -y qemu
+install:
+- cd labcodes/lab1 && make
+- cd labcodes/lab2 && make
+- cd labcodes/lab3 && make
+- cd labcodes/lab4 && make
+- cd labcodes/lab5 && make
+- cd labcodes/lab6 && make
+- cd labcodes/lab7 && make
+- cd labcodes/lab8 && make
+script:
+- cd labcodes/lab1 && make grade
+- cd labcodes/lab2 && make grade
+- cd labcodes/lab3 && make grade
+- cd labcodes/lab4 && make grade
+- cd labcodes/lab5 && make grade
+- cd labcodes/lab6 && make grade
+- cd labcodes/lab7 && make grade
+- cd labcodes/lab8 && make grade
