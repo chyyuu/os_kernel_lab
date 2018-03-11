@@ -264,7 +264,7 @@ ebp:0x00007bf8 eip:0x00007d6e args:0xc031fcfa 0xc08ed88e 0x64e4d08e 0xfa7502a8
 
 注意到`trap.h`中定义了`T_SYSCALL`以及`T_SWITCH_TOK`，它们是由用户态调用的软中断号，所以dpl应设置为3。
 
-此外查阅了某文献得知`T_SYSCALL`以及`T_SWITCH_TOK`还应设置`istrap`为1，否则在执行系统调用时无法及时响应中断，可能是个问题。
+此外，我查阅了某文献得知`T_SYSCALL`还应设置`istrap`为1，否则在执行系统调用时无法及时响应中断，可能是个问题。
 
 经过与参考答案对比：
 
