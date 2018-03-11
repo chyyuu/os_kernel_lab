@@ -11,6 +11,7 @@ before_install:
   done
 - sudo apt-get -qq update
 - sudo apt-get install -y qemu
+- qemu-system-i386 --version
 install:
 - cd labcodes/lab1 && make
 - cd ../lab2 && make
