@@ -29,7 +29,6 @@ int kern_init(void) {
     pmm_init();  // init physical memory management
 
     pic_init();  // init interrupt controller
-    idt_init();  // init interrupt descriptor table
 
     clock_init();   // init clock interrupt
     intr_enable();  // enable irq interrupt
@@ -49,14 +48,14 @@ grade_backtrace2(int arg0, int arg1, int arg2, int arg3) {
 }
 
 void __attribute__((noinline)) grade_backtrace1(int arg0, int arg1) {
-    grade_backtrace2(arg0, (int)&arg0, arg1, (int)&arg1);
+    grade_backtrace2(arg0, (sint_t)&arg0, arg1, (sint_t)&arg1);
 }
 
 void __attribute__((noinline)) grade_backtrace0(int arg0, int arg1, int arg2) {
     grade_backtrace1(arg0, arg2);
 }
 
-void grade_backtrace(void) { grade_backtrace0(0, (int)kern_init, 0xffff0000); }
+void grade_backtrace(void) { grade_backtrace0(0, (sint_t)kern_init, 0xffff0000); }
 
 static void lab1_print_cur_status(void) {
     static int round = 0;

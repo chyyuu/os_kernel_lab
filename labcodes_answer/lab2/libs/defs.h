@@ -21,6 +21,13 @@ typedef int int32_t;
 typedef unsigned int uint32_t;
 typedef long long int64_t;
 typedef unsigned long long uint64_t;
+#if __riscv_xlen == 64
+  typedef int64_t sint_t;
+  typedef uint64_t uint_t;
+#else
+  typedef int32_t sint_t;
+  typedef uint32_t uint_t;
+#endif
 
 /* Add fast types */
 typedef signed char int_fast8_t;
@@ -38,8 +45,8 @@ typedef unsigned long long uint_fast64_t;
  * We use pointer types to represent addresses,
  * uintptr_t to represent the numerical values of addresses.
  * */
-typedef int32_t intptr_t;
-typedef uint32_t uintptr_t;
+typedef sint_t intptr_t;
+typedef uint_t uintptr_t;
 
 /* size_t is used for memory object sizes */
 typedef uintptr_t size_t;

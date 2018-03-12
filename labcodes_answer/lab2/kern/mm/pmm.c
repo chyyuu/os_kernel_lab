@@ -100,11 +100,11 @@ size_t nr_free_pages(void) {
 static void page_init(void) {
     extern char kern_entry[];
 
-    va_pa_offset = KERNBASE - (uint32_t)kern_entry;
+    va_pa_offset = KERNBASE - (uint_t)kern_entry;
 
-    uint32_t mem_begin = (uint32_t)kern_entry;
-    uint32_t mem_end = (8 << 20) + DRAM_BASE; // 8MB memory on qemu
-    uint32_t mem_size = mem_end - mem_begin;
+    uint_t mem_begin = (uint_t)kern_entry;
+    uint_t mem_end = (8 << 20) + DRAM_BASE; // 8MB memory on qemu
+    uint_t mem_size = mem_end - mem_begin;
 
     cprintf("physcial memory map:\n");
     cprintf("  memory: 0x%08lx, [0x%08lx, 0x%08lx].\n", mem_size, mem_begin,

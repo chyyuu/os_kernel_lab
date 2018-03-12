@@ -6,11 +6,11 @@ SLASH	:= /
 V       := @
 
 ifndef GCCPREFIX
-GCCPREFIX := riscv32-unknown-elf-
+GCCPREFIX := riscv64-unknown-elf-
 endif
 
 ifndef QEMU
-QEMU := qemu-system-riscv32
+QEMU := qemu-system-riscv64
 endif
 
 ifndef SPIKE
@@ -31,13 +31,13 @@ HOSTCFLAGS	:= -Wall -O2
 GDB		:= $(GCCPREFIX)gdb
 
 CC		:= $(GCCPREFIX)gcc
-CFLAGS  := -mcmodel=medany -std=gnu99 -Wno-unused
+CFLAGS  := -mcmodel=medany -std=gnu99 -Wno-unused -Werror
 CFLAGS	+= -fno-builtin -Wall -O2 -nostdinc $(DEFS)
 CFLAGS	+= -fno-stack-protector -ffunction-sections -fdata-sections
 CTYPE	:= c S
 
 LD      := $(GCCPREFIX)ld
-LDFLAGS	:= -m elf32lriscv
+LDFLAGS	:= -m elf64lriscv
 LDFLAGS	+= -nostdlib --gc-sections
 
 OBJCOPY := $(GCCPREFIX)objcopy
@@ -134,7 +134,7 @@ $(call create_target,kernel)
 UCOREIMG	:= $(call totarget,ucore.img)
 
 $(UCOREIMG): $(kernel)
-	cd ../../riscv-pk && rm -rf build && mkdir build && cd build && ../configure --prefix=$(RISCV) --host=riscv32-unknown-elf --with-payload=../../labcodes_answer/$(PROJ)/$(kernel) --disable-fp-emulation --enable-log && make && cp bbl ../../labcodes_answer/$(PROJ)/$(UCOREIMG)
+	cd ../../riscv-pk && rm -rf build && mkdir build && cd build && ../configure --prefix=$(RISCV) --host=riscv64-unknown-elf --with-payload=../../labcodes_answer/$(PROJ)/$(kernel) --disable-fp-emulation --enable-log && make && cp bbl ../../labcodes_answer/$(PROJ)/$(UCOREIMG)
 
 $(call create_target,ucore.img)
 
