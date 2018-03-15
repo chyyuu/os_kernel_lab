@@ -48,6 +48,8 @@ $ cd ..
 ### 4. build qemu (64bit)
 
 ```shell
+$ sudo apt install libgtk-3-dev
+$ sudo apt install libsdl2-dev
 $ ./configure --target-list=riscv64-softmmu
 $ make
 $ cp riscv64-softmmu/qemu-system-riscv64 $RISCV/bin

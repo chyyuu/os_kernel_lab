@@ -15,7 +15,7 @@ struct Page *pages;
 // amount of physical memory (in pages)
 size_t npage = 0;
 // the kernel image is mapped at VA=KERNBASE and PA=info.base
-uint32_t va_pa_offset;
+uint_t va_pa_offset;
 // memory starts at 0x80000000 in RISC-V
 const size_t nbase = DRAM_BASE / PGSIZE;
 
@@ -52,6 +52,9 @@ static void init_pmm_manager(void) {
     pmm_manager = &default_pmm_manager;
 
     cprintf("memory management: %s\n", pmm_manager->name);
+
+    cprintf("szx--%p\n",pmm_manager->init);
+
     pmm_manager->init();
 }
 
@@ -102,11 +105,13 @@ static void page_init(void) {
 
     va_pa_offset = KERNBASE - (uint_t)kern_entry;
 
+    cprintf("szx--va_pa_offset:%lx",va_pa_offset)
+
     uint_t mem_begin = (uint_t)kern_entry;
     uint_t mem_end = (8 << 20) + DRAM_BASE; // 8MB memory on qemu
     uint_t mem_size = mem_end - mem_begin;
 
-    cprintf("physcial memory map:\n");
+    cprintf("physical memory map:\n");
     cprintf("  memory: 0x%08lx, [0x%08lx, 0x%08lx].\n", mem_size, mem_begin,
             mem_end - 1);
 
