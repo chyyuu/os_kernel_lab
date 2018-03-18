@@ -51,11 +51,15 @@ static void init_pmm_manager(void) {
     extern char kern_entry[];
     pmm_manager = &default_pmm_manager;
 
+    cprintf("--szx default_pmm_manager:%p --\n",&default_pmm_manager);
+
     cprintf("memory management: %s\n", pmm_manager->name);
 
-    cprintf("szx--%p\n",pmm_manager->init);
+    cprintf("--szx %p --\n",pmm_manager->init);
 
     pmm_manager->init();
+
+    cprintf("--szx tag 0.1 --\n");
 }
 
 // init_memmap - call pmm->init_memmap to build Page struct for free memory
@@ -99,13 +103,13 @@ size_t nr_free_pages(void) {
     return ret;
 }
 
-/* pmm_init - initialize the physical memory management */
+/* page_init - initialize the page */
 static void page_init(void) {
     extern char kern_entry[];
 
     va_pa_offset = KERNBASE - (uint_t)kern_entry;
 
-    cprintf("szx--va_pa_offset:%lx",va_pa_offset)
+    cprintf("--szx va_pa_offset:%lx --/n",va_pa_offset);
 
     uint_t mem_begin = (uint_t)kern_entry;
     uint_t mem_end = (8 << 20) + DRAM_BASE; // 8MB memory on qemu
@@ -192,19 +196,23 @@ void pmm_init(void) {
     // Now the first_fit/best_fit/worst_fit/buddy_system pmm are available.
     init_pmm_manager();
 
+    cprintf("--szx tag 1 --\n");
     // detect physical memory space, reserve already used memory,
     // then use pmm->init_memmap to create free page list
     page_init();
 
+    cprintf("--szx tag 2 --\n");
     // use pmm->check to verify the correctness of the alloc/free function in a
     // pmm
     check_alloc_page();
 
+    cprintf("--szx tag 3 --\n");
     // create boot_pgdir, an initial page directory(Page Directory Table, PDT)
     boot_pgdir = boot_alloc_page();
     memset(boot_pgdir, 0, PGSIZE);
     boot_cr3 = PADDR(boot_pgdir);
 
+    cprintf("--szx tag 4 --\n");
     check_pgdir();
 
     static_assert(KERNBASE % PTSIZE == 0 && KERNTOP % PTSIZE == 0);
@@ -218,6 +226,7 @@ void pmm_init(void) {
     // linear_addr KERNBASE~KERNBASE+KMEMSIZE = phy_addr 0~KMEMSIZE
     // But shouldn't use this map until enable_paging() & gdt_init() finished.
     // boot_map_segment(boot_pgdir, KERNBASE, KMEMSIZE, 0, PTE_W);
+    cprintf("--szx tag 5 --\n");
     boot_map_segment(boot_pgdir, KERNBASE, KMEMSIZE, PADDR(KERNBASE),
                      READ_WRITE_EXEC);
 
@@ -228,12 +237,15 @@ void pmm_init(void) {
     // boot_map_segment(boot_pgdir, (uintptr_t)(-PGSIZE), PGSIZE,
     //                  PTE_ADDR(*sbi_pte), READ_EXEC);
 
+    cprintf("--szx tag 6 --\n");
     enable_paging();
 
+    cprintf("--szx tag 7 --\n");
     // now the basic virtual memory map(see memalyout.h) is established.
     // check the correctness of the basic virtual memory map.
     check_boot_pgdir();
 
+    cprintf("--szx tag 8 --\n");
     print_pgdir();
 }
 

@@ -8,14 +8,12 @@
  * address of free memory and how many memory that kernel has used.
  * */
 void print_kerninfo(void) {
-    extern char etext[], edata[], end[], kern_entry[], kern_init[], bootstack[], bootstacktop[];
+    extern char etext[], edata[], end[], kern_init[];
     cprintf("Special kernel symbols:\n");
-    cprintf("  entry  0x%016x (phys)\n", kern_entry);
-    cprintf("  k_init 0x%016x (phys)\n", kern_init);
-    cprintf("  etext  0x%016x (phys)\n", etext);
-    cprintf("  stack  0x%016x\nstacktop 0x%016x\n",bootstack, bootstacktop);
-    cprintf("  edata  0x%016x (phys)\n", edata);
-    cprintf("  end    0x%016x (phys)\n", end);
+    cprintf("  entry  0x%08x (phys)\n", kern_init);
+    cprintf("  etext  0x%08x (phys)\n", etext);
+    cprintf("  edata  0x%08x (phys)\n", edata);
+    cprintf("  end    0x%08x (phys)\n", end);
     cprintf("Kernel executable memory footprint: %dKB\n",
             (end - kern_init + 1023) / 1024);
 }
