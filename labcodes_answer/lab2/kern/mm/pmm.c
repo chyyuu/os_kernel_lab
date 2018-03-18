@@ -40,7 +40,7 @@ const struct pmm_manager *pmm_manager;
  * always available at virtual address PGADDR(PDX(VPT), PDX(VPT), 0), to which
  * vpd is set bellow.
  * */
-pde_t *const vpd = (pde_t *)PGADDR(PDX(VPT), ((PDX(VPT)) + 1), 0);
+pde_t *const vpd = (pde_t *)PGADDR(PDX1(VPT), PDX0(VPT), PTX(VPT), 0);
 
 static void check_alloc_page(void);
 static void check_pgdir(void);
@@ -219,8 +219,7 @@ void pmm_init(void) {
 
     // recursively insert boot_pgdir in itself
     // to form a virtual page table at virtual address VPT
-    boot_pgdir[PDX(VPT)] = pte_create(PPN(boot_cr3), PAGE_TABLE_DIR);
-    boot_pgdir[PDX(VPT) + 1] = pte_create(PPN(boot_cr3), READ_WRITE);
+    boot_pgdir[PDX1(VPT)] = pte_create(PPN(boot_cr3), PAGE_TABLE_DIR);
 
     // map all physical memory to linear memory with base linear addr KERNBASE
     // linear_addr KERNBASE~KERNBASE+KMEMSIZE = phy_addr 0~KMEMSIZE
@@ -284,8 +283,8 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
      *   PTE_U           0x004                   // page table/directory entry
      * flags bit : User can access
      */
-    pde_t *pdep = &pgdir[PDX(la)];
-    if (!(*pdep & PTE_V)) {
+    pde_t *pdep1 = &pgdir[PDX1(la)];
+    if (!(*pdep1 & PTE_V)) {
         struct Page *page;
         if (!create || (page = alloc_page()) == NULL) {
             return NULL;
@@ -293,11 +292,24 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
         set_page_ref(page, 1);
         uintptr_t pa = page2pa(page);
         memset(KADDR(pa), 0, PGSIZE);
-        // *pdep = page2pte(page, PTE_U | PTE_W | PTE_P);
-        *pdep = pte_create(page2ppn(page), PTE_U | PTE_V);
+        // *pdep1 = page2pte(page, PTE_U | PTE_W | PTE_P);
+        *pdep1 = pte_create(page2ppn(page), PTE_U | PTE_V);
         // *pdep = ptd_create(page2ppn(page));
     }
-    return &((pte_t *)KADDR(PDE_ADDR(*pdep)))[PTX(la)];
+
+    pde_t *pdep0 = &pgdir[PDX0(la)];
+    if(!(*pdep0 & PTE_V)) {
+    	struct Page *page;
+    	if(!create || (page = alloc_page()) == NULL) {
+    		return NULL;
+    	}
+    	set_page_ref(page,1);
+    	uintptr_t pa = page2pa(page);
+    	memset(KADDR(pa), 0, PGSIZE);
+
+    	*pdep0 = pte_create(page2ppn(page), PTE_U | PTE_V);
+    }
+    return &((pte_t *)KADDR(PDE_ADDR(*pdep1)))[PTX(la)];
 }
 
 // get_page - get related Page struct for linear address la using PDT pgdir
@@ -457,7 +469,7 @@ static void check_boot_pgdir(void) {
     //     assert((ptep = get_pte(boot_pgdir, (uintptr_t)KADDR(i), 0)) != NULL);
     //     assert(PTE_ADDR(*ptep) == i);
     // }
-    assert(PDE_ADDR(boot_pgdir[PDX(VPT)]) == PADDR(boot_pgdir));
+    assert(PDE_ADDR(boot_pgdir[PDX1(VPT)]) == PADDR(boot_pgdir));
 
     assert(boot_pgdir[0] == 0);
     struct Page *p;
