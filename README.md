@@ -4,6 +4,7 @@ ucore os labs was used as OS Experiments in OS Course Of Dept. of Computer Scien
 
 NEWS
 ====
+- 2018.03.18: Weixiao Huang provided https://github.com/weixiao-huang/silver-spoon to support os labs in docker environment on windows/macos/linux. [details](https://github.com/weixiao-huang/silver-spoon/tree/master/docs)
 - 2018.02.03：ucore os labs were ported on RISC-V CPU（privileged arch spec 1.10). You can access [repo's riscv32-priv-1.10 branch](https://github.com/chyyuu/ucore_os_lab/tree/riscv32-priv-1.10)
 
 MAINTAINERS
