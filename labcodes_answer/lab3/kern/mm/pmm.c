@@ -17,7 +17,7 @@ struct Page *pages;
 // amount of physical memory (in pages)
 size_t npage = 0;
 // The kernel image is mapped at VA=KERNBASE and PA=info.base
-uint32_t va_pa_offset;
+uint_t va_pa_offset;
 // memory starts at 0x80000000 in RISC-V
 const size_t nbase = DRAM_BASE / PGSIZE;
 
@@ -42,7 +42,7 @@ const struct pmm_manager *pmm_manager;
  * always available at virtual address PGADDR(PDX(VPT), PDX(VPT), 0), to which
  * vpd is set bellow.
  * */
-pde_t *const vpd = (pde_t *)PGADDR(PDX(VPT), ((PDX(VPT)) + 1), 0);
+pde_t *const vpd = (pde_t *)PGADDR(PDX1(VPT), PDX0(VPT), PTX(VPT), 0);
 
 static void check_alloc_page(void);
 static void check_pgdir(void);
@@ -100,7 +100,7 @@ size_t nr_free_pages(void) {
     return ret;
 }
 
-/* pmm_init - initialize the physical memory management */
+/* page_init - initialize the physical memory management */
 static void page_init(void) {
     extern char kern_entry[];
 
@@ -127,7 +127,6 @@ static void page_init(void) {
     // kernel
     // so stay away from it by adding extra offset to end
     pages = (struct Page *)ROUNDUP((void *)end, PGSIZE);
-
     for (size_t i = 0; i < npage - nbase; i++) {
         SetPageReserved(pages + i);
     }
@@ -212,8 +211,8 @@ void pmm_init(void) {
 
     // recursively insert boot_pgdir in itself
     // to form a virtual page table at virtual address VPT
-    boot_pgdir[PDX(VPT)] = pte_create(PPN(boot_cr3), PAGE_TABLE_DIR);
-    boot_pgdir[PDX(VPT) + 1] = pte_create(PPN(boot_cr3), READ_WRITE);
+    boot_pgdir[PDX1(VPT)] = pte_create(PPN(boot_cr3), PAGE_TABLE_DIR);
+    boot_pgdir[PDX1(VPT) + 1] = pte_create(PPN(boot_cr3), READ_WRITE);
 
     // map all physical memory to linear memory with base linear addr KERNBASE
     // linear_addr KERNBASE~KERNBASE+KMEMSIZE = phy_addr 0~KMEMSIZE
@@ -283,15 +282,16 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
     }
     pde_t *pdep0 = &pgdir[PDX0(la)];
     if (!(*pdep0 & PTE_V)) {
+    	struct Page *page;
     	if (!create || (page = alloc_page()) == NULL) {
     		return NULL;
     	}
     	set_page_ref(page, 1);
-    	pa = page2pa(page);
+    	uintptr_t pa = page2pa(page);
     	memset(KADDR(pa), 0, PGSIZE);
     	*pdep0 = pte_create(page2ppn(page), PTE_U | PTE_V);
     }
-    return &((pte_t *)KADDR(PDE_ADDR(*pdep0)))[PTX(la)];
+    return &((pte_t *)KADDR(PDE_ADDR(*pdep1)))[PTX(la)];
 }
 
 // get_page - get related Page struct for linear address la using PDT pgdir
@@ -472,7 +472,7 @@ static void check_boot_pgdir(void) {
         assert(PTE_ADDR(*ptep) == i);
     }
 
-    assert(PDE_ADDR(boot_pgdir[PDX(VPT)]) == PADDR(boot_pgdir));
+    assert(PDE_ADDR(boot_pgdir[PDX1(VPT)]) == PADDR(boot_pgdir));
 
     assert(boot_pgdir[0] == 0);
 
