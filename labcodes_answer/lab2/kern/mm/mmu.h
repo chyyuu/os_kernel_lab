@@ -5,39 +5,49 @@
 #include <defs.h>
 #endif
 
-// A linear address 'la' has a three-part structure as follows:
+// A linear address 'la' has a four-part structure as follows:
 //
-// +--------10------+-------10-------+---------12----------+
-// | Page Directory |   Page Table   | Offset within Page  |
-// |      Index     |     Index      |                     |
-// +----------------+----------------+---------------------+
-//  \--- PDX(la) --/ \--- PTX(la) --/ \---- PGOFF(la) ----/
-//  \----------- PPN(la) -----------/
+// +--------9-------+-------9--------+-------9--------+---------12----------+
+// | Page Directory | Page Directory |   Page Table   | Offset within Page  |
+// |     Index 1    |    Index 2     |                |                     |
+// +----------------+----------------+----------------+---------------------+
+//  \-- PDX1(la) --/ \-- PDX0(la) --/ \--- PTX(la) --/ \---- PGOFF(la) ----/
+//  \-------------------PPN(la)----------------------/
 //
-// The PDX, PTX, PGOFF, and PPN macros decompose linear addresses as shown.
+// The PDX1, PDX0, PTX, PGOFF, and PPN macros decompose linear addresses as shown.
 // To construct a linear address la from PDX(la), PTX(la), and PGOFF(la),
 // use PGADDR(PDX(la), PTX(la), PGOFF(la)).
 
-// RISC-V uses 32-bit virtual address to access 34-bit physical address!
-// Sv32 page table entry:
-// +---------12----------+--------10-------+---2----+-------8-------+
-// |       PPN[1]        |      PPN[0]     |Reserved|D|A|G|U|X|W|R|V|
-// +---------12----------+-----------------+--------+---------------+
+// RISC-V uses 39-bit virtual address to access 56-bit physical address!
+// Sv39 virtual address:
+// +----9----+----9---+----9---+---12--+
+// |  VPN[2] | VPN[1] | VPN[0] | PGOFF |
+// +---------+----+---+--------+-------+
+//
+// Sv39 physical address:
+// +----26---+----9---+----9---+---12--+
+// |  PPN[2] | PPN[1] | PPN[0] | PGOFF |
+// +---------+----+---+--------+-------+
+//
+// Sv39 page table entry:
+// +----26---+----9---+----9---+---2----+-------8-------+
+// |  PPN[2] | PPN[1] | PPN[0] |Reserved|D|A|G|U|X|W|R|V|
+// +---------+----+---+--------+--------+---------------+
 
 // page directory index 0
-#define PDX0(la) ((((uintptr_t)(la)) >> PDX0SHIFT) & 0x7F)
+#define PDX0(la) ((((uintptr_t)(la)) >> PDX0SHIFT) & 0x1FF)
 
 // page directory index 1
-#define PDX1(la) ((((uintptr_t)(la))>>PDX1SHIFT) & 0x7F)
+#define PDX1(la) ((((uintptr_t)(la))>>PDX1SHIFT) & 0x1FF)
 
 // page table index
-#define PTX(la) ((((uintptr_t)(la)) >> PTXSHIFT) & 0x7F)
+#define PTX(la) ((((uintptr_t)(la)) >> PTXSHIFT) & 0x1FF)
 
 // page number field of address
 #define PPN(la) (((uintptr_t)(la)) >> PTXSHIFT)
 
 // offset in page
-#define PGOFF(la) (((uintptr_t)(la)) & 0x3FF)
+#define PGOFF(la) (((uintptr_t)(la)) & 0xFFF)
 
 // construct linear address from indexes and offset
 #define PGADDR(d1, d0, t, o) ((uintptr_t)((d1) << PDX1SHIFT | (d0) << PDX0SHIFT | (t) << PTXSHIFT | (o)))
@@ -53,7 +63,7 @@
 #define PGSIZE          4096                    // bytes mapped by a page
 #define PGSHIFT         12                      // log2(PGSIZE)
 #define PTSIZE          (PGSIZE * NPTEENTRY)    // bytes mapped by a page directory entry
-#define PTSHIFT         21                      // log2(PTSIZE)
+#define PTSHIFT			21						// log2(PTSIZE)
 
 #define PTXSHIFT        12                      // offset of PTX in a linear address
 #define PDX0SHIFT       21                      // offset of PDX[0] in a linear address
