@@ -26,12 +26,19 @@ typedef long long int64_t;
 typedef unsigned long long uint64_t;
 
 /* *
- * Pointers and addresses are 32 bits long.
+ * Pointers and addresses are 32 bits or 64 bits.
  * We use pointer types to represent addresses,
  * uintptr_t to represent the numerical values of addresses.
  * */
-typedef int32_t intptr_t;
-typedef uint32_t uintptr_t;
+#if __riscv_xlen == 64
+  typedef int64_t sint_t;
+  typedef uint64_t uint_t;
+#else
+  typedef int32_t sint_t;
+  typedef uint32_t uint_t;
+#endif
+typedef sint_t intptr_t;
+typedef uint_t uintptr_t;
 
 /* size_t is used for memory object sizes */
 typedef uintptr_t size_t;

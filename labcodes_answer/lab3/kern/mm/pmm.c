@@ -104,11 +104,11 @@ size_t nr_free_pages(void) {
 static void page_init(void) {
     extern char kern_entry[];
 
-    va_pa_offset = KERNBASE - (uint32_t)kern_entry;
+    va_pa_offset = KERNBASE - (uint_t)kern_entry;
 
-    uint32_t mem_begin = (uint32_t)kern_entry;
-    uint32_t mem_end = (8 << 20) + DRAM_BASE; // 8MB memory on qemu
-    uint32_t mem_size = mem_end - mem_begin;
+    uint_t mem_begin = (uint_t)kern_entry;
+    uint_t mem_end = (8 << 20) + DRAM_BASE; // 8MB memory on qemu
+    uint_t mem_size = mem_end - mem_begin;
 
     cprintf("physcial memory map:\n");
     cprintf("  memory: 0x%08lx, [0x%08lx, 0x%08lx].\n", mem_size, mem_begin,
@@ -270,8 +270,8 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
      *   PTE_U           0x004                   // page table/directory entry
      * flags bit : User can access
      */
-    pde_t *pdep = &pgdir[PDX(la)];
-    if (!(*pdep & PTE_V)) {
+    pde_t *pdep1 = &pgdir[PDX1(la)];
+    if (!(*pdep1 & PTE_V)) {
         struct Page *page;
         if (!create || (page = alloc_page()) == NULL) {
             return NULL;
@@ -279,9 +279,19 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
         set_page_ref(page, 1);
         uintptr_t pa = page2pa(page);
         memset(KADDR(pa), 0, PGSIZE);
-        *pdep = pte_create(page2ppn(page), PTE_U | PTE_V);
+        *pdep1 = pte_create(page2ppn(page), PTE_U | PTE_V);
     }
-    return &((pte_t *)KADDR(PDE_ADDR(*pdep)))[PTX(la)];
+    pde_t *pdep0 = &pgdir[PDX0(la)];
+    if (!(*pdep0 & PTE_V)) {
+    	if (!create || (page = alloc_page()) == NULL) {
+    		return NULL;
+    	}
+    	set_page_ref(page, 1);
+    	pa = page2pa(page);
+    	memset(KADDR(pa), 0, PGSIZE);
+    	*pdep0 = pte_create(page2ppn(page), PTE_U | PTE_V);
+    }
+    return &((pte_t *)KADDR(PDE_ADDR(*pdep0)))[PTX(la)];
 }
 
 // get_page - get related Page struct for linear address la using PDT pgdir
