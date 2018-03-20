@@ -114,7 +114,7 @@ If you are interested in OS Research/Development, we welcome you to joining our 
 
 Just like [other great OS researchs ](https://github.com/chyyuu/aos_course/blob/master/readinglist.md)
 
-Send me your email!
+Send me email!
 
 OTHER INFO
 ==========
