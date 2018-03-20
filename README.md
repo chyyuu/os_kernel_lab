@@ -102,6 +102,20 @@ UCORERS (Contributors)
 Junjie Mao, Yuheng Chen, Cong Liu, Yang Yang, Zhun Qu, Shengwei Ren, Wenlei Zhu, Cao Zhang, Tong Sen, Xu Chen, 
 Cang Nan, Yujian Fang, Wentao Han, Kaichen Zhang, Xiaolin Guo, Tianfan Xue, Gang Hu, Cao Liu, Yu Su,Xinhao Yuan, Wei Zhang, Kaixiang Lei...
 
+Invite Applications for OS Research/Development on OS research group in Tsinghua Univ.
+======================================================================================
+If you are interested in OS Research/Development, we welcome you to joining our research on:
+- OS performance improvement for multicore architecture
+- fuzzing/symbolic execution technologies on OS for finding kernel bugs
+- improving performance and reliability on OS subsystem, such as device driver
+- design OS specification and build correct OS
+- OS & CPU(such as RISC-V）codesign
+- other topics about OS
+
+Just like [other great OS researchs ](https://github.com/chyyuu/aos_course/blob/master/readinglist.md)
+
+Send me your email!
+
 OTHER INFO
 ==========
 ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux.
@@ -115,3 +129,4 @@ The codes in the files that constitute OS/161 are written by David A. Holland.
 The codes in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Naizheng Wang, Yong Xiang and uses GPL License.
 
 The documents in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Yong Xiang and uses Creative Commons Attribution/Share-Alike (CC-BY-SA) License. 
+
