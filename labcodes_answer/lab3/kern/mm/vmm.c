@@ -18,7 +18,7 @@
    golbal functions
      struct mm_struct * mm_create(void)
      void mm_destroy(struct mm_struct *mm)
-     int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
+     int do_pgfault(struct mm_struct *mm, uint_t error_code, uintptr_t addr)
 --------------
   vma related functions:
    global functions
@@ -33,6 +33,26 @@
      void check_vma_struct(void);
      void check_pgfault(void);
 */
+
+// szx func : print_vma and print_mm
+void print_vma(char *name, struct vma_struct *vma){
+	cprintf("-- %s print_vma --\n", name);
+	cprintf("   mm_struct: %p\n",vma->vm_mm);
+	cprintf("   vm_start,vm_end: %x,%x\n",vma->vm_start,vma->vm_end);
+	cprintf("   vm_flags: %x\n",vma->vm_flags);
+	cprintf("   list_entry_t: %p\n",&vma->list_link);
+}
+
+void print_mm(char *name, struct mm_struct *mm){
+	cprintf("-- %s print_mm --\n",name);
+	cprintf("   mmap_list: %p\n",&mm->mmap_list);
+	cprintf("   map_count: %d\n",mm->map_count);
+	list_entry_t *list = &mm->mmap_list;
+	for(int i=0;i<mm->map_count;i++){
+		list = list_next(list);
+		print_vma(name, le2vma(list,list_link));
+	}
+}
 
 static void check_vmm(void);
 static void check_vma_struct(void);
@@ -57,7 +77,7 @@ mm_create(void) {
 
 // vma_create - alloc a vma_struct & initialize it. (addr range: vm_start~vm_end)
 struct vma_struct *
-vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_flags) {
+vma_create(uintptr_t vm_start, uintptr_t vm_end, uint_t vm_flags) {
     struct vma_struct *vma = kmalloc(sizeof(struct vma_struct));
 
     if (vma != NULL) {
@@ -238,6 +258,7 @@ struct mm_struct *check_mm_struct;
 // check_pgfault - check correctness of pgfault handler
 static void
 check_pgfault(void) {
+	char *name = "szx check_pgfoult";
     size_t nr_free_pages_store = nr_free_pages();
 
     check_mm_struct = mm_create();
@@ -250,18 +271,24 @@ check_pgfault(void) {
     assert(vma != NULL);
 
     insert_vma_struct(mm, vma);
+    print_mm(name, mm);
 
     uintptr_t addr = 0x100;
     assert(find_vma(mm, addr) == vma);
 
     int i, sum = 0;
+    cprintf("-- szx :");
     for (i = 0; i < 100; i ++) {
         *(char *)(addr + i) = i;
+        cprintf(" %p:%d",(char *)(addr +i),*(char *)(addr + i));
         sum += i;
     }
+    cprintf("\n-- szx :");
     for (i = 0; i < 100; i ++) {
         sum -= *(char *)(addr + i);
+        cprintf(" %p:%d",(char *)(addr + i),*(char *)(addr + i));
     }
+    cprintf("\n-- szx sum:%d\n",sum);
     assert(sum == 0);
 
     page_remove(pgdir, ROUNDDOWN(addr, PGSIZE));
@@ -301,7 +328,7 @@ volatile unsigned int pgfault_num=0;
  *            or supervisor mode (0) at the time of the exception.
  */
 int
-do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
+do_pgfault(struct mm_struct *mm, uint_t error_code, uintptr_t addr) {
     int ret = -E_INVAL;
     //try to find a vma which include addr
     struct vma_struct *vma = find_vma(mm, addr);
@@ -328,7 +355,7 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     ret = -E_NO_MEM;
 
     pte_t *ptep=NULL;
-    /*LAB3 EXERCISE 1: YOUR CODE
+    /*LAB3 EXERCISE 1: YOUR CODE`
     * Maybe you want help comment, BELOW comments can help you finish the code
     *
     * Some Useful MACROs and DEFINEs, you can use them in below implementation.
