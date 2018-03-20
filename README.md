@@ -102,9 +102,9 @@ UCORERS (Contributors)
 Junjie Mao, Yuheng Chen, Cong Liu, Yang Yang, Zhun Qu, Shengwei Ren, Wenlei Zhu, Cao Zhang, Tong Sen, Xu Chen, 
 Cang Nan, Yujian Fang, Wentao Han, Kaichen Zhang, Xiaolin Guo, Tianfan Xue, Gang Hu, Cao Liu, Yu Su,Xinhao Yuan, Wei Zhang, Kaixiang Lei...
 
-Invite Applications for OS Research/Development on OS research group in Tsinghua Univ.
-======================================================================================
-If you are interested in OS Research/Development, we welcome you to joining our research on:
+Join us, OS research group in Tsinghua Univ.
+============================================
+If you are interested in OS Research/Development, we welcome you to joining our OS research group:
 - OS performance improvement for multicore architecture
 - fuzzing/symbolic execution technologies on OS for finding kernel bugs
 - improving performance and reliability on OS subsystem, such as device driver
