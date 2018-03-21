@@ -6,17 +6,26 @@
 .text
 .globl kern_entry
 kern_entry:
-    # reload temperate gdt (second time) to remap all physical memory
-    # virtual_addr 0~4G=linear_addr&physical_addr -KERNBASE~4G-KERNBASE 
-    lgdt REALLOC(__gdtdesc)
-    movl $KERNEL_DS, %eax
-    movw %ax, %ds
-    movw %ax, %es
-    movw %ax, %ss
+    # load pa of boot pgdir
+    movl $REALLOC(__boot_pgdir), %eax
+    movl %eax, %cr3
 
-    ljmp $KERNEL_CS, $relocated
+    # enable paging
+    movl %cr0, %eax
+    orl $(CR0_PE | CR0_PG | CR0_AM | CR0_WP | CR0_NE | CR0_TS | CR0_EM | CR0_MP), %eax
+    andl $~(CR0_TS | CR0_EM), %eax
+    movl %eax, %cr0
 
-relocated:
+    # update eip
+    # now, eip = 0x1.....
+    leal next, %eax
+    # set eip = KERNBASE + 0x1.....
+    jmp *%eax
+next:
+
+    # unmap va 0 ~ 4M, it's temporary mapping
+    xorl %eax, %eax
+    movl %eax, __boot_pgdir
 
     # set ebp, esp
     movl $0x0, %ebp
@@ -38,12 +47,24 @@ bootstack:
     .globl bootstacktop
 bootstacktop:
 
-.align 4
-__gdt:
-    SEG_NULL
-    SEG_ASM(STA_X | STA_R, - KERNBASE, 0xFFFFFFFF)      # code segment
-    SEG_ASM(STA_W, - KERNBASE, 0xFFFFFFFF)              # data segment
-__gdtdesc:
-    .word 0x17                                          # sizeof(__gdt) - 1
-    .long REALLOC(__gdt)
+# kernel builtin pgdir
+# an initial page directory (Page Directory Table, PDT)
+# These page directory table and page table can be reused!
+.section .data.pgdir
+.align PGSIZE
+__boot_pgdir:
+.globl __boot_pgdir
+    # map va 0 ~ 4M to pa 0 ~ 4M (temporary)
+    .long REALLOC(__boot_pt1) + (PTE_P | PTE_U | PTE_W)
+    .space (KERNBASE / PGSIZE / 1024 * 4) - (. - __boot_pgdir) # pad to PDE of KERNBASE
+    # map va KERNBASE + (0 ~ 4M) to pa 0 ~ 4M
+    .long REALLOC(__boot_pt1) + (PTE_P | PTE_U | PTE_W)
+    .space PGSIZE - (. - __boot_pgdir) # pad to PGSIZE
+
+.set i, 0
+__boot_pt1:
+.rept 1024
+    .long i * PGSIZE + (PTE_P | PTE_W)
+    .set i, i + 1
+.endr
 
