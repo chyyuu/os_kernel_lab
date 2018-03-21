@@ -140,7 +140,7 @@ static void page_init(void) {
 
 static void enable_paging(void) {
     // set page table
-    write_csr(satp, 0x80000000 | (boot_cr3 >> RISCV_PGSHIFT));
+    write_csr(satp, 0xF000000000000000 | (boot_cr3 >> RISCV_PGSHIFT));
 }
 
 // boot_map_segment - setup&enable the paging mechanism
@@ -281,7 +281,7 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
         // *pdep = ptd_create(page2ppn(page));
     }
 
-    pde_t *pdep0 = &pgdir[PDX0(la)];
+    pde_t *pdep0 = &((uintptr_t *)KADDR(PDE_ADDR(*pdep1)))[PDX0(la)];
     if(!(*pdep0 & PTE_V)) {
     	struct Page *page;
     	if(!create || (page = alloc_page()) == NULL) {
@@ -293,7 +293,7 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
 
     	*pdep0 = pte_create(page2ppn(page), PTE_U | PTE_V);
     }
-    return &((pte_t *)KADDR(PDE_ADDR(*pdep1)))[PTX(la)];
+    return &((pte_t *)KADDR(PDE_ADDR(*pdep0)))[PTX(la)];
 }
 
 // get_page - get related Page struct for linear address la using PDT pgdir
@@ -366,6 +366,7 @@ void page_remove(pde_t *pgdir, uintptr_t la) {
 // note: PT is changed, so the TLB need to be invalidate
 int page_insert(pde_t *pgdir, struct Page *page, uintptr_t la, uint32_t perm) {
     pte_t *ptep = get_pte(pgdir, la, 1);
+    cprintf("-- szx get_pte in:(*ptep)%x\n",*ptep);
     if (ptep == NULL) {
         return -E_NO_MEM;
     }
@@ -378,7 +379,8 @@ int page_insert(pde_t *pgdir, struct Page *page, uintptr_t la, uint32_t perm) {
             page_remove_pte(pgdir, la, ptep);
         }
     }
-    *ptep = pte_create(page2ppn(page), PTE_V | perm);
+    *ptep = pte_create(page2ppn(page), perm);
+    cprintf("-- szx get_pte out:(*ptep)%x\n",*ptep);
     tlb_invalidate(pgdir, la);
     return 0;
 }
@@ -411,7 +413,8 @@ static void check_pgdir(void) {
     assert(pte2page(*ptep) == p1);
     assert(page_ref(p1) == 1);
 
-    ptep = &((pte_t *)KADDR(PDE_ADDR(boot_pgdir[0])))[1];
+    ptep = (pte_t *)KADDR(PDE_ADDR(boot_pgdir[0]));
+    ptep = (pte_t *)KADDR(PDE_ADDR(ptep[0])) + 1;
     assert(get_pte(boot_pgdir, PGSIZE, 0) == ptep);
 
     p2 = alloc_page();
@@ -466,6 +469,11 @@ static void check_boot_pgdir(void) {
 
     const char *str = "ucore: Hello world!!";
     strcpy((void *)0x100, str);
+    cprintf("-- szx (void *)0x100:%s\n",(void *)0x100);
+    cprintf("-- szx (void *)(0x100 + PGSIZE):%s\n",(void *)(0x100 + PGSIZE));
+    cprintf("-- szx struct Page *p:%x\n",p);
+    cprintf("-- szx get_page(0x100):%p\n",get_page(boot_pgdir,0x100,NULL));
+    cprintf("-- szx get_page(0x1100):%p\n",get_page(boot_pgdir,(0x100+PGSIZE),NULL));
     assert(strcmp((void *)0x100, (void *)(0x100 + PGSIZE)) == 0);
 
     *(char *)(page2kva(p) + 0x100) = '\0';

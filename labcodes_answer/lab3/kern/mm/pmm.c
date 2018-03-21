@@ -141,7 +141,7 @@ static void page_init(void) {
 }
 
 static void enable_paging(void) {
-    write_csr(satp, SATP32_MODE | (boot_cr3 >> RISCV_PGSHIFT));
+    write_csr(satp, SATP64_MODE | (boot_cr3 >> RISCV_PGSHIFT));
 }
 
 /**
@@ -485,6 +485,7 @@ static void check_boot_pgdir(void) {
 
     const char *str = "ucore: Hello world!!";
     strcpy((void *)0x100, str);
+    cprintf("--szx %s, %s --\n",(char *)0x100, (char *)(0x100 + PGSIZE));
     assert(strcmp((void *)0x100, (void *)(0x100 + PGSIZE)) == 0);
 
     *(char *)(page2kva(p) + 0x100) = '\0';
