@@ -22,6 +22,10 @@ __panic(const char *file, int line, const char *fmt, ...) {
     cprintf("kernel panic at %s:%d:\n    ", file, line);
     vcprintf(fmt, ap);
     cprintf("\n");
+    
+    cprintf("stack trackback:\n");
+    print_stackframe();
+    
     va_end(ap);
 
 panic_dead:
