@@ -4,6 +4,7 @@ ucore os labs was used as OS Experiments in OS Course Of Dept. of Computer Scien
 
 NEWS
 ====
+- 2018.03.18: Weixiao Huang provided https://github.com/weixiao-huang/silver-spoon to support os labs in docker environment on windows/macos/linux. [details](https://github.com/weixiao-huang/silver-spoon/tree/master/docs)
 - 2018.02.03：ucore os labs were ported on RISC-V CPU（privileged arch spec 1.10). You can access [repo's riscv32-priv-1.10 branch](https://github.com/chyyuu/ucore_os_lab/tree/riscv32-priv-1.10)
 
 MAINTAINERS
@@ -101,6 +102,20 @@ UCORERS (Contributors)
 Junjie Mao, Yuheng Chen, Cong Liu, Yang Yang, Zhun Qu, Shengwei Ren, Wenlei Zhu, Cao Zhang, Tong Sen, Xu Chen, 
 Cang Nan, Yujian Fang, Wentao Han, Kaichen Zhang, Xiaolin Guo, Tianfan Xue, Gang Hu, Cao Liu, Yu Su,Xinhao Yuan, Wei Zhang, Kaixiang Lei...
 
+Join us, OS research group in Tsinghua Univ.
+============================================
+If you are interested in OS Research/Development, we welcome you to joining our OS research group:
+- OS performance improvement for multicore architecture
+- fuzzing/symbolic execution technologies on OS for finding kernel bugs
+- improving performance and reliability on OS subsystem, such as device driver
+- design OS specification and build correct OS
+- OS & CPU(such as RISC-V）codesign
+- other topics about OS
+
+Just like [other great OS researchs ](https://github.com/chyyuu/aos_course/blob/master/readinglist.md)
+
+Send me email!
+
 OTHER INFO
 ==========
 ucore is a teaching OS which is derived from xv6&jos in MIT, OS161 in Harvard and Linux.
@@ -114,3 +129,4 @@ The codes in the files that constitute OS/161 are written by David A. Holland.
 The codes in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Naizheng Wang, Yong Xiang and uses GPL License.
 
 The documents in the files that constitute ucore are Copyright (2010-Current) Yu Chen, Yong Xiang and uses Creative Commons Attribution/Share-Alike (CC-BY-SA) License. 
+
