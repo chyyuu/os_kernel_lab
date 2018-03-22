@@ -40,7 +40,7 @@ const struct pmm_manager *pmm_manager;
  * always available at virtual address PGADDR(PDX(VPT), PDX(VPT), 0), to which
  * vpd is set bellow.
  * */
-pde_t *const vpd = (pde_t *)PGADDR(PDX1(VPT), PDX0(VPT), PTX(VPT), 0);
+pde_t *const vpd = (pde_t *)PGADDR(PDX1(VPT), PDX1(VPT), PDX1(VPT), 0);
 
 static void check_alloc_page(void);
 static void check_pgdir(void);
@@ -140,7 +140,7 @@ static void page_init(void) {
 
 static void enable_paging(void) {
     // set page table
-    write_csr(satp, 0xF000000000000000 | (boot_cr3 >> RISCV_PGSHIFT));
+    write_csr(satp, 0x8000000000000000 | (boot_cr3 >> RISCV_PGSHIFT));
 }
 
 // boot_map_segment - setup&enable the paging mechanism
@@ -207,7 +207,7 @@ void pmm_init(void) {
 
     // recursively insert boot_pgdir in itself
     // to form a virtual page table at virtual address VPT
-    boot_pgdir[PDX1(VPT)] = pte_create(PPN(boot_cr3), PAGE_TABLE_DIR);
+    boot_pgdir[PDX0(VPT)] = pte_create(PPN(boot_cr3), PAGE_TABLE_DIR);
 
     // map all physical memory to linear memory with base linear addr KERNBASE
     // linear_addr KERNBASE~KERNBASE+KMEMSIZE = phy_addr 0~KMEMSIZE
@@ -229,7 +229,7 @@ void pmm_init(void) {
     // check the correctness of the basic virtual memory map.
     check_boot_pgdir();
 
-    print_pgdir();
+    // print_pgdir();
 }
 
 // get_pte - get pte and return the kernel virtual address of this pte for la
@@ -366,7 +366,6 @@ void page_remove(pde_t *pgdir, uintptr_t la) {
 // note: PT is changed, so the TLB need to be invalidate
 int page_insert(pde_t *pgdir, struct Page *page, uintptr_t la, uint32_t perm) {
     pte_t *ptep = get_pte(pgdir, la, 1);
-    cprintf("-- szx get_pte in:(*ptep)%x\n",*ptep);
     if (ptep == NULL) {
         return -E_NO_MEM;
     }
@@ -380,7 +379,6 @@ int page_insert(pde_t *pgdir, struct Page *page, uintptr_t la, uint32_t perm) {
         }
     }
     *ptep = pte_create(page2ppn(page), perm);
-    cprintf("-- szx get_pte out:(*ptep)%x\n",*ptep);
     tlb_invalidate(pgdir, la);
     return 0;
 }
@@ -456,7 +454,7 @@ static void check_boot_pgdir(void) {
     //     assert((ptep = get_pte(boot_pgdir, (uintptr_t)KADDR(i), 0)) != NULL);
     //     assert(PTE_ADDR(*ptep) == i);
     // }
-    assert(PDE_ADDR(boot_pgdir[PDX1(VPT)]) == PADDR(boot_pgdir));
+    assert(PDE_ADDR(boot_pgdir[PDX0(VPT)]) == PADDR(boot_pgdir));
 
     assert(boot_pgdir[0] == 0);
     struct Page *p;
@@ -471,9 +469,6 @@ static void check_boot_pgdir(void) {
     strcpy((void *)0x100, str);
     cprintf("-- szx (void *)0x100:%s\n",(void *)0x100);
     cprintf("-- szx (void *)(0x100 + PGSIZE):%s\n",(void *)(0x100 + PGSIZE));
-    cprintf("-- szx struct Page *p:%x\n",p);
-    cprintf("-- szx get_page(0x100):%p\n",get_page(boot_pgdir,0x100,NULL));
-    cprintf("-- szx get_page(0x1100):%p\n",get_page(boot_pgdir,(0x100+PGSIZE),NULL));
     assert(strcmp((void *)0x100, (void *)(0x100 + PGSIZE)) == 0);
 
     *(char *)(page2kva(p) + 0x100) = '\0';
@@ -512,11 +507,15 @@ static const char *perm2str(int perm) {
 static int get_pgtable_items(size_t left, size_t right, size_t start,
                              uintptr_t *table, size_t *left_store,
                              size_t *right_store) {
+	cprintf("-- szx get_pgtable_items: in start:%d, right:%d --\n",start,right);
     if (start >= right) {
+    	cprintf("-- szx get_pgtable_items: out start>=right\n");
         return 0;
     }
+    cprintf("-- szx table[%d]:%p \n",start,table);
     while (start < right && !(table[start] & PTE_V)) {
         start++;
+        cprintf("-- szx start1:%d --\n",start);
     }
     if (start < right) {
         if (left_store != NULL) {
@@ -525,12 +524,15 @@ static int get_pgtable_items(size_t left, size_t right, size_t start,
         int perm = (table[start++] & PTE_USER);
         while (start < right && (table[start] & PTE_USER) == perm) {
             start++;
+            cprintf("-- szx start2:%d --\n",start);
         }
         if (right_store != NULL) {
             *right_store = start;
         }
         return perm;
+    	cprintf("-- szx get_pgtable_items: out perm:%x --\n",perm);
     }
+	cprintf("-- szx get_pgtable_items: out return 0\n");
     return 0;
 }
 

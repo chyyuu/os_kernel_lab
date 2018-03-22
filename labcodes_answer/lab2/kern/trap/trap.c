@@ -149,7 +149,7 @@ void interrupt_handler(struct trapframe *tf) {
             cprintf("Machine software interrupt\n");
             break;
         default:
-            print_trapframe(tf);
+        	print_trapframe(tf);
             break;
     }
 }
@@ -203,7 +203,7 @@ static inline void trap_dispatch(struct trapframe *tf) {
  * trapframe and then uses the iret instruction to return from the exception.
  * */
 void trap(struct trapframe *tf) {
-	cprintf("");	//TODO: without cprintf, ucore will crash.
+	cprintf("");
     // dispatch based on what type of trap occurred
     trap_dispatch(tf);
 }
