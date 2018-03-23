@@ -33,7 +33,7 @@ typedef unsigned long long uint64_t;
 #if __riscv_xlen == 64
   typedef int64_t sint_t;
   typedef uint64_t uint_t;
-#else
+#elif __riscv_xlen == 32
   typedef int32_t sint_t;
   typedef uint32_t uint_t;
 #endif

@@ -42,7 +42,7 @@ const struct pmm_manager *pmm_manager;
  * always available at virtual address PGADDR(PDX(VPT), PDX(VPT), 0), to which
  * vpd is set bellow.
  * */
-pde_t *const vpd = (pde_t *)PGADDR(PDX1(VPT), PDX0(VPT), PTX(VPT), 0);
+pde_t *const vpd = (pde_t *)PGADDR(PDX1(VPT), PDX1(VPT), PDX1(VPT), 0);
 
 static void check_alloc_page(void);
 static void check_pgdir(void);
@@ -67,9 +67,11 @@ struct Page *alloc_pages(size_t n) {
     bool intr_flag;
 
     while (1) {
+        cprintf("%d->",nr_free_pages());
         local_intr_save(intr_flag);
         { page = pmm_manager->alloc_pages(n); }
         local_intr_restore(intr_flag);
+        cprintf("%d ",nr_free_pages());
 
         if (page != NULL || n > 1 || swap_init_ok == 0) break;
 
@@ -84,9 +86,12 @@ struct Page *alloc_pages(size_t n) {
 // free_pages - call pmm->free_pages to free a continuous n*PAGESIZE memory
 void free_pages(struct Page *base, size_t n) {
     bool intr_flag;
+    cprintf("%d->",nr_free_pages());
+
     local_intr_save(intr_flag);
     { pmm_manager->free_pages(base, n); }
     local_intr_restore(intr_flag);
+    cprintf("%d ",nr_free_pages());
 }
 
 // nr_free_pages - call pmm->nr_free_pages to get the size (nr*PAGESIZE)
@@ -141,7 +146,7 @@ static void page_init(void) {
 }
 
 static void enable_paging(void) {
-    write_csr(satp, SATP64_MODE | (boot_cr3 >> RISCV_PGSHIFT));
+    write_csr(satp, (0x8000000000000000) | (boot_cr3 >> RISCV_PGSHIFT));
 }
 
 /**
@@ -211,8 +216,7 @@ void pmm_init(void) {
 
     // recursively insert boot_pgdir in itself
     // to form a virtual page table at virtual address VPT
-    boot_pgdir[PDX1(VPT)] = pte_create(PPN(boot_cr3), PAGE_TABLE_DIR);
-    boot_pgdir[PDX1(VPT) + 1] = pte_create(PPN(boot_cr3), READ_WRITE);
+    boot_pgdir[PDX0(VPT)] = pte_create(PPN(boot_cr3), PAGE_TABLE_DIR);
 
     // map all physical memory to linear memory with base linear addr KERNBASE
     // linear_addr KERNBASE~KERNBASE+KMEMSIZE = phy_addr 0~KMEMSIZE
@@ -231,7 +235,7 @@ void pmm_init(void) {
     // check the correctness of the basic virtual memory map.
     check_boot_pgdir();
 
-    print_pgdir();
+    // print_pgdir();
 }
 
 // get_pte - get pte and return the kernel virtual address of this pte for la
@@ -280,7 +284,7 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
         memset(KADDR(pa), 0, PGSIZE);
         *pdep1 = pte_create(page2ppn(page), PTE_U | PTE_V);
     }
-    pde_t *pdep0 = &pgdir[PDX0(la)];
+    pde_t *pdep0 = &((pde_t *)KADDR(PDE_ADDR(*pdep1)))[PDX0(la)];
     if (!(*pdep0 & PTE_V)) {
     	struct Page *page;
     	if (!create || (page = alloc_page()) == NULL) {
@@ -291,7 +295,7 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
     	memset(KADDR(pa), 0, PGSIZE);
     	*pdep0 = pte_create(page2ppn(page), PTE_U | PTE_V);
     }
-    return &((pte_t *)KADDR(PDE_ADDR(*pdep1)))[PTX(la)];
+    return &((pte_t *)KADDR(PDE_ADDR(*pdep0)))[PTX(la)];
 }
 
 // get_page - get related Page struct for linear address la using PDT pgdir
@@ -431,7 +435,8 @@ static void check_pgdir(void) {
     assert(pte2page(*ptep) == p1);
     assert(page_ref(p1) == 1);
 
-    ptep = &((pte_t *)KADDR(PDE_ADDR(boot_pgdir[0])))[1];
+    ptep = (pte_t *)KADDR(PDE_ADDR(boot_pgdir[0]));
+    ptep = (pte_t *)KADDR(PDE_ADDR(ptep[0])) + 1;
     assert(get_pte(boot_pgdir, PGSIZE, 0) == ptep);
 
     p2 = alloc_page();
@@ -472,7 +477,7 @@ static void check_boot_pgdir(void) {
         assert(PTE_ADDR(*ptep) == i);
     }
 
-    assert(PDE_ADDR(boot_pgdir[PDX1(VPT)]) == PADDR(boot_pgdir));
+    assert(PDE_ADDR(boot_pgdir[PDX0(VPT)]) == PADDR(boot_pgdir));
 
     assert(boot_pgdir[0] == 0);
 
@@ -485,7 +490,6 @@ static void check_boot_pgdir(void) {
 
     const char *str = "ucore: Hello world!!";
     strcpy((void *)0x100, str);
-    cprintf("--szx %s, %s --\n",(char *)0x100, (char *)(0x100 + PGSIZE));
     assert(strcmp((void *)0x100, (void *)(0x100 + PGSIZE)) == 0);
 
     *(char *)(page2kva(p) + 0x100) = '\0';

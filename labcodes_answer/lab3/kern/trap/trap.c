@@ -111,7 +111,6 @@ static inline void print_pgfault(struct trapframe *tf) {
 }
 
 static int pgfault_handler(struct trapframe *tf) {
-	cprintf("-- szx pgfault_handler --\n");
     extern struct mm_struct *check_mm_struct;
     print_pgfault(tf);
     if (check_mm_struct != NULL) {
@@ -253,7 +252,6 @@ void exception_handler(struct trapframe *tf) {
  * trapframe and then uses the iret instruction to return from the exception.
  * */
 void trap(struct trapframe *tf) {
-	cprintf("-- szx trap happens --\n");
     // dispatch based on what type of trap occurred
     if ((intptr_t)tf->cause < 0) {
         // interrupts

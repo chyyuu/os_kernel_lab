@@ -258,46 +258,58 @@ struct mm_struct *check_mm_struct;
 // check_pgfault - check correctness of pgfault handler
 static void
 check_pgfault(void) {
-	char *name = "szx check_pgfoult";
+	// char *name = "check_pgfault";
     size_t nr_free_pages_store = nr_free_pages();
+    cprintf("--szx in check_pgfault:nr_free_pages %d --\n",nr_free_pages());
 
+    cprintf("-- szx mm_creat --\n");
     check_mm_struct = mm_create();
+    cprintf("\n");
+
     assert(check_mm_struct != NULL);
     struct mm_struct *mm = check_mm_struct;
     pde_t *pgdir = mm->pgdir = boot_pgdir;
     assert(pgdir[0] == 0);
 
+    cprintf("-- szx vma_create --\n");
     struct vma_struct *vma = vma_create(0, PTSIZE, VM_WRITE);
+    cprintf("\n");
+
     assert(vma != NULL);
 
     insert_vma_struct(mm, vma);
-    print_mm(name, mm);
+    // print_mm(name, mm);
 
     uintptr_t addr = 0x100;
     assert(find_vma(mm, addr) == vma);
 
     int i, sum = 0;
-    cprintf("-- szx :");
     for (i = 0; i < 100; i ++) {
         *(char *)(addr + i) = i;
-        cprintf(" %p:%d",(char *)(addr +i),*(char *)(addr + i));
         sum += i;
     }
-    cprintf("\n-- szx :");
     for (i = 0; i < 100; i ++) {
         sum -= *(char *)(addr + i);
-        cprintf(" %p:%d",(char *)(addr + i),*(char *)(addr + i));
     }
-    cprintf("\n-- szx sum:%d\n",sum);
     assert(sum == 0);
 
+    cprintf("-- szx page_remove --\n");
     page_remove(pgdir, ROUNDDOWN(addr, PGSIZE));
+    cprintf("\n");
+
+    cprintf("-- szx free_page --\n");
     free_page(pde2page(pgdir[0]));
+    cprintf("\n");
+
     pgdir[0] = 0;
 
     mm->pgdir = NULL;
+    cprintf("-- szx mm_destroy --\n");
     mm_destroy(mm);
+    cprintf("\n");
+
     check_mm_struct = NULL;
+    cprintf("--szx out check_pgfault:nr_free_pages %d --\n",nr_free_pages());
 
     assert(nr_free_pages_store == nr_free_pages());
 
