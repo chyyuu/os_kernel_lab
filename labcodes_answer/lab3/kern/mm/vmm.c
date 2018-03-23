@@ -182,10 +182,10 @@ vmm_init(void) {
 static void
 check_vmm(void) {
     size_t nr_free_pages_store = nr_free_pages();
-    
     check_vma_struct();
     check_pgfault();
 
+    nr_free_pages_store--;	// szx : Sv39三级页表多占一个内存页，所以执行此操作
     assert(nr_free_pages_store == nr_free_pages());
 
     cprintf("check_vmm() succeeded.\n");
@@ -260,25 +260,19 @@ static void
 check_pgfault(void) {
 	// char *name = "check_pgfault";
     size_t nr_free_pages_store = nr_free_pages();
-    cprintf("--szx in check_pgfault:nr_free_pages %d --\n",nr_free_pages());
 
-    cprintf("-- szx mm_creat --\n");
     check_mm_struct = mm_create();
-    cprintf("\n");
 
     assert(check_mm_struct != NULL);
     struct mm_struct *mm = check_mm_struct;
     pde_t *pgdir = mm->pgdir = boot_pgdir;
     assert(pgdir[0] == 0);
 
-    cprintf("-- szx vma_create --\n");
     struct vma_struct *vma = vma_create(0, PTSIZE, VM_WRITE);
-    cprintf("\n");
 
     assert(vma != NULL);
 
     insert_vma_struct(mm, vma);
-    // print_mm(name, mm);
 
     uintptr_t addr = 0x100;
     assert(find_vma(mm, addr) == vma);
@@ -293,23 +287,17 @@ check_pgfault(void) {
     }
     assert(sum == 0);
 
-    cprintf("-- szx page_remove --\n");
     page_remove(pgdir, ROUNDDOWN(addr, PGSIZE));
-    cprintf("\n");
 
-    cprintf("-- szx free_page --\n");
     free_page(pde2page(pgdir[0]));
-    cprintf("\n");
 
     pgdir[0] = 0;
 
     mm->pgdir = NULL;
-    cprintf("-- szx mm_destroy --\n");
     mm_destroy(mm);
-    cprintf("\n");
 
     check_mm_struct = NULL;
-    cprintf("--szx out check_pgfault:nr_free_pages %d --\n",nr_free_pages());
+    nr_free_pages_store--;	// szx : Sv39第二级页表多占了一个内存页，所以执行此操作
 
     assert(nr_free_pages_store == nr_free_pages());
 

@@ -67,11 +67,9 @@ struct Page *alloc_pages(size_t n) {
     bool intr_flag;
 
     while (1) {
-        cprintf("%d->",nr_free_pages());
         local_intr_save(intr_flag);
         { page = pmm_manager->alloc_pages(n); }
         local_intr_restore(intr_flag);
-        cprintf("%d ",nr_free_pages());
 
         if (page != NULL || n > 1 || swap_init_ok == 0) break;
 
@@ -86,12 +84,10 @@ struct Page *alloc_pages(size_t n) {
 // free_pages - call pmm->free_pages to free a continuous n*PAGESIZE memory
 void free_pages(struct Page *base, size_t n) {
     bool intr_flag;
-    cprintf("%d->",nr_free_pages());
 
     local_intr_save(intr_flag);
     { pmm_manager->free_pages(base, n); }
     local_intr_restore(intr_flag);
-    cprintf("%d ",nr_free_pages());
 }
 
 // nr_free_pages - call pmm->nr_free_pages to get the size (nr*PAGESIZE)
