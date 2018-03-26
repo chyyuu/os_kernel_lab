@@ -162,8 +162,6 @@ vmm_init(void) {
 // check_vmm - check correctness of vmm
 static void
 check_vmm(void) {
-    size_t nr_free_pages_store = nr_free_pages();
-    
     check_vma_struct();
     check_pgfault();
 
@@ -172,8 +170,6 @@ check_vmm(void) {
 
 static void
 check_vma_struct(void) {
-    size_t nr_free_pages_store = nr_free_pages();
-
     struct mm_struct *mm = mm_create();
     assert(mm != NULL);
 
@@ -270,6 +266,7 @@ check_pgfault(void) {
     mm_destroy(mm);
     check_mm_struct = NULL;
 
+    nr_free_pages_store--;	// szx : 适应三级页表
     assert(nr_free_pages_store == nr_free_pages());
 
     cprintf("check_pgfault() succeeded!\n");
