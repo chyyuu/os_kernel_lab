@@ -43,7 +43,7 @@ const struct pmm_manager *pmm_manager;
  * always available at virtual address PGADDR(PDX(VPT), PDX(VPT), 0), to which
  * vpd is set bellow.
  * */
-pde_t *const vpd = (pde_t *)PGADDR(PDX(VPT), ((PDX(VPT)) + 1), 0);
+pde_t *const vpd = (pde_t *)PGADDR(PDX1(VPT),PDX1(VPT),PDX1(VPT),0);
 
 static void check_alloc_page(void);
 static void check_pgdir(void);
