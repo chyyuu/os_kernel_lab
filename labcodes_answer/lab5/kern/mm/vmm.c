@@ -252,7 +252,7 @@ vmm_init(void) {
 // check_vmm - check correctness of vmm
 static void
 check_vmm(void) {
-    size_t nr_free_pages_store = nr_free_pages();
+    // size_t nr_free_pages_store = nr_free_pages();
     
     check_vma_struct();
     check_pgfault();
@@ -262,7 +262,7 @@ check_vmm(void) {
 
 static void
 check_vma_struct(void) {
-    size_t nr_free_pages_store = nr_free_pages();
+    // size_t nr_free_pages_store = nr_free_pages();
 
     struct mm_struct *mm = mm_create();
     assert(mm != NULL);
@@ -343,13 +343,16 @@ check_pgfault(void) {
     assert(find_vma(mm, addr) == vma);
 
     int i, sum = 0;
+    cprintf("-- szx tag1 --\n");
     for (i = 0; i < 100; i ++) {
         *(char *)(addr + i) = i;
         sum += i;
     }
+    cprintf("-- szx tag2 --\n");
     for (i = 0; i < 100; i ++) {
         sum -= *(char *)(addr + i);
     }
+    cprintf("-- szx tag3 --\n");
     assert(sum == 0);
 
     page_remove(pgdir, ROUNDDOWN(addr, PGSIZE));
@@ -359,6 +362,7 @@ check_pgfault(void) {
     mm->pgdir = NULL;
     mm_destroy(mm);
     check_mm_struct = NULL;
+    nr_free_pages_store--; // szx : 三级页表
 
     assert(nr_free_pages_store == nr_free_pages());
 
@@ -389,7 +393,7 @@ volatile unsigned int pgfault_num=0;
  *            or supervisor mode (0) at the time of the exception.
  */
 int
-do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
+do_pgfault(struct mm_struct *mm, uint_t error_code, uintptr_t addr) {
     int ret = -E_INVAL;
     //try to find a vma which include addr
     struct vma_struct *vma = find_vma(mm, addr);

@@ -297,8 +297,8 @@ setup_pgdir(struct mm_struct *mm) {
     }
     pde_t *pgdir = page2kva(page);
     memcpy(pgdir, boot_pgdir, PGSIZE);
-    pgdir[PDX(VPT)] = pte_create(page2ppn(page), PAGE_TABLE_DIR);
-    pgdir[PDX(VPT) + 1] = pte_create(page2ppn(page), READ_WRITE);
+    pgdir[PDX0(VPT)] = pte_create(page2ppn(page), PAGE_TABLE_DIR);
+    // pgdir[PDX(VPT) + 1] = pte_create(page2ppn(page), READ_WRITE);
 
     mm->pgdir = pgdir;
     return 0;

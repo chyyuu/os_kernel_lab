@@ -227,7 +227,7 @@ void exception_handler(struct trapframe *tf) {
             cprintf("Environment call from M-mode\n");
             break;
         case CAUSE_FETCH_PAGE_FAULT:
-            cprintf("Instruction page fault\n");
+            // cprintf("Instruction page fault\n");
             break;
         case CAUSE_LOAD_PAGE_FAULT:
             cprintf("Load page fault\n");
@@ -266,6 +266,7 @@ static inline void trap_dispatch(struct trapframe* tf) {
  * */
 void
 trap(struct trapframe *tf) {
+	cprintf("");
     // dispatch based on what type of trap occurred
     if (current == NULL) {
         trap_dispatch(tf);
