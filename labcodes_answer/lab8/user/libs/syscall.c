@@ -12,22 +12,22 @@ static inline int
 syscall(int num, ...) {
     va_list ap;
     va_start(ap, num);
-    uint32_t a[MAX_ARGS];
+    uint64_t a[MAX_ARGS];
     int i, ret;
     for (i = 0; i < MAX_ARGS; i ++) {
-        a[i] = va_arg(ap, uint32_t);
+        a[i] = va_arg(ap, uint64_t);
     }
     va_end(ap);
 
     asm volatile (
-        "lw a0, %1\n"
-        "lw a1, %2\n"
-        "lw a2, %3\n"
-        "lw a3, %4\n"
-        "lw a4, %5\n"
-        "lw a5, %6\n"
+        "ld a0, %1\n"
+        "ld a1, %2\n"
+        "ld a2, %3\n"
+        "ld a3, %4\n"
+        "ld a4, %5\n"
+        "ld a5, %6\n"
         "ecall\n"
-        "sw a0, %0"
+        "sd a0, %0"
         : "=m" (ret)
         : "m" (num),
           "m" (a[0]),
@@ -81,7 +81,7 @@ sys_pgdir(void) {
 }
 
 void
-sys_lab6_set_priority(uint32_t priority)
+sys_lab6_set_priority(uint64_t priority)
 {
     syscall(SYS_lab6_set_priority, priority);
 }
@@ -102,7 +102,7 @@ sys_exec(const char *name, int argc, const char **argv) {
 }
 
 int
-sys_open(const char *path, uint32_t open_flags) {
+sys_open(const char *path, uint64_t open_flags) {
     return syscall(SYS_open, path, open_flags);
 }
 

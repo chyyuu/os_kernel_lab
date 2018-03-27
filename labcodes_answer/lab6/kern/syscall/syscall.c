@@ -96,7 +96,7 @@ static int (*syscalls[])(uint32_t arg[]) = {
 void
 syscall(void) {
     struct trapframe *tf = current->tf;
-    uint32_t arg[5];
+    uint64_t arg[5];
     // int num = tf->tf_regs.reg_eax;
     int num = tf->gpr.a0;
     if (num >= 0 && num < NUM_SYSCALLS) {

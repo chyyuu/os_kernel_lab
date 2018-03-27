@@ -12,27 +12,27 @@
 #include <sysfile.h>
 
 static int
-sys_exit(uint32_t arg[]) {
+sys_exit(uint64_t arg[]) {
     int error_code = (int)arg[0];
     return do_exit(error_code);
 }
 
 static int
-sys_fork(uint32_t arg[]) {
+sys_fork(uint64_t arg[]) {
     struct trapframe *tf = current->tf;
     uintptr_t stack = tf->gpr.sp;
     return do_fork(0, stack, tf);
 }
 
 static int
-sys_wait(uint32_t arg[]) {
+sys_wait(uint64_t arg[]) {
     int pid = (int)arg[0];
     int *store = (int *)arg[1];
     return do_wait(pid, store);
 }
 
 static int
-sys_exec(uint32_t arg[]) {
+sys_exec(uint64_t arg[]) {
     const char *name = (const char *)arg[0];
     int argc = (int)arg[1];
     const char **argv = (const char **)arg[2];
@@ -40,67 +40,67 @@ sys_exec(uint32_t arg[]) {
 }
 
 static int
-sys_yield(uint32_t arg[]) {
+sys_yield(uint64_t arg[]) {
     return do_yield();
 }
 
 static int
-sys_kill(uint32_t arg[]) {
+sys_kill(uint64_t arg[]) {
     int pid = (int)arg[0];
     return do_kill(pid);
 }
 
 static int
-sys_getpid(uint32_t arg[]) {
+sys_getpid(uint64_t arg[]) {
     return current->pid;
 }
 
 static int
-sys_putc(uint32_t arg[]) {
+sys_putc(uint64_t arg[]) {
     int c = (int)arg[0];
     cputchar(c);
     return 0;
 }
 
 static int
-sys_pgdir(uint32_t arg[]) {
+sys_pgdir(uint64_t arg[]) {
     print_pgdir();
     return 0;
 }
 
 static int
-sys_gettime(uint32_t arg[]) {
+sys_gettime(uint64_t arg[]) {
     return (int)ticks;
 }
 static int
-sys_lab6_set_priority(uint32_t arg[])
+sys_lab6_set_priority(uint64_t arg[])
 {
-    uint32_t priority = (uint32_t)arg[0];
+    uint64_t priority = (uint64_t)arg[0];
     lab6_set_priority(priority);
     return 0;
 }
 
 static int
-sys_sleep(uint32_t arg[]) {
+sys_sleep(uint64_t arg[]) {
     unsigned int time = (unsigned int)arg[0];
     return do_sleep(time);
 }
 
 static int
-sys_open(uint32_t arg[]) {
+sys_open(uint64_t arg[]) {
     const char *path = (const char *)arg[0];
-    uint32_t open_flags = (uint32_t)arg[1];
+    uint64_t open_flags = (uint64_t)arg[1];
     return sysfile_open(path, open_flags);
 }
 
 static int
-sys_close(uint32_t arg[]) {
+sys_close(uint64_t arg[]) {
     int fd = (int)arg[0];
     return sysfile_close(fd);
 }
 
 static int
-sys_read(uint32_t arg[]) {
+sys_read(uint64_t arg[]) {
     int fd = (int)arg[0];
     void *base = (void *)arg[1];
     size_t len = (size_t)arg[2];
@@ -108,7 +108,7 @@ sys_read(uint32_t arg[]) {
 }
 
 static int
-sys_write(uint32_t arg[]) {
+sys_write(uint64_t arg[]) {
     int fd = (int)arg[0];
     void *base = (void *)arg[1];
     size_t len = (size_t)arg[2];
@@ -116,7 +116,7 @@ sys_write(uint32_t arg[]) {
 }
 
 static int
-sys_seek(uint32_t arg[]) {
+sys_seek(uint64_t arg[]) {
     int fd = (int)arg[0];
     off_t pos = (off_t)arg[1];
     int whence = (int)arg[2];
@@ -124,40 +124,40 @@ sys_seek(uint32_t arg[]) {
 }
 
 static int
-sys_fstat(uint32_t arg[]) {
+sys_fstat(uint64_t arg[]) {
     int fd = (int)arg[0];
     struct stat *stat = (struct stat *)arg[1];
     return sysfile_fstat(fd, stat);
 }
 
 static int
-sys_fsync(uint32_t arg[]) {
+sys_fsync(uint64_t arg[]) {
     int fd = (int)arg[0];
     return sysfile_fsync(fd);
 }
 
 static int
-sys_getcwd(uint32_t arg[]) {
+sys_getcwd(uint64_t arg[]) {
     char *buf = (char *)arg[0];
     size_t len = (size_t)arg[1];
     return sysfile_getcwd(buf, len);
 }
 
 static int
-sys_getdirentry(uint32_t arg[]) {
+sys_getdirentry(uint64_t arg[]) {
     int fd = (int)arg[0];
     struct dirent *direntp = (struct dirent *)arg[1];
     return sysfile_getdirentry(fd, direntp);
 }
 
 static int
-sys_dup(uint32_t arg[]) {
+sys_dup(uint64_t arg[]) {
     int fd1 = (int)arg[0];
     int fd2 = (int)arg[1];
     return sysfile_dup(fd1, fd2);
 }
 
-static int (*syscalls[])(uint32_t arg[]) = {
+static int (*syscalls[])(uint64_t arg[]) = {
     [SYS_exit]              sys_exit,
     [SYS_fork]              sys_fork,
     [SYS_wait]              sys_wait,
@@ -187,7 +187,7 @@ static int (*syscalls[])(uint32_t arg[]) = {
 void
 syscall(void) {
     struct trapframe *tf = current->tf;
-    uint32_t arg[5];
+    uint64_t arg[5];
     int num = tf->gpr.a0;
     if (num >= 0 && num < NUM_SYSCALLS) {
         if (syscalls[num] != NULL) {
