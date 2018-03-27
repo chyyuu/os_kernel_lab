@@ -309,7 +309,6 @@ static inline void trap_dispatch(struct trapframe* tf) {
  * */
 void
 trap(struct trapframe *tf) {
-	cprintf("");
     // dispatch based on what type of trap has occurred
     if (current == NULL) {
         trap_dispatch(tf);

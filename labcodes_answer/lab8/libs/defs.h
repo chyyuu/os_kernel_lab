@@ -29,8 +29,8 @@ typedef unsigned long long uint64_t;
  * We use pointer types to represent addresses,
  * uintptr_t to represent the numerical values of addresses.
  * */
-typedef int32_t intptr_t;
-typedef uint32_t uintptr_t;
+typedef int64_t intptr_t;
+typedef uint64_t uintptr_t;
 
 /* size_t is used for memory object sizes */
 typedef uintptr_t size_t;
