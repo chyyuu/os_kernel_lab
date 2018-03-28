@@ -147,7 +147,7 @@ void interrupt_handler(struct trapframe *tf) {
             // clear_csr(sip, SIP_STIP);
             clock_set_next_event();
             if (++ticks % TICK_NUM == 0 && current) {
-                print_ticks();
+                // print_ticks();
                 current->need_resched = 1;
             }
             break;
@@ -211,13 +211,13 @@ void exception_handler(struct trapframe *tf) {
             }
             break;
         case CAUSE_USER_ECALL:
-            // cprintf("Environment call from U-mode\n");
+            cprintf("Environment call from U-mode\n");
             tf->epc += 4;
             syscall();
             break;
         case CAUSE_SUPERVISOR_ECALL:
             cprintf("Environment call from S-mode\n");
-            tf->epc += 4;
+            tf->epc += 2;
             syscall();
             break;
         case CAUSE_HYPERVISOR_ECALL:
@@ -227,7 +227,7 @@ void exception_handler(struct trapframe *tf) {
             cprintf("Environment call from M-mode\n");
             break;
         case CAUSE_FETCH_PAGE_FAULT:
-            // cprintf("Instruction page fault\n");
+            cprintf("Instruction page fault\n");
             break;
         case CAUSE_LOAD_PAGE_FAULT:
             cprintf("Load page fault\n");
@@ -266,8 +266,8 @@ static inline void trap_dispatch(struct trapframe* tf) {
  * */
 void
 trap(struct trapframe *tf) {
-	cprintf("");
     // dispatch based on what type of trap occurred
+	cprintf("");
     if (current == NULL) {
         trap_dispatch(tf);
     } else {

@@ -343,16 +343,16 @@ check_pgfault(void) {
     assert(find_vma(mm, addr) == vma);
 
     int i, sum = 0;
-    cprintf("-- szx tag1 --\n");
+
     for (i = 0; i < 100; i ++) {
         *(char *)(addr + i) = i;
         sum += i;
     }
-    cprintf("-- szx tag2 --\n");
+
     for (i = 0; i < 100; i ++) {
         sum -= *(char *)(addr + i);
     }
-    cprintf("-- szx tag3 --\n");
+
     assert(sum == 0);
 
     page_remove(pgdir, ROUNDDOWN(addr, PGSIZE));

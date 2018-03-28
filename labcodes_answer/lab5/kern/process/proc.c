@@ -802,13 +802,13 @@ kernel_execve(const char *name, unsigned char *binary, size_t size) {
     //     : "memory");
     asm volatile(
         "li a0, %1\n"
-        "lw a1, %2\n"
-        "lw a2, %3\n"
-        "lw a3, %4\n"
-        "lw a4, %5\n"
+        "ld a1, %2\n"
+        "ld a2, %3\n"
+        "ld a3, %4\n"
+        "ld a4, %5\n"
         "li a7, 10\n"
         "ecall\n"
-        "sw a0, %0"
+        "sd a0, %0"
         : "=m"(ret)
         : "i"(SYS_exec), "m"(name), "m"(len), "m"(binary), "m"(size)
         : "memory");
