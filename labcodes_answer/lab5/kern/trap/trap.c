@@ -217,7 +217,7 @@ void exception_handler(struct trapframe *tf) {
             break;
         case CAUSE_SUPERVISOR_ECALL:
             cprintf("Environment call from S-mode\n");
-            tf->epc += 2;
+            tf->epc += 4;
             syscall();
             break;
         case CAUSE_HYPERVISOR_ECALL:
