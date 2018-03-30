@@ -54,7 +54,7 @@ _save_context:
     csrrw s0, sscratch, x0
     csrr s1, sstatus
     csrr s2, sepc
-    csrr s3, sbadaddr
+    csrr s3, 0x143
     csrr s4, scause
 
     STORE s0, 2*REGBYTES(sp)

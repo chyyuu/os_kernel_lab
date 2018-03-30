@@ -51,7 +51,7 @@ print_trapframe(struct trapframe *tf) {
     print_regs(&tf->gpr);
     cprintf("  status   0x%08x\n", tf->status);
     cprintf("  epc      0x%08x\n", tf->epc);
-    cprintf("  badvaddr 0x%08x\n", tf->badvaddr);
+    cprintf("  tval 0x%08x\n", tf->tval);
     cprintf("  cause    0x%08x\n", tf->cause);
 }
 
@@ -91,7 +91,7 @@ void print_regs(struct pushregs* gpr) {
 }
 
 static inline void print_pgfault(struct trapframe *tf) {
-    cprintf("page falut at 0x%08x: %c/%c\n", tf->badvaddr,
+    cprintf("page falut at 0x%08x: %c/%c\n", tf->tval,
             trap_in_kernel(tf) ? 'K' : 'U',
             tf->cause == CAUSE_STORE_PAGE_FAULT ? 'W' : 'R');
 }
@@ -115,7 +115,7 @@ pgfault_handler(struct trapframe *tf) {
         }
         mm = current->mm;
     }
-    return do_pgfault(mm, tf->cause, tf->badvaddr);
+    return do_pgfault(mm, tf->cause, tf->tval);
 }
 
 static volatile int in_swap_tick_event = 0;
@@ -201,7 +201,7 @@ void exception_handler(struct trapframe *tf) {
             }
             break;
         case CAUSE_MISALIGNED_STORE:
-            cprintf("AMO address misaligned\n");
+            // cprintf("AMO address misaligned\n");
             break;
         case CAUSE_STORE_ACCESS:
             cprintf("Store/AMO access fault\n");
@@ -211,7 +211,7 @@ void exception_handler(struct trapframe *tf) {
             }
             break;
         case CAUSE_USER_ECALL:
-            cprintf("Environment call from U-mode\n");
+            // cprintf("Environment call from U-mode\n");
             tf->epc += 4;
             syscall();
             break;
@@ -266,9 +266,9 @@ static inline void trap_dispatch(struct trapframe* tf) {
  * */
 void
 trap(struct trapframe *tf) {
+	// cprintf("-- szx trap ==\n");
     // dispatch based on what type of trap occurred
-	cprintf("");
-    if (current == NULL) {
+	if (current == NULL) {
         trap_dispatch(tf);
     } else {
         struct trapframe *otf = current->tf;
@@ -289,3 +289,5 @@ trap(struct trapframe *tf) {
         }
     }
 }
+
+

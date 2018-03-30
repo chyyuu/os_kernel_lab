@@ -461,6 +461,7 @@ bad_fork_cleanup_proc:
 //   3. call scheduler to switch to other process
 int
 do_exit(int error_code) {
+	cprintf("--szx do_exit \n");
     if (current == idleproc) {
         panic("idleproc exit.\n");
     }
@@ -794,7 +795,8 @@ do_kill(int pid) {
 // kernel_execve - do SYS_exec syscall to exec a user program called by user_main kernel_thread
 static int
 kernel_execve(const char *name, unsigned char *binary, size_t size) {
-    int ret, len = strlen(name);
+    int64_t ret, len = strlen(name);
+    cprintf("-- szx k_execve in：name(%s), binary(%p), size(0x%x) --\n",name,binary,size);
     // asm volatile (
     //     "int %1;"
     //     : "=a" (ret)
@@ -806,12 +808,13 @@ kernel_execve(const char *name, unsigned char *binary, size_t size) {
         "ld a2, %3\n"
         "ld a3, %4\n"
         "ld a4, %5\n"
-        "li a7, 10\n"
+    	"li a7, 20\n"
         "ecall\n"
         "sd a0, %0"
         : "=m"(ret)
         : "i"(SYS_exec), "m"(name), "m"(len), "m"(binary), "m"(size)
         : "memory");
+    cprintf("-- szx k_execve out: ret(0x%x) --\n",ret);
     // do_execve(name, len, binary, size);
     // asm volatile("sret");
     // uintptr_t sstatus = read_csr(sstatus);
@@ -906,7 +909,9 @@ proc_init(void) {
 
     current = idleproc;
 
+    cprintf("-- szx tag0 --\n");
     int pid = kernel_thread(init_main, NULL, 0);
+    cprintf("-- szx tag1 --\n");
     if (pid <= 0) {
         panic("create init_main failed.\n");
     }

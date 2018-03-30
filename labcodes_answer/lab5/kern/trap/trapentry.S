@@ -48,13 +48,13 @@ _save_context:
     STORE x30, 30*REGBYTES(sp)
     STORE x31, 31*REGBYTES(sp)
 
-    # get sr, epc, badvaddr, cause
+    # get sr, epc, tval, cause
     # Set sscratch register to 0, so that if a recursive exception
     # occurs, the exception vector knows it came from the kernel
     csrrw s0, sscratch, x0
     csrr s1, sstatus
     csrr s2, sepc
-    csrr s3, sbadaddr
+    csrr s3, 0x143
     csrr s4, scause
 
     STORE s0, 2*REGBYTES(sp)

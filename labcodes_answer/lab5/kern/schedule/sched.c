@@ -23,6 +23,7 @@ wakeup_proc(struct proc_struct *proc) {
 
 void
 schedule(void) {
+	cprintf("-- szx schedule : current %s --\n",current->name);
     bool intr_flag;
     list_entry_t *le, *last;
     struct proc_struct *next = NULL;
