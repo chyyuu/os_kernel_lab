@@ -2,6 +2,7 @@
 
     .altmacro
     .macro SAVE_ALL
+    .align 2
     LOCAL _restore_kernel_sp
     LOCAL _save_context
 

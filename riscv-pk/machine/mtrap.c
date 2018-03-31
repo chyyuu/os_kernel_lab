@@ -177,7 +177,8 @@ send_ipi:
 #endif
       break;
     default:
-      redirect_trap(read_csr(mepc), read_csr(mstatus), read_csr(mbadaddr));
+    	printm("-- szx redirect --\n");
+      redirect_trap(read_csr(mepc), read_csr(mstatus), read_csr(0x343));
       retval = -ENOSYS;
       break;
   }
@@ -186,7 +187,7 @@ send_ipi:
 
 void redirect_trap(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
 {
-  write_csr(sbadaddr, badaddr);
+  write_csr(0x143, badaddr);
   write_csr(sepc, epc);
   write_csr(scause, read_csr(mcause));
   write_csr(mepc, read_csr(stvec));
@@ -204,7 +205,7 @@ void redirect_trap(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
 
 void pmp_trap(uintptr_t* regs, uintptr_t mcause, uintptr_t mepc)
 {
-  redirect_trap(mepc, read_csr(mstatus), read_csr(mbadaddr));
+  redirect_trap(mepc, read_csr(mstatus), read_csr(0x343));
 }
 
 static void machine_page_fault(uintptr_t* regs, uintptr_t dummy, uintptr_t mepc)
@@ -212,7 +213,7 @@ static void machine_page_fault(uintptr_t* regs, uintptr_t dummy, uintptr_t mepc)
   // MPRV=1 iff this trap occurred while emulating an instruction on behalf
   // of a lower privilege level. In that case, a2=epc and a3=mstatus.
   if (read_csr(mstatus) & MSTATUS_MPRV) {
-    return redirect_trap(regs[12], regs[13], read_csr(mbadaddr));
+    return redirect_trap(regs[12], regs[13], read_csr(0x343));
   }
   bad_trap(regs, dummy, mepc);
 }

@@ -1,6 +1,7 @@
 #include <riscv.h>
 
     .altmacro
+    .align 2
     .macro SAVE_ALL
     LOCAL _restore_kernel_sp
     LOCAL _save_context

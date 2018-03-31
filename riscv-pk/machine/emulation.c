@@ -129,7 +129,7 @@ void illegal_insn_trap(uintptr_t* regs, uintptr_t mcause, uintptr_t mepc)
        "  .popsection");
 
   uintptr_t mstatus = read_csr(mstatus);
-  insn_t insn = read_csr(mbadaddr);
+  insn_t insn = read_csr(0x343);
 
   if (unlikely((insn & 3) != 3)) {
     if (insn == 0)

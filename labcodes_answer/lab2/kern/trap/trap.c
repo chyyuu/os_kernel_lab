@@ -203,7 +203,6 @@ static inline void trap_dispatch(struct trapframe *tf) {
  * trapframe and then uses the iret instruction to return from the exception.
  * */
 void trap(struct trapframe *tf) {
-	cprintf("");
     // dispatch based on what type of trap occurred
     trap_dispatch(tf);
 }

@@ -201,7 +201,7 @@ void exception_handler(struct trapframe *tf) {
             }
             break;
         case CAUSE_MISALIGNED_STORE:
-            // cprintf("AMO address misaligned\n");
+            panic("AMO address misaligned\n");
             break;
         case CAUSE_STORE_ACCESS:
             cprintf("Store/AMO access fault\n");
@@ -211,7 +211,7 @@ void exception_handler(struct trapframe *tf) {
             }
             break;
         case CAUSE_USER_ECALL:
-            // cprintf("Environment call from U-mode\n");
+            cprintf("Environment call from U-mode\n");
             tf->epc += 4;
             syscall();
             break;
@@ -266,7 +266,6 @@ static inline void trap_dispatch(struct trapframe* tf) {
  * */
 void
 trap(struct trapframe *tf) {
-	// cprintf("-- szx trap ==\n");
     // dispatch based on what type of trap occurred
 	if (current == NULL) {
         trap_dispatch(tf);

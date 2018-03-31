@@ -22,7 +22,7 @@ void misaligned_load_trap(uintptr_t* regs, uintptr_t mcause, uintptr_t mepc)
   uintptr_t mstatus;
   insn_t insn = get_insn(mepc, &mstatus);
   uintptr_t npc = mepc + insn_len(insn);
-  uintptr_t addr = read_csr(mbadaddr);
+  uintptr_t addr = read_csr(0x343);
 
   int shift = 0, fp = 0, len;
   if ((insn & MASK_LW) == MATCH_LW)
@@ -135,7 +135,7 @@ void misaligned_store_trap(uintptr_t* regs, uintptr_t mcause, uintptr_t mepc)
   else
     return truly_illegal_insn(regs, mcause, mepc, mstatus, insn);
 
-  uintptr_t addr = read_csr(mbadaddr);
+  uintptr_t addr = read_csr(0x343);
   for (int i = 0; i < len; i++)
     store_uint8_t((void *)(addr + i), val.bytes[i], mepc);
 

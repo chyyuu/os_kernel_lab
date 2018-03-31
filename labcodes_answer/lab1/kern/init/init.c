@@ -43,7 +43,6 @@ int kern_init(void) {
     // lab1_switch_test();
     /* do nothing */
     while (1)
-    	cprintf("",0);
         ;
 }
 

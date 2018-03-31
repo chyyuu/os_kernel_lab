@@ -3,7 +3,8 @@
 被移植的rv32版本不是完全的priv1.10，某些指令和寄存器已经过时。
 
 1. `sbadaddr`寄存器已过时，应使用`stval`寄存器。但直接使用`stval`有问题，需要用它的汇编码`0x143`代替。
-2. 依据riscv-privileged-v1.10所述，sfence.vm指令已被移除了，应使用改进的sfence.vma指令。
+2. 依据riscv-privileged-v1.10所述，`sfence.vm`指令已被移除了，应使用改进的`sfence.vma`指令。
+3. `mbadaddr`寄存器己过时，应使用`mtval`寄存器。但直接使用`mtval不能识别`，需要用它的汇编码`0x343`代替。
 
 ### RV64与RV32的差异
 
@@ -137,3 +138,15 @@ lab4多了proc_init()和cpu_idle()两个函数，分别实现的是初始化进�
 3. static_assert函数未实现。
 4. 整个文件系统中都要注意虚拟地址变为了64位。syscall.c, syscall.h, 
 5. elf.h修改为64位格式。
+
+### bug与修正
+
+#### 1. 中断切换需要添加printf函数
+
+- 问题描述：有的时候不能进入trap函数，需要在trap函数里加一条printf语句才能正常执行。
+- 解决方案：在trapentry.S文件里加一条`.align 2`指令使所有的命令4字节对齐。
+- 原因分析：riscv指令需要4字节对齐才能正常访问。当所有文件链接到一块的时候，由于汇编指令的存在使C语言里的指令没有4字节对齐。
+
+### 参考资料
+
+1. [sifive all aboard系列](https://www.sifive.com/blog/)

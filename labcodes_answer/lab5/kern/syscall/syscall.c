@@ -80,7 +80,6 @@ static int (*syscalls[])(uint64_t arg[]) = {
 
 void
 syscall(void) {
-	cprintf("-- szx syscall --\n");
     struct trapframe *tf = current->tf;
     uint64_t arg[5];
     int num = tf->gpr.a0;

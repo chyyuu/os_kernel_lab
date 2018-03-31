@@ -1,6 +1,7 @@
 #include <riscv.h>
 
     .macro SAVE_ALL
+	.align 2
 
     csrw sscratch, sp
 
