@@ -12,7 +12,7 @@
 #define CHAR_BIT        8
 
 /* Represents true-or-false values */
-typedef int bool;
+typedef long long bool;
 
 /* Explicitly-sized versions of integer types */
 typedef char int8_t;
@@ -58,7 +58,7 @@ typedef size_t ppn_t;
 
 /* Round up the result of dividing of n */
 #define ROUNDUP_DIV(a, n) ({                                        \
-uint32_t __n = (uint32_t)(n);                           \
+uint64_t __n = (uint64_t)(n);                           \
 (typeof(a))(((a) + __n - 1) / __n);                     \
 })
 
