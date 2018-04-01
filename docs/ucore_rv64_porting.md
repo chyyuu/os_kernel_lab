@@ -117,15 +117,15 @@ lab4多了proc_init()和cpu_idle()两个函数，分别实现的是初始化进�
 
 #### 2. lab6的移植过程。
 
-1. lab6需要以lab3的移植为基础。
+1. lab6需要以lab5的移植为基础。
 
 ### lab7
 
 #### 1. la7有些什么功能？
 
-#### 2. lab8的移植过程。
+#### 2. lab7的移植过程。
 
-1. 以lab3的移植为基础。
+1. 以lab6的移植为基础。
 2. proc.c的put_kstack函数。
 3. static_assert函数未实现。
 

@@ -314,8 +314,8 @@ setup_pgdir(struct mm_struct *mm) {
     }
     pde_t *pgdir = page2kva(page);
     memcpy(pgdir, boot_pgdir, PGSIZE);
-    pgdir[PDX1(VPT)] = pte_create(page2ppn(page), PAGE_TABLE_DIR);
-    pgdir[PDX1(VPT) + 1] = pte_create(page2ppn(page), READ_WRITE);
+    pgdir[PDX0(VPT)] = pte_create(page2ppn(page), PAGE_TABLE_DIR);
+
     mm->pgdir = pgdir;
     return 0;
 }
@@ -808,16 +808,16 @@ do_kill(int pid) {
 // kernel_execve - do SYS_exec syscall to exec a user program called by user_main kernel_thread
 static int
 kernel_execve(const char *name, unsigned char *binary, size_t size) {
-    int ret, len = strlen(name);
+    int64_t ret, len = strlen(name);
     asm volatile(
         "li a0, %1\n"
-        "lw a1, %2\n"
-        "lw a2, %3\n"
-        "lw a3, %4\n"
-        "lw a4, %5\n"
-        "li a7, 10\n"
+        "ld a1, %2\n"
+        "ld a2, %3\n"
+        "ld a3, %4\n"
+        "ld a4, %5\n"
+        "li a7, 20\n"
         "ecall\n"
-        "sw a0, %0"
+        "sd a0, %0"
         : "=m"(ret)
         : "i"(SYS_exec), "m"(name), "m"(len), "m"(binary), "m"(size)
         : "memory");
