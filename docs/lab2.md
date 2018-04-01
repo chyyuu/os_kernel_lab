@@ -344,3 +344,49 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
 }
 ```
 
+## on riscv-priviledged spec 1.10
+
+```
+//kern/mm/memlayout.h
+#define KERNBASE            0xC0000000
+//CHANGE TO
+#define KERNBASE            0x80400000
+```
+
+```
+//page_init(void) ::kern/mm/pmm.c
+
+    extern char kern_entry[];
+    va_pa_offset = KERNBASE - (uint32_t)kern_entry;
+    uint32_t mem_begin = (uint32_t)kern_entry;
+    uint32_t mem_end = (8 << 20) + DRAM_BASE; // 8MB memory on qemu
+    uint32_t mem_size = mem_end - mem_begin;
+    
+    ...
+//enable_paging(void)::kern/mm/pmm.c
+write_csr(satp, 0x80000000 | (boot_cr3 >> RISCV_PGSHIFT));
+
+//void pmm_init(void)::kern/mm/pmm.c
+    // pde_t *sptbr = KADDR(read_csr(sptbr) << PGSHIFT);
+    // pte_t *sbi_pte = get_pte(sptbr, 0xFFFFFFFF, 0);
+    // boot_map_segment(boot_pgdir, (uintptr_t)(-PGSIZE), PGSIZE,
+    //                  PTE_ADDR(*sbi_pte), READ_EXEC);
+
+//check_boot_pgdir(void)::kern/mm/pmm.c
+    // pte_t *ptep;
+    // int i;
+    // for (i = KERNBASE / PGSIZE; i < npage; i += PGSIZE) {
+    //     assert((ptep = get_pte(boot_pgdir, (uintptr_t)KADDR(i), 0)) != NULL);
+    //     assert(PTE_ADDR(*ptep) == i);
+    // }
+```
+
+### Makefile/kernel.ld related
+
+```
+//tools/kernel.ld
+BASE_ADDRESS = 0xC0000000;
+CHANGE TO:
+BASE_ADDRESS = 0x80400000;
+```
+

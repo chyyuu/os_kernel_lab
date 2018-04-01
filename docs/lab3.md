@@ -133,3 +133,19 @@ failed:
 ```
 
 由于有了物理内存管理后，虚拟内存管理与硬件关系不是非常密切，所以这个lab的移植较为简单。
+
+
+
+## on riscv-priviledged spec 1.10
+
+```
+//enable_paging::kern/mm/pmm.c
+write_csr(satp, SATP32_MODE | (boot_cr3 >> RISCV_PGSHIFT));
+```
+
+```
+//idt_init::kern/trap/trap.c
+    /* Allow kernel to access user memory */
+    set_csr(sstatus, SSTATUS_SUM);
+```
+

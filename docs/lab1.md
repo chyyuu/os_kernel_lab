@@ -1,5 +1,7 @@
 # Lab 1
 
+##  on riscv-priviledged spec 1.9
+
 lab 1的移植中，主要改动有以下几点
 
 * I/O函数
@@ -372,3 +374,43 @@ uintptr_t timer_interrupt()
 首先清空`mie`中的Machine Timer Interrupt Enable Bit，然后设置`mip`中的Supervisor Timer Interrupt Pending Bit (STIP)，返回S-mode后，由于`sip`寄存器中STIP被置为1，立即引发一个时钟中断。在ISR中，我们调用的`clock_set_next_event`会调用`sbi_set_timer`并被bbl中的`mcall_set_timer`处理，从而清空`sip`中的STIP位，又回到了开始的状态。
 
 以上对时钟中断的处理流程和Spike模拟器的undocumented feature耦合十分紧密，处理SEE和模拟器层的读者应特别注意。
+
+##  on riscv-priviledged spec 1.10
+
+### clock related
+
+```
+// clock_init::kern/driver/clock.c 
+timebase = sbi_timebase() / 500;
+//CHANGE TO:
+timebase = 1e7 / 100;
+...
+// Supervisor interrupt-enable register (sie) is containing interrupt enable bits
+// Now, enable Timer interrupt
+set_csr(sie, MIP_STIP);
+```
+
+### SBI related
+
+```
+// define SBI_CALL and CSBI_CALL NUM
+// OS is using "ecall" to call bbl 
+#define SBI_SET_TIMER 0
+#define SBI_CONSOLE_PUTCHAR 1
+#define SBI_CONSOLE_GETCHAR 2
+#define SBI_CLEAR_IPI 3
+#define SBI_SEND_IPI 4
+#define SBI_REMOTE_FENCE_I 5
+#define SBI_REMOTE_SFENCE_VMA 6
+#define SBI_REMOTE_SFENCE_VMA_ASID 7
+#define SBI_SHUTDOWN 8
+```
+
+### Makefile related
+
+```
+...
+qemu: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
+	$(V)$(QEMU) -machine virt -kernel $(UCOREIMG) -nographic
+```
+

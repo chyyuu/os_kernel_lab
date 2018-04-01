@@ -201,3 +201,8 @@ kernel_thread_entry:
 ```
 
 这里`s0`和`s1`就是我们之前设置好的`fn`和`arg`，至此，内核进程切换完成。
+ 
+
+## on riscv-priviledged spec 1.10
+
+no more changes.
