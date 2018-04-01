@@ -284,14 +284,14 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
 
     pde_t *pdep0 = &((pde_t *)KADDR(PDE_ADDR(*pdep1)))[PDX0(la)];
     if (!(*pdep0 & PTE_V)) {
-            struct Page *page;
-            if (!create || (page = alloc_page()) == NULL) {
-                return NULL;
-            }
-            set_page_ref(page, 1);
-            uintptr_t pa = page2pa(page);
-            memset(KADDR(pa), 0, PGSIZE);
-            *pdep0 = pte_create(page2ppn(page), PTE_U | PTE_V);
+        struct Page *page;
+        if (!create || (page = alloc_page()) == NULL) {
+            return NULL;
+        }
+        set_page_ref(page, 1);
+        uintptr_t pa = page2pa(page);
+        memset(KADDR(pa), 0, PGSIZE);
+        *pdep0 = pte_create(page2ppn(page), PTE_U | PTE_V);
         }
     return &((pte_t *)KADDR(PDE_ADDR(*pdep0)))[PTX(la)];
 }

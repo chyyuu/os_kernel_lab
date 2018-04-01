@@ -219,7 +219,7 @@ void exception_handler(struct trapframe *tf) {
             break;
         case CAUSE_SUPERVISOR_ECALL:
             cprintf("Environment call from S-mode\n");
-            tf->epc += 2;
+            tf->epc += 4;
             syscall();
             break;
         case CAUSE_HYPERVISOR_ECALL:
@@ -229,7 +229,7 @@ void exception_handler(struct trapframe *tf) {
             cprintf("Environment call from M-mode\n");
             break;
         case CAUSE_FETCH_PAGE_FAULT:
-            // cprintf("Instruction page fault\n");
+            panic("Instruction page fault\n");
             break;
         case CAUSE_LOAD_PAGE_FAULT:
             cprintf("Load page fault\n");

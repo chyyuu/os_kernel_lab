@@ -177,7 +177,6 @@ send_ipi:
 #endif
       break;
     default:
-    	printm("-- szx redirect --\n");
       redirect_trap(read_csr(mepc), read_csr(mstatus), read_csr(0x343));
       retval = -ENOSYS;
       break;

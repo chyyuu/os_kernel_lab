@@ -243,8 +243,8 @@
 #define barrier() __asm__ __volatile__ ("fence" ::: "memory")
 
 static inline void
-lcr3(unsigned int cr3) {
-    write_csr(sptbr, SATP32_MODE | (cr3 >> RISCV_PGSHIFT));
+lcr3(unsigned long cr3) {
+    write_csr(satp, 0x8000000000000000 | (cr3 >> RISCV_PGSHIFT));
 }
 
 #endif
