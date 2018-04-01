@@ -344,12 +344,10 @@ check_pgfault(void) {
 
     int i, sum = 0;
 
-    cprintf("-- szx tag1 --\n");
     for (i = 0; i < 100; i ++) {
         *(char *)(addr + i) = i;
         sum += i;
     }
-    cprintf("-- szx tag2 --\n");
     for (i = 0; i < 100; i ++) {
         sum -= *(char *)(addr + i);
     }

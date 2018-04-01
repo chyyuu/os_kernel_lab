@@ -324,7 +324,6 @@ copy_mm(uint32_t clone_flags, struct proc_struct *proc) {
         mm = oldmm;
         goto good_mm;
     }
-    cprintf("-- szx copy_mm --\n");
     int ret = -E_NO_MEM;
     if ((mm = mm_create()) == NULL) {
         goto bad_mm;
@@ -332,7 +331,6 @@ copy_mm(uint32_t clone_flags, struct proc_struct *proc) {
     if (setup_pgdir(mm) != 0) {
         goto bad_pgdir_cleanup_mm;
     }
-	cprintf("-- szx copy_mm tag0 --\n");
     lock_mm(oldmm);
     {
         ret = dup_mmap(mm, oldmm);
@@ -344,7 +342,6 @@ copy_mm(uint32_t clone_flags, struct proc_struct *proc) {
     }
 
 good_mm:
-	cprintf("-- szx copy_mm tag1 --\n");
     mm_count_inc(mm);
     proc->mm = mm;
     proc->cr3 = PADDR(mm->pgdir);
@@ -426,19 +423,15 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     proc->parent = current;
     assert(current->wait_state == 0);
 
-    cprintf("-- szx do_fork tag0 --\n");
     if (setup_kstack(proc) != 0) {
         goto bad_fork_cleanup_proc;
     }
-    cprintf("-- szx do_fork tag0.1 --\n");
     if (copy_mm(clone_flags, proc) != 0) {
         goto bad_fork_cleanup_kstack;
     }
-    cprintf("-- szx do_fork tag0.2 --\n");
     copy_thread(proc, stack, tf);
 
     bool intr_flag;
-    cprintf("-- szx do_fork tag1 --\n");
     local_intr_save(intr_flag);
     {
         proc->pid = get_pid();
@@ -446,12 +439,10 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         set_links(proc);
     }
     local_intr_restore(intr_flag);
-    cprintf("-- szx do_fork tag2 --\n");
 
     wakeup_proc(proc);
 
     ret = proc->pid;
-    cprintf("-- szx do_fork pid:%d --\n",ret);
 fork_out:
     return ret;
 
@@ -468,7 +459,6 @@ bad_fork_cleanup_proc:
 //   3. call scheduler to switch to other process
 int
 do_exit(int error_code) {
-	cprintf("--szx do_exit \n");
     if (current == idleproc) {
         panic("idleproc exit.\n");
     }
@@ -803,7 +793,6 @@ do_kill(int pid) {
 static int
 kernel_execve(const char *name, unsigned char *binary, size_t size) {
     int64_t ret, len = strlen(name);
-    cprintf("-- szx k_execve in：name(%s), binary(%p), size(0x%x) --\n",name,binary,size);
     // asm volatile (
     //     "int %1;"
     //     : "=a" (ret)
@@ -821,7 +810,6 @@ kernel_execve(const char *name, unsigned char *binary, size_t size) {
         : "=m"(ret)
         : "i"(SYS_exec), "m"(name), "m"(len), "m"(binary), "m"(size)
         : "memory");
-    cprintf("-- szx k_execve out: ret(0x%x) --\n",ret);
     // do_execve(name, len, binary, size);
     // asm volatile("sret");
     // uintptr_t sstatus = read_csr(sstatus);
@@ -916,9 +904,7 @@ proc_init(void) {
 
     current = idleproc;
 
-    cprintf("-- szx tag0 --\n");
     int pid = kernel_thread(init_main, NULL, 0);
-    cprintf("-- szx tag1 --\n");
     if (pid <= 0) {
         panic("create init_main failed.\n");
     }

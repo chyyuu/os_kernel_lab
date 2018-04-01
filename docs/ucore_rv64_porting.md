@@ -108,6 +108,8 @@ lab4多了proc_init()和cpu_idle()两个函数，分别实现的是初始化进�
 4. syscall.c的参数要改为64位的。
 5. kernel_execve函数实际上实现的是x86里int指令的功能，它有问题，不能正确地进行系统调用。
 6. riscv.h的lcr3函数是针对Sv32的，需要改为Sv39。
+7. elf.h修改为64位的格式。
+8. amo指令操作32位的数据有可能会产生地址未对齐异常，在lab5需要把`bool`定义为`long long`类型。
 
 ### lab6
 

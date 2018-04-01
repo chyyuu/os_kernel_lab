@@ -38,9 +38,7 @@ try_lock(lock_t *lock) {
 
 static inline void
 lock(lock_t *lock) {
-	panic("-- szx in lock --\n");
     while (!try_lock(lock)) {
-    	panic("--szx lock ==\n");
         schedule();
     }
 }
