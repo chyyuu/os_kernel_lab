@@ -566,6 +566,12 @@ static_check(void) {
     static_assert(SFS_MAX_FILE_SIZE <= 0x80000000UL);
 }
 
+/*
+ * main:	将指定文件夹中的文件写入指定的镜像
+ * argv[0]:	mksfs命令
+ * argv[1]:	要写入的镜像名
+ * argv[2]:	要写入镜像的文件所在的目录
+ */
 int
 main(int argc, char **argv) {
     static_check();

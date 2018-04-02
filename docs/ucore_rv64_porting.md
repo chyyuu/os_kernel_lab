@@ -133,6 +133,10 @@ lab4多了proc_init()和cpu_idle()两个函数，分别实现的是初始化进�
 
 #### 1. lab8有些什么功能？
 
+1. lab8的问题很奇怪，sh.c里的main函数的参数argc为1,但表达式(argc==1)的值为0，表达式(argc>2)的值反倒为1了。完全想不到问题出在哪里。后来想一想，还是要从编译的过程找原因.`user`目录下的c文件都编译到了`disk0`目录下，`disk0`目录下的文件都放到了sys.img里，swap.img里是一堆零，sys.img和swap.img和`kern`目录下的文件都被链接到了kernel文件里，kernel文件又被链接到bbl里，ucore.img就是重命名后的bbl。在这过程中mksfs起了重要的作用，感觉要好好看看它的原理。
+2. `user`目录下用到汇编的地方有两处处，一是`libs/syscall.c`文件切换到内核系统调用的部分，二是libs/initcode.S文件跳转到函数入口处的汇编指令。这两处用到汇编的地方均是用户空间与内核空间转换之处。其它地方C代码的指令由编译器保证符合RV64,那么需要特别留意的就是这两处汇编的指令和传递的参数了。
+3. `kern/fs`目录存放的是文件系统的源码，感觉需要注意的是参数的长度，分清楚哪里用64位的参数，哪里用32位的参数。
+
 #### 2. lab8的移植过程。
 
 1. 以lab3的移植为基础。
@@ -152,3 +156,6 @@ lab4多了proc_init()和cpu_idle()两个函数，分别实现的是初始化进�
 ### 参考资料
 
 1. [sifive all aboard系列](https://www.sifive.com/blog/)
+2. riscv spec 2.2
+3. riscv privileged 1.10
+4. ucore_os_docs
