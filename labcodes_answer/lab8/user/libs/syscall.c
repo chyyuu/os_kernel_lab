@@ -81,7 +81,7 @@ sys_pgdir(void) {
 }
 
 void
-sys_lab6_set_priority(uint64_t priority)
+sys_lab6_set_priority(uint32_t priority)
 {
     syscall(SYS_lab6_set_priority, priority);
 }
@@ -102,7 +102,7 @@ sys_exec(const char *name, int argc, const char **argv) {
 }
 
 int
-sys_open(const char *path, uint64_t open_flags) {
+sys_open(const char *path, uint32_t open_flags) {
     return syscall(SYS_open, path, open_flags);
 }
 

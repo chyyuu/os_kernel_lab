@@ -6,7 +6,7 @@
 struct stat;
 struct dirent;
 
-int sysfile_open(const char *path, uint32_t open_flags);        // Open or create a file. FLAGS/MODE per the syscall.
+int sysfile_open(const char *path, uint64_t open_flags);        // Open or create a file. FLAGS/MODE per the syscall.
 int sysfile_close(int fd);                                      // Close a vnode opened  
 int sysfile_read(int fd, void *base, size_t len);               // Read file
 int sysfile_write(int fd, void *base, size_t len);              // Write file

@@ -92,7 +92,8 @@ usage(void) {
 }
 
 int
-reopen(int fd2, const char *filename, uint32_t open_flags) {
+reopen(int fd2, const char *filename, uint64_t open_flags) {
+	cprintf("-- szx reopen: fd2 %d, filename %s, open_flags:%x --\n",fd2,filename,open_flags);
     int ret, fd1;
     close(fd2);
     if ((ret = open(filename, open_flags)) >= 0 && ret != fd2) {
@@ -216,31 +217,42 @@ runit:
 
 int
 main(int argc, char **argv) {
-    printf("user sh is running!!!");
+    printf("user sh is running!!!\n");
     int ret, interactive = 1;
-    if (argc == 2) {
-        if ((ret = reopen(0, argv[1], O_RDONLY)) != 0) {
+
+    cprintf("-- szx argc = %16.0x ==\n",argc);
+    cprintf("-- szx : argc==1 %d, argc-1 %d --\n",(argc==1), argc-1);
+    cprintf("-- szx : argc==2 %d, argc-2 %d --\n",(argc==2), argc-2);
+    cprintf("-- szx : argc>2 %d --\n",(argc>2));
+    if (argc > 2) {
+    	cprintf("-- szx main tag1 ==\n");
+        if ((ret = reopen(0, argv[0], O_RDONLY)) != 0) {
             return ret;
         }
         interactive = 0;
     }
-    else if (argc > 2) {
+    else if (argc == 2) {
+    	cprintf("-- szx main tag2 ==\n");
         usage();
         return -1;
     }
+
     //shcwd = malloc(BUFSIZE);
     assert(shcwd != NULL);
 
     char *buffer;
     while ((buffer = readline((interactive) ? "$ " : NULL)) != NULL) {
+    	printf("-- szx main while tag1 --\n");
         shcwd[0] = '\0';
         int pid;
         if ((pid = fork()) == 0) {
             ret = runcmd(buffer);
             exit(ret);
         }
+        printf("-- szx main while tag2 --\n");
         assert(pid >= 0);
         if (waitpid(pid, &ret) == 0) {
+        	printf("-- szx main while tag3 --\n");
             if (ret == 0 && shcwd[0] != '\0') {
                 ret = 0;
             }

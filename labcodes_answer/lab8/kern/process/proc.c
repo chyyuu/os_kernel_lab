@@ -386,7 +386,7 @@ copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapframe *tf) {
 
     // Set a0 to 0 so a child process knows it's just forked
     proc->tf->gpr.a0 = 0;
-    proc->tf->gpr.sp = (esp == 0) ? (uintptr_t)proc->tf : esp;
+    proc->tf->gpr.sp = (esp == 0) ? (uintptr_t)proc->tf - 4 : esp;
 
     proc->context.ra = (uintptr_t)forkret;
     proc->context.sp = (uintptr_t)(proc->tf);
@@ -819,6 +819,7 @@ failed_cleanup:
 //           - call load_icode to setup new memory space accroding binary prog.
 int
 do_execve(const char *name, int argc, const char **argv) {
+	cprintf("-- szx do_execve : argc is %d --\n",argc);
     static_assert(EXEC_MAX_ARG_LEN >= FS_MAX_FPATH_LEN);
     struct mm_struct *mm = current->mm;
     if (!(argc >= 1 && argc <= EXEC_MAX_ARG_NUM)) {
@@ -969,18 +970,18 @@ do_kill(int pid) {
 // kernel_execve - do SYS_exec syscall to exec a user program called by user_main kernel_thread
 static int
 kernel_execve(const char *name, const char **argv) {
-    int argc = 0, ret;
+    int64_t argc = 0, ret;
     while (argv[argc] != NULL) {
         argc ++;
     }
     asm volatile(
         "li a0, %1\n"
-        "lw a1, %2\n"
-        "lw a2, %3\n"
-        "lw a3, %4\n"
-        "li a7, 10\n"
+        "ld a1, %2\n"
+        "ld a2, %3\n"
+        "ld a3, %4\n"
+        "li a7, 20\n"
         "ecall\n"
-        "sw a0, %0"
+        "sd a0, %0"
         : "=m"(ret)
         : "i"(SYS_exec), "m"(name), "m"(argc), "m"(argv)
         : "memory");

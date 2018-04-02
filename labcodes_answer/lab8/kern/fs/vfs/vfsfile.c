@@ -9,7 +9,8 @@
 
 // open file in vfs, get/create inode for file with filename path.
 int
-vfs_open(char *path, uint32_t open_flags, struct inode **node_store) {
+vfs_open(char *path, uint64_t open_flags, struct inode **node_store) {
+	cprintf("-- szx vfs_open --\n");
     bool can_write = 0;
     switch (open_flags & O_ACCMODE) {
     case O_RDONLY:
@@ -47,12 +48,13 @@ vfs_open(char *path, uint32_t open_flags, struct inode **node_store) {
         return -E_EXISTS;
     }
     assert(node != NULL);
-    
+    cprintf("-- szx vop_open tag0 --\n");
     if ((ret = vop_open(node, open_flags)) != 0) {
         vop_ref_dec(node);
         return ret;
     }
 
+    cprintf("-- szx vop-open tag1 --\n");
     vop_open_inc(node);
     if (open_flags & O_TRUNC || create) {
         if ((ret = vop_truncate(node, 0)) != 0) {
@@ -61,6 +63,7 @@ vfs_open(char *path, uint32_t open_flags, struct inode **node_store) {
             return ret;
         }
     }
+    cprintf("-- szx vfs_open tag2 --\n");
     *node_store = node;
     return 0;
 }

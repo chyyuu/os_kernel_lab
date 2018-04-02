@@ -29,7 +29,7 @@ void fd_array_close(struct file *file);
 void fd_array_dup(struct file *to, struct file *from);
 bool file_testfd(int fd, bool readable, bool writable);
 
-int file_open(char *path, uint32_t open_flags);
+int file_open(char *path, uint64_t open_flags);
 int file_close(int fd);
 int file_read(int fd, void *base, size_t len, size_t *copied_store);
 int file_write(int fd, void *base, size_t len, size_t *copied_store);

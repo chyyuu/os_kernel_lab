@@ -154,7 +154,8 @@ file_testfd(int fd, bool readable, bool writable) {
 
 // open file
 int
-file_open(char *path, uint32_t open_flags) {
+file_open(char *path, uint64_t open_flags) {
+	cprintf("-- szx file_open --\n");
     bool readable = 0, writable = 0;
     switch (open_flags & O_ACCMODE) {
     case O_RDONLY: readable = 1; break;

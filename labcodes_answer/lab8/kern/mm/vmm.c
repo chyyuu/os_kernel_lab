@@ -392,7 +392,7 @@ volatile unsigned int pgfault_num = 0;
  * at user mode (1)
  *            or supervisor mode (0) at the time of the exception.
  */
-int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
+int do_pgfault(struct mm_struct *mm, uint64_t error_code, uintptr_t addr) {
     int ret = -E_INVAL;
     // try to find a vma which include addr
     struct vma_struct *vma = find_vma(mm, addr);

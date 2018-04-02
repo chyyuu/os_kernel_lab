@@ -168,7 +168,7 @@ void inode_kill(struct inode *node);
  */
 struct inode_ops {
     unsigned long vop_magic;
-    int (*vop_open)(struct inode *node, uint32_t open_flags);
+    int (*vop_open)(struct inode *node, uint64_t open_flags);
     int (*vop_close)(struct inode *node);
     int (*vop_read)(struct inode *node, struct iobuf *iob);
     int (*vop_write)(struct inode *node, struct iobuf *iob);
@@ -177,7 +177,7 @@ struct inode_ops {
     int (*vop_namefile)(struct inode *node, struct iobuf *iob);
     int (*vop_getdirentry)(struct inode *node, struct iobuf *iob);
     int (*vop_reclaim)(struct inode *node);
-    int (*vop_gettype)(struct inode *node, uint32_t *type_store);
+    int (*vop_gettype)(struct inode *node, uint64_t *type_store);
     int (*vop_tryseek)(struct inode *node, off_t pos);
     int (*vop_truncate)(struct inode *node, off_t len);
     int (*vop_create)(struct inode *node, const char *name, bool excl, struct inode **node_store);
@@ -193,6 +193,9 @@ void inode_check(struct inode *node, const char *opstr);
 #define __vop_op(node, sym)                                                                         \
     ({                                                                                              \
         struct inode *__node = (node);                                                              \
+        assert(__node !=NULL);\
+        assert(__node->in_ops !=NULL);\
+        assert(__node->in_ops->vop_##sym != NULL);\
         assert(__node != NULL && __node->in_ops != NULL && __node->in_ops->vop_##sym != NULL);      \
         inode_check(__node, #sym);                                                                  \
         __node->in_ops->vop_##sym;                                                                  \

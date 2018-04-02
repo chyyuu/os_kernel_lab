@@ -54,7 +54,7 @@ void mm_destroy(struct mm_struct *mm);
 void vmm_init(void);
 int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags,
            struct vma_struct **vma_store);
-int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
+int do_pgfault(struct mm_struct *mm, uint64_t error_code, uintptr_t addr);
 
 int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len);
 int dup_mmap(struct mm_struct *to, struct mm_struct *from);

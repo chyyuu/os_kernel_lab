@@ -39,7 +39,8 @@ failed_cleanup:
 
 /* sysfile_open - open file */
 int
-sysfile_open(const char *__path, uint32_t open_flags) {
+sysfile_open(const char *__path, uint64_t open_flags) {
+	cprintf("-- szx sysfile_open ==\n");
     int ret;
     char *path;
     if ((ret = copy_path(&path, __path)) != 0) {
