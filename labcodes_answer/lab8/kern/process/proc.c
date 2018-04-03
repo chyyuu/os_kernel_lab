@@ -758,8 +758,8 @@ load_icode(int fd, int argc, char **kargv) {
         argv_size +=  strnlen(kargv[i],EXEC_MAX_ARG_LEN + 1)+1;
     }
     
-    stacktop = (uintptr_t)uargv - sizeof(int);
-    *(int *)stacktop = argc;
+    stacktop = (uintptr_t)uargv - sizeof(int64_t);
+    *(int64_t *)stacktop = argc;
     
     struct trapframe *tf = current->tf;
     // Keep sstatus
@@ -819,7 +819,6 @@ failed_cleanup:
 //           - call load_icode to setup new memory space accroding binary prog.
 int
 do_execve(const char *name, int argc, const char **argv) {
-	cprintf("-- szx do_execve : argc is %d --\n",argc);
     static_assert(EXEC_MAX_ARG_LEN >= FS_MAX_FPATH_LEN);
     struct mm_struct *mm = current->mm;
     if (!(argc >= 1 && argc <= EXEC_MAX_ARG_NUM)) {

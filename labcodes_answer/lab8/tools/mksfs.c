@@ -73,6 +73,7 @@ safe_strdup(const char *str) {
     return ret;
 }
 
+/* 通过文件名获取文件属性，在本文件内无用 */
 struct stat *
 safe_stat(const char *filename) {
     static struct stat __stat;
@@ -82,6 +83,7 @@ safe_stat(const char *filename) {
     return &__stat;
 }
 
+/* 通过文件句柄获取文件属性 */
 struct stat *
 safe_fstat(int fd) {
     static struct stat __stat;

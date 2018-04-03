@@ -144,6 +144,7 @@ lab4多了proc_init()和cpu_idle()两个函数，分别实现的是初始化进�
 3. static_assert函数未实现。
 4. 整个文件系统中都要注意虚拟地址变为了64位。syscall.c, syscall.h, 
 5. elf.h修改为64位格式。
+6. 在函数load_icode里要注意栈是64位的，否则会出现**lab8有些什么功能**里所提到的奇怪问题。
 
 ### bug与修正
 
