@@ -91,6 +91,9 @@ safe_fstat(int fd) {
     return &__stat;
 }
 
+/*
+ * safe_lstat:输入文件名，获取文件属性,返回属性的指针。
+ */
 struct stat *
 safe_lstat(const char *name) {
     static struct stat __stat;
@@ -100,6 +103,7 @@ safe_lstat(const char *name) {
     return &__stat;
 }
 
+/* 将进程的工作目录切换到句柄fd处 */
 void
 safe_fchdir(int fd) {
     if (fchdir(fd) != 0) {
@@ -107,22 +111,22 @@ safe_fchdir(int fd) {
     }
 }
 
-#define SFS_MAGIC                               0x2f8dbe2a
-#define SFS_NDIRECT                             12
-#define SFS_BLKSIZE                             4096                                    // 4K
-#define SFS_MAX_NBLKS                           (1024UL * 512)                          // 4K * 512K
-#define SFS_MAX_INFO_LEN                        31
-#define SFS_MAX_FNAME_LEN                       255
-#define SFS_MAX_FILE_SIZE                       (1024UL * 1024 * 128)                   // 128M
+#define SFS_MAGIC                               0x2f8dbe2a								// 魔数
+#define SFS_NDIRECT                             12										// 直接结点数
+#define SFS_BLKSIZE                             4096                                    // 块大小：4K
+#define SFS_MAX_NBLKS                           (1024UL * 512)                          // 最大结点数：4K * 512K ? szx 难道不是1K * 512
+#define SFS_MAX_INFO_LEN                        31										// sfs信息最大长度：31字节
+#define SFS_MAX_FNAME_LEN                       255										// 文件最大长度：255字节
+#define SFS_MAX_FILE_SIZE                       (1024UL * 1024 * 128)                   // 文件最大大小：128M
 
-#define SFS_BLKBITS                             (SFS_BLKSIZE * CHAR_BIT)
-#define SFS_TYPE_FILE                           1
-#define SFS_TYPE_DIR                            2
-#define SFS_TYPE_LINK                           3
+#define SFS_BLKBITS                             (SFS_BLKSIZE * CHAR_BIT)				// szx 为什么这两个数相乘？
+#define SFS_TYPE_FILE                           1										// 文件
+#define SFS_TYPE_DIR                            2										// 目录
+#define SFS_TYPE_LINK                           3										// 链接
 
-#define SFS_BLKN_SUPER                          0
-#define SFS_BLKN_ROOT                           1
-#define SFS_BLKN_FREEMAP                        2
+#define SFS_BLKN_SUPER                          0										// 超级块
+#define SFS_BLKN_ROOT                           1										// 根目录
+#define SFS_BLKN_FREEMAP                        2										// 第一个自由映射的块
 
 struct cache_block {
     uint32_t ino;
@@ -149,17 +153,17 @@ struct cache_inode {
 
 struct sfs_fs {
     struct {
-        uint32_t magic;
-        uint32_t blocks;
-        uint32_t unused_blocks;
-        char info[SFS_MAX_INFO_LEN + 1];
+        uint32_t magic;						// 魔数
+        uint32_t blocks;					// 块数
+        uint32_t unused_blocks;				// 未使用块数
+        char info[SFS_MAX_INFO_LEN + 1];	// 文件系统信息
     } super;
     struct subpath {
         struct subpath *next, *prev;
         char *subname;
     } __sp_nil, *sp_root, *sp_end;
-    int imgfd;
-    uint32_t ninos, next_ino;
+    int imgfd;								// 文件系统所在文件的句柄
+    uint32_t ninos, next_ino;				// ninos:实际可用最大结点数，next_ino:下一结点数
     struct cache_inode *root;
     struct cache_inode *inodes[HASH_LIST_SIZE];
     struct cache_block *blocks[HASH_LIST_SIZE];
@@ -198,6 +202,7 @@ search_cache_block(struct sfs_fs *sfs, uint32_t ino) {
     return cb;
 }
 
+/* 为结点分配内存空间 */
 static struct cache_inode *
 alloc_cache_inode(struct sfs_fs *sfs, ino_t real, uint32_t ino, uint16_t type) {
     struct cache_inode *ci = safe_malloc(sizeof(struct cache_inode));
@@ -220,6 +225,11 @@ search_cache_inode(struct sfs_fs *sfs, ino_t real) {
     return ci;
 }
 
+/*
+ * create_sfs:通过文件句柄，将该文件创建为一个文件系统
+ * @imgfd:文件句柄
+ * return:新创建的文件系统的指针
+ */
 struct sfs_fs *
 create_sfs(int imgfd) {
     uint32_t ninos, next_ino;
@@ -235,21 +245,21 @@ create_sfs(int imgfd) {
     }
 
     struct sfs_fs *sfs = safe_malloc(sizeof(struct sfs_fs));
-    sfs->super.magic = SFS_MAGIC;
-    sfs->super.blocks = ninos, sfs->super.unused_blocks = ninos - next_ino;
-    snprintf(sfs->super.info, SFS_MAX_INFO_LEN, "simple file system");
+    sfs->super.magic = SFS_MAGIC;											// sfs的魔数
+    sfs->super.blocks = ninos, sfs->super.unused_blocks = ninos - next_ino;	// 块数和未使用块数
+    snprintf(sfs->super.info, SFS_MAX_INFO_LEN, "simple file system");		// sfs的信息
 
-    sfs->ninos = ninos, sfs->next_ino = next_ino, sfs->imgfd = imgfd;
-    sfs->sp_root = sfs->sp_end = &(sfs->__sp_nil);
-    sfs->sp_end->prev = sfs->sp_end->next = NULL;
+    sfs->ninos = ninos, sfs->next_ino = next_ino, sfs->imgfd = imgfd;		// 最大结点数，下一结点数，句柄
+    sfs->sp_root = sfs->sp_end = &(sfs->__sp_nil);							// 初始化子路径
+    sfs->sp_end->prev = sfs->sp_end->next = NULL;							// 初始化子路径
 
     int i;
-    for (i = 0; i < HASH_LIST_SIZE; i ++) {
+    for (i = 0; i < HASH_LIST_SIZE; i ++) {									// 初始化各个结点和各个块的指针
         sfs->inodes[i] = NULL;
         sfs->blocks[i] = NULL;
     }
 
-    sfs->root = alloc_cache_inode(sfs, 0, SFS_BLKN_ROOT, SFS_TYPE_DIR);
+    sfs->root = alloc_cache_inode(sfs, 0, SFS_BLKN_ROOT, SFS_TYPE_DIR);		// 分配根结点
     return sfs;
 }
 
@@ -348,6 +358,11 @@ close_sfs(struct sfs_fs *sfs) {
     }
 }
 
+/*
+ * open_img:打开指定名称的文件，将该文件抽象为一个文件系统
+ * @imgname:要打开文件的文件名
+ * return: 返回文件系统的指针
+ */
 struct sfs_fs *
 open_img(const char *imgname) {
     const char *expect = ".img", *ext = imgname + strlen(imgname) - strlen(expect);
@@ -463,6 +478,12 @@ add_link(struct sfs_fs *sfs, struct cache_inode *current, const char *filename, 
     add_entry(sfs, current, file, filename);
 }
 
+/*
+ * open_dir:
+ * @sfs:sfs文件系统的指针
+ * @current:当前结点
+ * @parent:父结点
+ */
 void
 open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inode *parent) {
     DIR *dir;

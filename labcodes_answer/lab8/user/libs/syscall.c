@@ -12,22 +12,22 @@ static inline int
 syscall(int num, ...) {
     va_list ap;
     va_start(ap, num);
-    uint64_t a[MAX_ARGS];
+    uint32_t a[MAX_ARGS];
     int i, ret;
     for (i = 0; i < MAX_ARGS; i ++) {
-        a[i] = va_arg(ap, uint64_t);
+        a[i] = va_arg(ap, uint32_t);
     }
     va_end(ap);
 
     asm volatile (
-        "ld a0, %1\n"
-        "ld a1, %2\n"
-        "ld a2, %3\n"
-        "ld a3, %4\n"
-        "ld a4, %5\n"
-        "ld a5, %6\n"
+        "lw a0, %1\n"
+        "lw a1, %2\n"
+        "lw a2, %3\n"
+        "lw a3, %4\n"
+        "lw a4, %5\n"
+        "lw a5, %6\n"
         "ecall\n"
-        "sd a0, %0"
+        "sw a0, %0"
         : "=m" (ret)
         : "m" (num),
           "m" (a[0]),

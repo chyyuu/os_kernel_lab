@@ -113,7 +113,7 @@ const char *vfs_get_devname(struct fs *fs);
  *    vfs_getcwd - Retrieve name of current directory of current thread.
  *
  */
-int vfs_open(char *path, uint64_t open_flags, struct inode **inode_store);
+int vfs_open(char *path, uint32_t open_flags, struct inode **inode_store);
 int vfs_close(struct inode *node);
 int vfs_link(char *old_path, char *new_path);
 int vfs_symlink(char *old_path, char *new_path);

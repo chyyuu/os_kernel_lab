@@ -1,0 +1,73 @@
+static inline uint32_t
+__hash32(uint32_t val, unsigned int bits) {
+static uint32_t
+hash32(uint32_t val) {
+static uint32_t
+hash64(uint64_t val) {
+void *
+safe_malloc(size_t size) {
+char *
+safe_strdup(const char *str) {
+struct stat *
+safe_stat(const char *filename) {
+struct stat *
+safe_fstat(int fd) {
+// 输入文件名，获取文件属性,返回属性的指针。
+struct stat *safe_lstat(const char *name) {
+// 将进程的工作目录切换到句柄fd处
+void safe_fchdir(int fd) {
+static uint32_t
+sfs_alloc_ino(struct sfs_fs *sfs) {
+static struct cache_block *
+alloc_cache_block(struct sfs_fs *sfs, uint32_t ino) {
+struct cache_block *
+search_cache_block(struct sfs_fs *sfs, uint32_t ino) {
+/* 为结点分配内存空间 */
+static struct cache_inode *alloc_cache_inode(struct sfs_fs *sfs, ino_t real, uint32_t ino, uint16_t type) {
+struct cache_inode *
+search_cache_inode(struct sfs_fs *sfs, ino_t real) {
+// 通过文件句柄，将该文件创建为一个文件系统
+struct sfs_fs *create_sfs(int imgfd) {
+static void
+subpath_push(struct sfs_fs *sfs, const char *subname) {
+static void
+subpath_pop(struct sfs_fs *sfs) {
+static void
+subpath_show(FILE *fout, struct sfs_fs *sfs, const char *name) {
+static void
+write_block(struct sfs_fs *sfs, void *data, size_t len, uint32_t ino) {
+static void
+flush_cache_block(struct sfs_fs *sfs, struct cache_block *cb) {
+static void
+flush_cache_inode(struct sfs_fs *sfs, struct cache_inode *ci) {
+void
+close_sfs(struct sfs_fs *sfs) {
+// 打开指定名称的文件，将该文件抽象为一个文件系统
+struct sfs_fs *open_img(const char *imgname) 
+void open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inode *parent);
+void open_file(struct sfs_fs *sfs, struct cache_inode *file, const char *filename, int fd);
+void open_link(struct sfs_fs *sfs, struct cache_inode *file, const char *filename);
+static void
+update_cache(struct sfs_fs *sfs, struct cache_block **cbp, uint32_t *inop) {
+static void
+append_block(struct sfs_fs *sfs, struct cache_inode *file, size_t size, uint32_t ino, const char *filename) {
+static void
+add_entry(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inode *file, const char *name) {
+static void
+add_dir(struct sfs_fs *sfs, struct cache_inode *parent, const char *dirname, int curfd, int fd, ino_t real) {
+static void
+add_file(struct sfs_fs *sfs, struct cache_inode *current, const char *filename, int fd, ino_t real) {
+static void
+add_link(struct sfs_fs *sfs, struct cache_inode *current, const char *filename, ino_t real) {
+void
+open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inode *parent) {
+void
+open_file(struct sfs_fs *sfs, struct cache_inode *file, const char *filename, int fd) {
+void
+open_link(struct sfs_fs *sfs, struct cache_inode *file, const char *filename) {
+// 创建镜像，把文件夹home中的文件加入到镜像文件中
+int create_img(struct sfs_fs *sfs, const char *home)
+// 一些类型检查
+static void static_check(void)
+// 将指定文件夹中的文件写入指定的镜像
+int main(int argc, char **argv) 
