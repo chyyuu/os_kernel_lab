@@ -970,7 +970,7 @@ do_kill(int pid) {
 // kernel_execve - do SYS_exec syscall to exec a user program called by user_main kernel_thread
 static int
 kernel_execve(const char *name, const char **argv) {
-    int64_t argc = 0, ret;
+	int64_t argc = 0, ret;
     while (argv[argc] != NULL) {
         argc ++;
     }
