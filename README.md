@@ -2,7 +2,7 @@
 
 ucore for riscv64 is a porting of [ucore_os_lab](https://github.com/chyyuu/ucore_os_lab.git) to RISC-V architecture (privileged spec 1.10). It's built on top of the Berkeley Boot Loader, [`bbl`](https://github.com/riscv/riscv-pk.git), a supervisor execution environment for RISC-V systems.
 
-**NOTE: This branch is still on developing, please see dosc/ucore_rv64_porting.md for more details. **
+**关于移植的更多细节，请看 dosc/ucore_rv64_porting.md **
 
 # Quickstart
 
@@ -55,7 +55,6 @@ To build all projects at once, run the following commands
 ```bash
 $ cd labcodes_answer
 $ ./gccbuildall.sh
-# lab1~lab4 is OK, lab5 has some mistake
 ```
 
 
