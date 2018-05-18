@@ -73,7 +73,7 @@ TOTALS      Seek: 40  Rotate:275  Transfer: 60  Total: 375
 ## 问题 2：请执行 SSTF磁盘调度策略
 
 ```
-./disksim.py   -a 10,11,12,13，24,1
+./disksim.py   -a 10,11,12,13,24,1
 ```
 请回答每个磁盘请求序列的IO访问时间
 
