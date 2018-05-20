@@ -43,6 +43,9 @@ endif
 # define compiler and flags
 
 HOSTCC		:= gcc
+## for mksfs program, -D_FILE_OFFSET_BITS=64 can guarantee sizeof(off_t)==8,  sizeof(ino_t) ==8
+## for 64 bit gcc, to build 32-bit mksfs, you can use below line
+## HOSTCFLAGS	:= -g -Wall -m32 -O2 -D_FILE_OFFSET_BITS=64
 HOSTCFLAGS	:= -g -Wall -O2 -D_FILE_OFFSET_BITS=64
 
 GDB		:= $(GCCPREFIX)gdb

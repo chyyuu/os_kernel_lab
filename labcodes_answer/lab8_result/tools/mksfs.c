@@ -1,3 +1,19 @@
+/* prefer to compile mksfs on 64-bit linux systems.
+
+Use a compiler-specific macro.
+
+For example:
+
+#if defined(__i386__)
+// IA-32
+#elif defined(__x86_64__)
+// AMD64
+#else
+# error Unsupported architecture
+#endif
+
+*/
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
@@ -30,8 +46,11 @@ typedef int bool;
 #define warn(...)           __error(warn, 0, __VA_ARGS__)
 #define bug(...)            __error(bug, 1, __VA_ARGS__)
 
+/*
+static_assert(cond, msg) is defined in /usr/include/assert.h
 #define static_assert(x)                                                                \
     switch (x) {case 0: case (x): ; }
+*/
 
 /* 2^31 + 2^29 - 2^25 + 2^22 - 2^19 - 2^16 + 1 */
 #define GOLDEN_RATIO_PRIME_32       0x9e370001UL
@@ -396,7 +415,7 @@ update_cache(struct sfs_fs *sfs, struct cache_block **cbp, uint32_t *inop) {
 
 static void
 append_block(struct sfs_fs *sfs, struct cache_inode *file, size_t size, uint32_t ino, const char *filename) {
-    static_assert(SFS_LN_NBLKS <= SFS_L2_NBLKS);
+    static_assert(SFS_LN_NBLKS <= SFS_L2_NBLKS, "SFS_LN_NBLKS <= SFS_L2_NBLKS");
     assert(size <= SFS_BLKSIZE);
     uint32_t nblks = file->nblks;
     struct inode *inode = &(file->inode);
@@ -560,10 +579,20 @@ create_img(struct sfs_fs *sfs, const char *home) {
 
 static void
 static_check(void) {
-    static_assert(sizeof(off_t) == 8);
-    static_assert(sizeof(ino_t) == 8);
-    static_assert(SFS_MAX_NBLKS <= 0x80000000UL);
-    static_assert(SFS_MAX_FILE_SIZE <= 0x80000000UL);
+#if defined(__i386__)
+// IA-32, gcc with -D_FILE_OFFSET_BITS=64
+	static_assert(sizeof(off_t) == 8, "sizeof off_t should be 8 in i386");
+    static_assert(sizeof(ino_t) == 8,"sizeof ino_t should be 8 in i386");
+    printf("in i386 system, need more testing\n");
+#elif defined(__x86_64__)
+// AMD64, Recommend, gcc with -D_FILE_OFFSET_BITS=64
+    static_assert(sizeof(off_t) == 8, "sizeof off_t should be 8 in x86_64");
+    static_assert(sizeof(ino_t) == 8, "sizeof ino_t should be 8 in x86_64");
+#else
+# error Unsupported architecture
+#endif
+    static_assert(SFS_MAX_NBLKS <= 0x80000000UL, "SFS_MAX_NBLKS <= 0x80000000UL");
+    static_assert(SFS_MAX_FILE_SIZE <= 0x80000000UL,"SFS_MAX_FILE_SIZE <= 0x80000000UL");
 }
 
 int

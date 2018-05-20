@@ -46,7 +46,11 @@ endif
 # define compiler and flags
 ifndef  USELLVM
 HOSTCC		:= gcc
-HOSTCFLAGS	:= -g -Wall -O2
+## for mksfs program, -D_FILE_OFFSET_BITS=64 can guarantee sizeof(off_t)==8,  sizeof(ino_t) ==8
+## for 64 bit gcc, to build 32-bit mksfs, you can use below line
+## HOSTCFLAGS	:= -g -Wall -m32 -O2 -D_FILE_OFFSET_BITS=64
+HOSTCFLAGS	:= -g -Wall -O2 -D_FILE_OFFSET_BITS=64
+
 CC		:= $(GCCPREFIX)gcc
 CFLAGS	:= -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc $(DEFS)
 CFLAGS	+= $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
