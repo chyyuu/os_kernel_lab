@@ -1,3 +1,19 @@
+/* prefer to compile mksfs on 64-bit linux systems.
+
+Use a compiler-specific macro.
+
+For example:
+
+#if defined(__i386__)
+// IA-32
+#elif defined(__x86_64__)
+// AMD64
+#else
+# error Unsupported architecture
+#endif
+
+*/
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
@@ -560,8 +576,18 @@ create_img(struct sfs_fs *sfs, const char *home) {
 
 static void
 static_check(void) {
+#if defined(__i386__)
+// IA-32, TODO: need more testing
+	static_assert(sizeof(off_t) == 4);
+    static_assert(sizeof(ino_t) == 4);
+    printf("in i386 system, need more testing\n");
+#elif defined(__x86_64__)
+// AMD64, Recommend
     static_assert(sizeof(off_t) == 8);
     static_assert(sizeof(ino_t) == 8);
+#else
+# error Unsupported architecture
+#endif
     static_assert(SFS_MAX_NBLKS <= 0x80000000UL);
     static_assert(SFS_MAX_FILE_SIZE <= 0x80000000UL);
 }
