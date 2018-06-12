@@ -6,5 +6,5 @@ Steps
     ## first, setrv32env.sh 
     $ cd build
     $ make
-    $ qemu-system-riscv32 -machine virt -kernel bbl -nographic
+    $ riscvemu32 -ctrlc root-riscv32.cfg
 

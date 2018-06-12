@@ -168,7 +168,7 @@ $(install_bin): bbl
 	$(OBJDUMP) -S bbl >bbl.s
 
 run: $(install_bin)
-	riscvemu32 -b 32 -ctrlc root-riscv32.cfg  2>&1|tee exe.log
+	riscvemu32 -ctrlc root-riscv32.cfg
 
 $(2)_c_deps += $$($(2)_install_prog_deps)
 $(2)_junk += \
@@ -230,6 +230,6 @@ all : $(install_hdrs) $(install_libs) $(install_exes) $(install_bin)
 #-------------------------------------------------------------------------
 
 clean :
-	rm -rf *~ $(junk) *.d bbl.bin bbl.s
+	rm -rf *~ $(junk) *.d *.log bbl.bin bbl.s
 
 .PHONY : clean distclean
