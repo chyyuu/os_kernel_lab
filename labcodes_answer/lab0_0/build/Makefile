@@ -34,6 +34,7 @@ VPATH := $(addprefix $(src_dir)/, $(sprojs_enabled))
 CC            := riscv32-unknown-elf-gcc
 READELF       := riscv32-unknown-elf-readelf
 OBJCOPY       := riscv32-unknown-elf-objcopy
+OBJDUMP       := riscv32-unknown-elf-objdump
 CFLAGS        := -Wall -Werror -D__NO_INLINE__ -mcmodel=medany -O2 -std=gnu99 -Wno-unused -Wno-attributes -fno-delete-null-pointer-checks $(CFLAGS) -DBBL_PAYLOAD=\"bbl_payload\" -DBBL_LOGO_FILE=\"bbl_logo_file\"
 BBL_PAYLOAD   := dummy_payload
 COMPILE       := $(CC) -MMD -MP $(CFLAGS) \
@@ -162,6 +163,13 @@ $$($(2)_install_prog_objs) : %.o : %.c
 $$($(2)_install_prog_exes) : % : %.o $$($(2)_prog_libnames)
 	$(LINK) -o $$@ $$< $$($(2)_prog_libarg) $(LIBS) -T $(src_dir)/$(2)/$(2).lds
 
+$(install_bin): bbl
+	$(OBJCOPY) -O binary bbl bbl.bin
+	$(OBJDUMP) -S bbl >bbl.s
+
+run: $(install_bin)
+	riscvemu32 -b 32 -ctrlc root-riscv32.cfg  2>&1|tee exe.log
+
 $(2)_c_deps += $$($(2)_install_prog_deps)
 $(2)_junk += \
   $$($(2)_install_prog_objs) $$($(2)_install_prog_deps) \
@@ -191,6 +199,7 @@ deps += $$($(2)_c_deps)
 install_hdrs += $$(addprefix $(src_dir)/$(1)/, $$($(2)_hdrs))
 install_libs += lib$(1).a
 install_exes += $$($(2)_install_prog_exes)
+install_bin = bbl.bin
 
 endef
 
@@ -213,7 +222,7 @@ deps : $(deps)
 # Default
 #-------------------------------------------------------------------------
 
-all : $(install_hdrs) $(install_libs) $(install_exes)
+all : $(install_hdrs) $(install_libs) $(install_exes) $(install_bin)
 .PHONY : all
 
 #-------------------------------------------------------------------------
@@ -221,6 +230,6 @@ all : $(install_hdrs) $(install_libs) $(install_exes)
 #-------------------------------------------------------------------------
 
 clean :
-	rm -rf *~ $(junk) *.d
+	rm -rf *~ $(junk) *.d bbl.bin bbl.s
 
 .PHONY : clean distclean

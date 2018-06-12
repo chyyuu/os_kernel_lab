@@ -21,13 +21,15 @@ void __attribute__((noreturn)) bad_trap(uintptr_t* regs, uintptr_t dummy, uintpt
 
 static uintptr_t mcall_console_putchar(uint8_t ch)
 {
+#if 0
   if (uart) {
     uart_putchar(ch);
   } else if (uart16550) {
     uart16550_putchar(ch);
   } else if (htif) {
+#endif
     htif_console_putchar(ch);
-  }
+//  }
   return 0;
 }
 
@@ -44,9 +46,15 @@ void poweroff(uint16_t code)
 
 void putstring(const char* s)
 {
-  while (*s)
-    mcall_console_putchar(*s++);
+    int c;
+    while (*s) {
+        c = *s++;
+        if (c == '\n')
+            mcall_console_putchar('\r');
+        mcall_console_putchar(c);
+    }
 }
+
 
 void vprintm(const char* s, va_list vl)
 {
@@ -74,15 +82,19 @@ static void send_ipi(uintptr_t recipient, int event)
 
 static uintptr_t mcall_console_getchar()
 {
+#if 0
   if (uart) {
     return uart_getchar();
   } else if (uart16550) {
     return uart16550_getchar();
   } else if (htif) {
+#endif
     return htif_console_getchar();
+#if 0
   } else {
     return '\0';
   }
+#endif
 }
 
 static uintptr_t mcall_clear_ipi()

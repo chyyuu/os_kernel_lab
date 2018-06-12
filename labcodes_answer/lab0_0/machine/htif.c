@@ -5,8 +5,8 @@
 #include <string.h>
 
 extern uint64_t __htif_base;
-volatile uint64_t tohost __attribute__((section(".htif")));
-volatile uint64_t fromhost __attribute__((section(".htif")));
+volatile extern uint64_t tohost;
+volatile extern uint64_t fromhost;
 volatile int htif_console_buf;
 static spinlock_t htif_lock = SPINLOCK_INIT;
 uintptr_t htif;
