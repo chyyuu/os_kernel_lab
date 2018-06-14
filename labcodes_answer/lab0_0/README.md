@@ -1,10 +1,8 @@
-lab0
-=====================================
+#### quick start
 
-Steps
----------
-    ## first, setrv32env.sh 
-    $ cd build
-    $ make
-    $ riscvemu32 -ctrlc root-riscv32.cfg
+```
+./build.sh		# 编译
+./run.sh		# 运行
+./clean.sh		# 清除编译结果
+```
 

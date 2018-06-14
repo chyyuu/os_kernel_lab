@@ -29,10 +29,10 @@ static inline int xlen()
   return read_const_csr(misa) < 0 ? 64 : 32;
 }
 
-extern uintptr_t mem_size;
-extern volatile uint64_t* mtime;
-extern volatile uint32_t* plic_priorities;
-extern size_t plic_ndevs;
+uintptr_t mem_size;
+volatile uint64_t* mtime;
+volatile uint32_t* plic_priorities;
+size_t plic_ndevs;
 
 typedef struct {
   volatile uint32_t* ipi;
@@ -54,14 +54,10 @@ typedef struct {
 #define HLS() ((hls_t*)(MACHINE_STACK_TOP() - HLS_SIZE))
 #define OTHER_HLS(id) ((hls_t*)((void*)HLS() + RISCV_PGSIZE * ((id) - read_const_csr(mhartid))))
 
-hls_t* hls_init(uintptr_t hart_id);
+
 void parse_config_string();
 void poweroff(uint16_t code) __attribute((noreturn));
-void printm(const char* s, ...);
-void vprintm(const char *s, va_list args);
 void putstring(const char* s);
-#define assert(x) ({ if (!(x)) die("assertion failed: %s", #x); })
-#define die(str, ...) ({ printm("%s:%d: " str "\n", __FILE__, __LINE__, ##__VA_ARGS__); poweroff(-1); })
 
 void enter_supervisor_mode(void (*fn)(uintptr_t), uintptr_t arg0, uintptr_t arg1)
   __attribute__((noreturn));
