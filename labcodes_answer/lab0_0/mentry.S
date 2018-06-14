@@ -1,7 +1,16 @@
 // See LICENSE for license details.
 
-#include "mtrap.h"
+// #include "mtrap.h"
 #include "bits.h"
+
+# define MAX_HARTS 1
+#define RISCV_PGSHIFT 12
+#define RISCV_PGSIZE (1 << RISCV_PGSHIFT)
+#define HLS_SIZE 64
+#define SOFT_FLOAT_CONTEXT_SIZE 0
+#define INTEGER_CONTEXT_SIZE (32 * REGBYTES)
+#define MENTRY_HLS_OFFSET (INTEGER_CONTEXT_SIZE + SOFT_FLOAT_CONTEXT_SIZE)
+#define MENTRY_FRAME_SIZE (MENTRY_HLS_OFFSET + HLS_SIZE)
 
   .section .text.init,"ax",@progbits
   .globl reset_vector

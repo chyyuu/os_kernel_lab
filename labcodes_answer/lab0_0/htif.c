@@ -1,11 +1,9 @@
 #include "htif.h"
-#include "atomic.h"
 #include <string.h>
 
 volatile extern uint64_t tohost;
 volatile extern uint64_t fromhost;
 volatile int htif_console_buf;
-static spinlock_t htif_lock = SPINLOCK_INIT;
 uintptr_t htif;
 
 static void __check_fromhost()
@@ -34,9 +32,7 @@ static void __set_tohost(uintptr_t dev, uintptr_t cmd, uintptr_t data)
 
 void htif_console_putchar(uint8_t ch)
 {
-  spinlock_lock(&htif_lock);
     __set_tohost(1, 1, ch);
-  spinlock_unlock(&htif_lock);
 }
 
 void htif_poweroff()
