@@ -111,17 +111,17 @@ C:\Users\VirtualBox VMs\
 
 ### 四、在MAC OS下进行实验
 
-感谢 altkatz！
+感谢 [nativeos](https://github.com/nativeos/homebrew-i386-elf-toolchain)！
 
-Using gcc49
+Ported versions of several GNU packages (binutils, gcc, gdb, grub) targetting i386-elf on the Mac, installable through a Homebrew tap.
 
 #### 1.install [homebrew](http://brew.sh/)
 
 #### 2.install binutils, gcc, gdb targeting i386-elf
 
-* `brew tap altkatz/homebrew-gcc_cross_compilers` 
-* `brew install i386-elf-gcc` # may take an hour
-* `brew install i386-elf-gdb` 
+* `brew tap nativeos/i386-elf-toolchain` 
+* `brew install i386-elf-binutils` 
+* `brew install i386-elf-gcc` 
 
 #### 3. install qemu-system-i386
 
