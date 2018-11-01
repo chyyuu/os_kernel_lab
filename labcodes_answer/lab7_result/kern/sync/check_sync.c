@@ -214,9 +214,9 @@ void phi_put_forks_condvar(int i) {
       phi_test_condvar(LEFT);
       phi_test_condvar(RIGHT);
 //--------leave routine in monitor--------------
-     if(mtp->next_count>0)
-        up(&(mtp->next));
-     else
+//     if(mtp->next_count>0)
+//        up(&(mtp->next));
+//     else
         up(&(mtp->mutex));
 }
 
