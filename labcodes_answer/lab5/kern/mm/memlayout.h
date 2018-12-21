@@ -92,7 +92,7 @@ typedef pte_t swap_entry_t; //the pte can also be a swap entry
  * */
 struct Page {
     int ref;                        // page frame's reference counter
-    uint_t64 flags;                 // array of flags that describe the status of the page frame
+    uint64_t flags;                 // array of flags that describe the status of the page frame
     unsigned int property;          // the num of free block, used in first fit pm manager
     list_entry_t page_link;         // free list link
     list_entry_t pra_page_link;     // used for pra (page replace algorithm)
