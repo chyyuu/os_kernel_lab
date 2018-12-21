@@ -1,0 +1,21 @@
+sudo: false
+
+language: c
+
+os:
+  - linux
+  - osx
+
+addons:
+  apt:
+    packages:
+      - qemu
+  homebrew:
+    packages:
+      - qemu
+      - i386-elf-gcc
+    update: true
+
+script:
+  - cd labcodes && bash ./gccbuildall.sh && cd ..
+  - cd labcodes_answer && bash ./gccbuildall.sh && cd ..
