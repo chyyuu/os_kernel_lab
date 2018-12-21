@@ -1,3 +1,4 @@
+set -e
 cd lab1; make clean; cd ..
 cd lab2; make clean; cd ..
 cd lab3; make clean; cd ..
