@@ -5,7 +5,7 @@ ucore os labs was used as OS Experiments in OS Course Of Dept. of Computer Scien
 NEWS
 ====
 - 2019.01.19: [rcore os labs(pre-alpha version)](https://github.com/oscourse-tsinghua/rcore_plus/tree/lab8-rv32) on RISC-V(32bit) were released. Thanks Runji Wang, Wei Zhang, Zengyang Dai, Jiajie Chen, Yuekai Jia, Chen Lu...'s great work!
-- 2019.01.19: [rcore os labs(pre-pre-alpha version)](https://github.com/oscourse-tsinghua/rcore_plus/tree/lab8-rv32) on Raspberry Pi(AARCH 64bit) were released. Thanks Yuekai Jia, Runji Wang, Jiajie Chen...'s great work!
+- 2019.01.19: [rcore os labs(pre-pre-alpha version)](https://github.com/oscourse-tsinghua/rcore_plus/tree/lab8-aarch64) on Raspberry Pi(AARCH 64bit) were released. Thanks Yuekai Jia, Runji Wang, Jiajie Chen...'s great work!
 - 2018.04.03：ucore os labs were ported on RISC-V(64bit) CPU（privileged arch spec 1.10). You can access [repo's riscv64-priv-1.10 branch](https://github.com/chyyuu/ucore_os_lab/tree/riscv64-priv-1.10). Thanks Zhengxing Shi's great work!
 - 2018.03.18: Weixiao Huang provided https://github.com/weixiao-huang/silver-spoon to support os labs in docker environment on windows/macos/linux. [details](https://github.com/weixiao-huang/silver-spoon/tree/master/docs)
 - 2018.02.03：ucore os labs were ported on RISC-V(32bit) CPU（privileged arch spec 1.10). You can access [repo's riscv32-priv-1.10 branch](https://github.com/chyyuu/ucore_os_lab/tree/riscv32-priv-1.10). Thanks  Wei Zhang's great work!
