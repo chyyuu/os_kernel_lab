@@ -20,6 +20,7 @@ OS course for Dept. CS. in Tsinghua Univ., and MOOC OS course
 - Mao, Junjie: eternal.n08@gmail.com
 - Zhang, Wei: zhangwei15@mails.tsinghua.edu.cn
 - Wang, Runji: wangrunji0408@163.com 
+- Jia, Yuekai: jiayk15@mails.tsinghua.edu.cn
 
 CONTENTS
 ========
