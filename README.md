@@ -42,6 +42,7 @@ lab8: filesystem
 TESTED ENVIRONMENT
 ==================
 ```
+UBUNTU 16.04 x86-64: GCC-7.3 
 UBUNTU 14.04+: GCC-4.8.2+ CLANG-3.5+
 FEDORA 20+: GCC-4.8.2+
 ```
