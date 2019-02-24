@@ -56,7 +56,7 @@ __boot_pgdir:
 .globl __boot_pgdir
     # map va 0 ~ 4M to pa 0 ~ 4M (temporary)
     .long REALLOC(__boot_pt1) + (PTE_P | PTE_U | PTE_W)
-    .space (KERNBASE / PGSIZE / 1024 * 4) - (. - __boot_pgdir) # pad to PDE of KERNBASE
+    .space (KERNBASE >> PGSHIFT >> 10 << 2) - (. - __boot_pgdir) # pad to PDE of KERNBASE
     # map va KERNBASE + (0 ~ 4M) to pa 0 ~ 4M
     .long REALLOC(__boot_pt1) + (PTE_P | PTE_U | PTE_W)
     .space PGSIZE - (. - __boot_pgdir) # pad to PGSIZE
