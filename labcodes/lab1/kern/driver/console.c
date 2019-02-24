@@ -54,7 +54,7 @@ static uint16_t addr_6845;
 
 // 显示器初始化，CGA 是 Color Graphics Adapter 的缩写
 // CGA显存按照下面的方式映射：
-//   -- 0xB0000 - 0xB7777 单色字符模式
+//   -- 0xB0000 - 0xB7FFF 单色字符模式
 //   -- 0xB8000 - 0xBFFFF 彩色字符模式及 CGA 兼容图形模式
 // 6845芯片是IBM PC中的视频控制器
 // CPU通过IO地址0x3B4-0x3B5来驱动6845控制单色显示，通过IO地址0x3D4-0x3D5来控制彩色显示。
