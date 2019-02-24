@@ -1,0 +1,20 @@
+sudo: false
+
+language: c
+
+os:
+  - linux
+  - osx
+
+install:
+  - if [ $TRAVIS_OS_NAME = linux ]; then 
+      export FILE=riscv64-unknown-elf-gcc-20181127-x86_64-linux-ubuntu14;
+    elif [ $TRAVIS_OS_NAME = osx ]; then 
+      export FILE=riscv64-unknown-elf-gcc-20181127-x86_64-apple-darwin;
+    fi
+  - wget https://static.dev.sifive.com/dev-tools/$FILE.tar.gz
+  - tar xf $FILE.tar.gz
+  - export PATH=$PATH:$PWD/$FILE/bin
+
+script:
+  - cd labcodes_answer && bash ./gccbuildall.sh
