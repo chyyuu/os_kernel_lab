@@ -49,13 +49,12 @@ idt_init(void) {
     extern uintptr_t __vectors[];
     for (int i = 0;i < 256;i++){
         if (i != T_SYSCALL){
-            SETGATE(idt[i], 0, __vectors[0], __vectors[i] - __vectors[0], 0);
+            SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], 0);
         }else{
-            SETGATE(idt[i], 1, __vectors[0], __vectors[i] - __vectors[0], 3);
+            SETGATE(idt[i], 1, GD_KTEXT, __vectors[i], 3);
         }
     }
     lidt(&idt_pd);
-
 }
 
 static const char *
