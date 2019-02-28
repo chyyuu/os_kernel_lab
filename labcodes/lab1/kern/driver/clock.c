@@ -2,7 +2,6 @@
 #include <trap.h>
 #include <stdio.h>
 #include <picirq.h>
-
 /* *
  * Support for time-related hardware gadgets - the 8253 timer,
  * which generates interruptes on IRQ-0.
@@ -40,6 +39,7 @@ clock_init(void) {
     ticks = 0;
 
     cprintf("++ setup timer interrupts\n");
+    //print_stackframs();
     pic_enable(IRQ_TIMER);
 }
 
