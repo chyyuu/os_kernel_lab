@@ -35,6 +35,7 @@ static inline void sti(void) __attribute__((always_inline));
 static inline void cli(void) __attribute__((always_inline));
 static inline void ltr(uint16_t sel) __attribute__((always_inline));
 
+// read a byte from port
 static inline uint8_t
 inb(uint16_t port) {
     uint8_t data;
@@ -42,6 +43,7 @@ inb(uint16_t port) {
     return data;
 }
 
+// 
 static inline void
 insl(uint32_t port, void *addr, int cnt) {
     asm volatile (
@@ -52,16 +54,19 @@ insl(uint32_t port, void *addr, int cnt) {
             : "memory", "cc");
 }
 
+// write a byte data to the port
 static inline void
 outb(uint16_t port, uint8_t data) {
     asm volatile ("outb %0, %1" :: "a" (data), "d" (port));
 }
 
+// write a word[data] to port
 static inline void
 outw(uint16_t port, uint16_t data) {
     asm volatile ("outw %0, %1" :: "a" (data), "d" (port));
 }
 
+// read a uint32 from %ebp
 static inline uint32_t
 read_ebp(void) {
     uint32_t ebp;
@@ -69,21 +74,25 @@ read_ebp(void) {
     return ebp;
 }
 
+// load interrupt table
 static inline void
 lidt(struct pseudodesc *pd) {
     asm volatile ("lidt (%0)" :: "r" (pd));
 }
 
+// set interrept
 static inline void
 sti(void) {
     asm volatile ("sti");
 }
 
+// clear interrupt
 static inline void
 cli(void) {
     asm volatile ("cli");
 }
 
+// load task-state reg to uint16
 static inline void
 ltr(uint16_t sel) {
     asm volatile ("ltr %0" :: "r" (sel));
