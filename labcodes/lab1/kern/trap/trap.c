@@ -57,6 +57,8 @@ idt_init(void) {
             SETGATE(idt[i], 1, GD_KTEXT, __vectors[i], 3);
         }
     }
+    SETGATE(idt[T_SWITCH_TOK], 1, GD_KTEXT, __vectors[T_SWITCH_TOK], 3);
+    SETGATE(idt[T_SWITCH_TOU], 1, GD_KTEXT, __vectors[T_SWITCH_TOU], 0);
     // 为中断寄存器赋值
     lidt(&idt_pd);
 }
@@ -151,6 +153,7 @@ print_regs(struct pushregs *regs) {
 static void
 trap_dispatch(struct trapframe *tf) {
     char c;
+    struct trapframe save;
     switch (tf->tf_trapno) {
     case IRQ_OFFSET + IRQ_TIMER:
         /* LAB1 YOUR CODE : STEP 3 */
@@ -160,7 +163,8 @@ trap_dispatch(struct trapframe *tf) {
          * (3) Too Simple? Yes, I think so!
          */
         ++ticks;
-        print_ticks();
+        if (ticks % TICK_NUM == 0)
+            print_ticks();
         break;
     case IRQ_OFFSET + IRQ_COM1:
         c = cons_getc();
@@ -169,11 +173,55 @@ trap_dispatch(struct trapframe *tf) {
     case IRQ_OFFSET + IRQ_KBD:
         c = cons_getc();
         cprintf("kbd [%03d] %c\n", c, c);
+
+        if (c == '0'){
+            if (tf->tf_cs != USER_CS){
+                save = *tf;
+                save.tf_cs = USER_CS;
+                save.tf_ds = USER_DS;
+                save.tf_es = USER_DS;
+                save.tf_ss = USER_DS;
+                save.tf_esp = (uint32_t)(tf) + sizeof(struct trapframe) - 8;
+                save.tf_eflags |= FL_IOPL_MASK;
+                *((uint32_t *)tf - 1) = (uint32_t)&save;
+            }
+        }else if (c == '3'){
+            if (tf->tf_cs != KERNEL_CS){
+                tf->tf_cs = KERNEL_CS;
+                tf->tf_ds = tf->tf_es = KERNEL_DS;
+                tf->tf_eflags &= ~FL_IOPL_MASK;
+
+                struct trapframe *now = (struct trapframe *)tf->tf_esp - 1;
+                __memmove(now, tf, sizeof(struct trapframe) - 8);
+                *((uint32_t *)tf - 1) = (uint32_t) now;
+            }
+        }
         break;
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
     case T_SWITCH_TOU:
+    //    cprintf("in user mode %d, %d\n", tf->tf_cs, USER_CS);
+        if (tf->tf_cs != USER_CS){
+            save = *tf;
+            save.tf_cs = USER_CS;
+            save.tf_ds = USER_DS;
+            save.tf_es = USER_DS;
+            save.tf_ss = USER_DS;
+            save.tf_esp = (uint32_t)(tf) + sizeof(struct trapframe) - 8;
+            save.tf_eflags |= FL_IOPL_MASK;
+            *((uint32_t *)tf - 1) = (uint32_t)&save;
+        }
+        break;
     case T_SWITCH_TOK:
-        panic("T_SWITCH_** ??\n");
+    //    cprintf("in kernel mode %d, %d\n", tf->tf_cs, KERNEL_CS);
+        if (tf->tf_cs != KERNEL_CS){
+            tf->tf_cs = KERNEL_CS;
+            tf->tf_ds = tf->tf_es = KERNEL_DS;
+            tf->tf_eflags &= ~FL_IOPL_MASK;
+
+            struct trapframe *now = (struct trapframe *)tf->tf_esp - 1;
+            __memmove(now, tf, sizeof(struct trapframe) - 8);
+            *((uint32_t *)tf - 1) = (uint32_t) now;
+        }
         break;
     case IRQ_OFFSET + IRQ_IDE1:
     case IRQ_OFFSET + IRQ_IDE2:
