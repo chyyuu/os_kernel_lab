@@ -46,6 +46,21 @@ idt_init(void) {
       *     You don't know the meaning of this instruction? just google it! and check the libs/x86.h to know more.
       *     Notice: the argument of lidt is idt_pd. try to find it!
       */
+    extern uintptr_t __vectors[];       // 声明 trapentry.S中的vector数组
+    for (int i = 0;i < 256;i++){
+        if (i != T_SYSCALL){
+            // 对于不是 SYSCALL的函数，是一个Interrupt,并且终端发生后依然
+            // 运行与于用户态
+            SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], 0);
+        }else{
+            // 对于SYSCALL函数，是一个Trap，中断后转到内核态进行处理
+            SETGATE(idt[i], 1, GD_KTEXT, __vectors[i], 3);
+        }
+    }
+    SETGATE(idt[T_SWITCH_TOK], 1, GD_KTEXT, __vectors[T_SWITCH_TOK], 3);
+    SETGATE(idt[T_SWITCH_TOU], 1, GD_KTEXT, __vectors[T_SWITCH_TOU], 0);
+    // 为中断寄存器赋值
+    lidt(&idt_pd);
 }
 
 static const char *
@@ -147,6 +162,9 @@ trap_dispatch(struct trapframe *tf) {
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
+        ++ticks;
+        if (ticks % TICK_NUM == 0)
+            print_ticks();
         break;
     case IRQ_OFFSET + IRQ_COM1:
         c = cons_getc();
