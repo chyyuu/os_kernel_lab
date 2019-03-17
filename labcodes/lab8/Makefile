@@ -58,7 +58,7 @@ else
 HOSTCC		:= clang
 HOSTCFLAGS	:= -g -Wall -O2
 CC		:= clang
-CFLAGS	:= -march=i686 -fno-builtin -fno-PIC -Wall -g -m32 -mno-sse -nostdinc $(DEFS)
+CFLAGS	:= -march=i686 -fno-builtin -fno-PIC -Wall -g -m32 -nostdinc $(DEFS)
 CFLAGS	+= $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 endif
 
