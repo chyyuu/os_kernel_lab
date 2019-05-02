@@ -36,4 +36,6 @@ switch_to:
     LOAD s10, 12*REGBYTES(a1)
     LOAD s11, 13*REGBYTES(a1)
 
+    fence.i
+
     ret

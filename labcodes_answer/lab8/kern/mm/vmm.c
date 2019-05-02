@@ -346,6 +346,7 @@ static void check_pgfault(void) {
     page_remove(pgdir, ROUNDDOWN(addr, PGSIZE));
     free_page(pde2page(pgdir[0]));
     pgdir[0] = 0;
+    tlb_invalidate(0, 0x100);
 
     mm->pgdir = NULL;
     mm_destroy(mm);

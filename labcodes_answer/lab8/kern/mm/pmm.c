@@ -152,10 +152,10 @@ static void enable_paging(void) {
     // set page table
 #ifdef RV_PRIV_SPEC_1_9
     write_csr(satp, (boot_cr3 >> RISCV_PGSHIFT));
-    set_csr(mstatus, (9<<24)); // Sv39
 #else
 	write_csr(satp, (0x8000000000000000) | (boot_cr3 >> RISCV_PGSHIFT));
 #endif
+    flush_tlb();
 }
 
 // boot_map_segment - setup&enable the paging mechanism
@@ -613,6 +613,7 @@ static void check_boot_pgdir(void) {
     free_page(p);
     free_page(pde2page(boot_pgdir[0]));
     boot_pgdir[0] = 0;
+    tlb_invalidate(0, 0x100);
 
     cprintf("check_boot_pgdir() succeeded!\n");
 }

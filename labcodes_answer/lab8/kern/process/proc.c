@@ -237,6 +237,7 @@ proc_run(struct proc_struct *proc) {
         {
             current = proc;
             lcr3(next->cr3);
+            flush_tlb();
             switch_to(&(prev->context), &(next->context));
         }
         local_intr_restore(intr_flag);
