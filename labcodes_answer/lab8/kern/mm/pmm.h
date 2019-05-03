@@ -136,7 +136,13 @@ static inline int page_ref_dec(struct Page *page) {
     return page->ref;
 }
 
-static inline void flush_tlb() { asm volatile("sfence.vm"); }
+static inline void flush_tlb() {
+#ifdef RV_PRIV_SPEC_1_9
+    asm volatile("sfence.vm");
+#else
+    asm volatile("sfence.vma");
+#endif
+}
 
 // construct PTE from a page and permission bits
 static inline pte_t pte_create(uintptr_t ppn, int type) {

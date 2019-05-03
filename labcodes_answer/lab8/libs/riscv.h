@@ -244,7 +244,11 @@
 
 static inline void
 lcr3(unsigned long cr3) {
+#ifdef RV_PRIV_SPEC_1_9
+    write_csr(satp, (cr3 >> RISCV_PGSHIFT));
+#else
     write_csr(satp, 0x8000000000000000 | (cr3 >> RISCV_PGSHIFT));
+#endif
 }
 
 #endif

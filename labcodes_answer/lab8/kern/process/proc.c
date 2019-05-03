@@ -237,6 +237,7 @@ proc_run(struct proc_struct *proc) {
         {
             current = proc;
             lcr3(next->cr3);
+            flush_tlb();
             switch_to(&(prev->context), &(next->context));
         }
         local_intr_restore(intr_flag);
@@ -386,7 +387,7 @@ copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapframe *tf) {
 
     // Set a0 to 0 so a child process knows it's just forked
     proc->tf->gpr.a0 = 0;
-    proc->tf->gpr.sp = (esp == 0) ? (uintptr_t)proc->tf - 4 : esp;
+    proc->tf->gpr.sp = (esp == 0) ? (uintptr_t)proc->tf - sizeof(uintptr_t) : esp;
 
     proc->context.ra = (uintptr_t)forkret;
     proc->context.sp = (uintptr_t)(proc->tf);

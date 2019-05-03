@@ -150,7 +150,12 @@ static void page_init(void) {
 
 static void enable_paging(void) {
     // set page table
+#ifdef RV_PRIV_SPEC_1_9
+    write_csr(satp, (boot_cr3 >> RISCV_PGSHIFT));
+#else
 	write_csr(satp, (0x8000000000000000) | (boot_cr3 >> RISCV_PGSHIFT));
+#endif
+    flush_tlb();
 }
 
 // boot_map_segment - setup&enable the paging mechanism
@@ -484,7 +489,11 @@ int page_insert(pde_t *pgdir, struct Page *page, uintptr_t la, uint32_t perm) {
 // invalidate a TLB entry, but only if the page tables being
 // edited are the ones currently in use by the processor.
 void tlb_invalidate(pde_t *pgdir, uintptr_t la) {
+#ifdef RV_PRIV_SPEC_1_9
+    asm volatile("sfence.vm %0" : : "r"(la));
+#else
     asm volatile("sfence.vma %0" : : "r"(la));
+#endif
 }
 
 // pgdir_alloc_page - call alloc_page & page_insert functions to
@@ -604,6 +613,7 @@ static void check_boot_pgdir(void) {
     free_page(p);
     free_page(pde2page(boot_pgdir[0]));
     boot_pgdir[0] = 0;
+    tlb_invalidate(0, 0x100);
 
     cprintf("check_boot_pgdir() succeeded!\n");
 }
