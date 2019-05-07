@@ -61,7 +61,7 @@ endif
 CTYPE	:= c S
 
 LD      := $(GCCPREFIX)ld
-LDFLAGS	:= -m $(shell $(LD) -V | grep elf_i386 2>/dev/null)
+LDFLAGS	:= -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
 LDFLAGS	+= -nostdlib
 
 OBJCOPY := $(GCCPREFIX)objcopy
