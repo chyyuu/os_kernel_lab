@@ -18,8 +18,8 @@ swapfs_init(void) {
         panic("swap fs isn't available.\n");
     }
     max_swap_offset = ide_device_size(SWAP_DEV_NO) / (PGSIZE / SECTSIZE);
-    swapfs_bitmap = kmalloc(max_swap_offset / 8);
-    memset(swapfs_bitmap, 0, max_swap_offset / 8);
+    swapfs_bitmap = kmalloc((max_swap_offset + 7) / 8);
+    memset(swapfs_bitmap, 0, (max_swap_offset + 7) / 8);
     swapfs_nr_free = max_swap_offset - 1; // entry 0 is not available
 }
 
