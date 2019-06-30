@@ -102,14 +102,16 @@ swap_out(struct mm_struct *mm, int n, int in_tick)
           pte_t *ptep = get_pte(mm->pgdir, v, 0);
           assert((*ptep & PTE_P) != 0);
 
-          if (swapfs_write( (page->pra_vaddr/PGSIZE+1)<<8, page) != 0) {
+          swap_entry_t entry = swapfs_alloc_entry();
+
+          if (swapfs_write(entry, page) != 0) {
                     cprintf("SWAP: failed to save\n");
                     sm->map_swappable(mm, v, page, 0);
                     continue;
           }
           else {
-                    cprintf("swap_out: i %d, store page in vaddr 0x%x to disk swap entry %d\n", i, v, page->pra_vaddr/PGSIZE+1);
-                    *ptep = (page->pra_vaddr/PGSIZE+1)<<8;
+                    cprintf("swap_out: i %d, store page in vaddr 0x%x to disk swap entry %d\n", i, v, swap_offset(entry));
+                    *ptep = entry;
                     free_page(page);
           }
           
@@ -134,6 +136,7 @@ swap_in(struct mm_struct *mm, uintptr_t addr, struct Page **ptr_result)
      }
      cprintf("swap_in: load disk swap entry %d with swap_page in vadr 0x%x\n", (*ptep)>>8, addr);
      *ptr_result=result;
+     swapfs_free_entry(*ptep);
      return 0;
 }
 
@@ -262,12 +265,9 @@ check_swap(void)
      } 
 
      //free_page(pte2page(*temp_ptep));
-    free_page(pde2page(pgdir[0]));
-     pgdir[0] = 0;
-     mm->pgdir = NULL;
-     mm_destroy(mm);
-     check_mm_struct = NULL;
      
+     mm_destroy(mm);
+         
      nr_free = nr_free_store;
      free_list = free_list_store;
 
