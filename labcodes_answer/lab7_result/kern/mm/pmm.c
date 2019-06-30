@@ -11,6 +11,7 @@
 #include <swap.h>
 #include <vmm.h>
 #include <kmalloc.h>
+#include <proc.h>
 
 /* *
  * Task State Segment:
@@ -587,6 +588,7 @@ tlb_invalidate(pde_t *pgdir, uintptr_t la) {
 struct Page *
 pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {
     struct Page *page = alloc_page();
+    extern struct proc_struct *current;
     if (page != NULL) {
         if (page_insert(pgdir, page, la, perm) != 0) {
             free_page(page);
@@ -599,10 +601,10 @@ pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {
                 assert(page_ref(page) == 1);
                 //cprintf("get No. %d  page: pra_vaddr %x, pra_link.prev %x, pra_link_next %x in pgdir_alloc_page\n", (page-pages), page->pra_vaddr,page->pra_page_link.prev, page->pra_page_link.next);
             } 
-            else  {  //now current is existed, should fix it in the future
-                //swap_map_swappable(current->mm, la, page, 0);
-                //page->pra_vaddr=la;
-                //assert(page_ref(page) == 1);
+            else if (current->mm) {  //now current is existed, should fix it in the future
+                swap_map_swappable(current->mm, la, page, 0);
+                page->pra_vaddr=la;
+                assert(page_ref(page) == 1);
                 //panic("pgdir_alloc_page: no pages. now current is existed, should fix it in the future\n");
             }
         }
