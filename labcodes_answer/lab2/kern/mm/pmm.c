@@ -373,7 +373,7 @@ int page_insert(pde_t *pgdir, struct Page *page, uintptr_t la, uint32_t perm) {
 // invalidate a TLB entry, but only if the page tables being
 // edited are the ones currently in use by the processor.
 void tlb_invalidate(pde_t *pgdir, uintptr_t la) {
-    asm volatile("sfence.vm %0" : : "r"(la));
+    asm volatile("sfence.vma %0" : : "r"(la));
 }
 
 static void check_alloc_page(void) {

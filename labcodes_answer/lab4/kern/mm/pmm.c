@@ -384,7 +384,7 @@ int page_insert(pde_t *pgdir, struct Page *page, uintptr_t la, uint32_t perm) {
 void tlb_invalidate(pde_t *pgdir, uintptr_t la) {
     // flush_tlb();
     // The flush_tlb flush the entire TLB, is there any better way?
-    asm volatile("sfence.vm %0" : : "r"(la));
+    asm volatile("sfence.vma %0" : : "r"(la));
 }
 
 // pgdir_alloc_page - call alloc_page & page_insert functions to

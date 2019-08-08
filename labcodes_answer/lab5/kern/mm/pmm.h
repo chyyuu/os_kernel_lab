@@ -146,7 +146,7 @@ page_ref_dec(struct Page *page) {
 }
 
 static inline void flush_tlb() {
-  asm volatile("sfence.vm");
+  asm volatile("sfence.vma");
 }
 
 // construct PTE from a page and permission bits
