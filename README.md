@@ -1,54 +1,49 @@
 # uCore for riscv64 : uCore OS Labs on RISCV-64 (privileged spec 1.10)
 
-ucore for riscv64 is a porting of [ucore_os_lab](https://github.com/chyyuu/ucore_os_lab.git) to RISC-V architecture (privileged spec 1.10). It's built on top of the Berkeley Boot Loader, [`bbl`](https://github.com/riscv/riscv-pk.git), a supervisor execution environment for RISC-V systems.
+ucore for riscv64 is a porting of [ucore_os_lab](https://github.com/chyyuu/ucore_os_lab.git) to RISC-V architecture (privileged spec 1.10). It's built on top of the [OpenSBI](https://github.com/riscv/opensbi), a supervisor execution environment for RISC-V systems.
 
-**关于移植的更多细节，请看 dosc/ucore_rv64_porting.md **
+**关于移植的更多细节，请看 `docs/ucore_rv64_porting.md`**
 
 # Quickstart
 
-## Installing riscv-tools
+## Install toolchains
 
-You'll need a forked verison of [riscv-tools](https://github.com/riscv/riscv-tools) to build the toolchain for RV64. Excute the following commands to get started quickly. (tested in ubuntu 16.04 x86-64)
+### 1. GCC
 
-### 0. setenv
+Install prebuilt RISC‑V
+GCC Toolchain from SiFive:
+* [Ubuntu](https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14.tar.gz)
+* [macOS](https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-apple-darwin.tar.gz)
+
 ```bash
 $ export RISCV=/path/to/install/riscv/toolchain
 $ export PATH=$RISCV/bin:$PATH
 ```
 
-### 1. build gcc/gdb tools (64bit) 
-```bash
-$ sudo apt-get install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev
-$ git clone https://github.com/riscv/riscv-tools.git
-$ cd riscv-tools
-$ git submodule update --init --recursive
-$ ./build.sh
-# 编译完成后，确保gcc版本为7.2.0
-$ cd ..
-```
+### 2. QEMU
 
-### 2. build qemu (64bit)
+Linux: build from source
 
 ```shell
-$ sudo apt install libgtk-3-dev
-$ sudo apt install libsdl2-dev
-$ cd riscv-tools/riscv-gnu-toolchain/riscv-qemu
+$ sudo apt install libgtk-3-dev libsdl2-dev
+$ wget https://download.qemu.org/qemu-4.0.0.tar.xz 
+$ tar xJf qemu-4.0.0.tar.xz > /dev/null
+$ cd qemu-4.0.0
 $ ./configure --target-list=riscv64-softmmu
 $ make
 $ cp riscv64-softmmu/qemu-system-riscv64 $RISCV/bin
 ```
 
-
-
-See [Installation Manual](https://github.com/ring00/riscv-tools#the-risc-v-gcc-toolchain-installation-manual) for details.
+macOS: install from Homebrew
+```shell
+$ brew install qemu
+```
 
 ## Building ucore
 
 ```bash
-$ git clone -b riscv64-priv-1.10 --single-branch  https://gitee.com/shzhxh/ucore_os_lab.git
+$ git clone -b riscv64-priv-1.10 --single-branch  https://github.com/chyyuu/ucore_os_lab
 ```
-
-### 1. build ucore (64bit)
 
 To build all projects at once, run the following commands
 
@@ -56,8 +51,6 @@ To build all projects at once, run the following commands
 $ cd labcodes_answer
 $ ./gccbuildall.sh
 ```
-
-
 
 # Labs info
 
