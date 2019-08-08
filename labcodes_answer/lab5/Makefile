@@ -7,7 +7,7 @@ V       := @
 
 # try to infer the correct GCCPREFX
 ifndef GCCPREFIX
-GCCPREFIX := riscv32-unknown-elf-
+GCCPREFIX := riscv64-unknown-elf-
 endif
 
 # try to infer the correct QEMU
@@ -18,6 +18,8 @@ endif
 ifndef SPIKE
 SPIKE := spike
 endif
+
+OPENSBI := ../../opensbi/fw_jump.elf
 
 # eliminate default suffix rules
 .SUFFIXES: .c .S .h
@@ -33,7 +35,8 @@ HOSTCFLAGS	:= -Wall -O2
 GDB		:= $(GCCPREFIX)gdb
 
 CC		:= $(GCCPREFIX)gcc
-CFLAGS  := -mcmodel=medany -O2 -std=gnu99 -Wno-unused
+CFLAGS  := -march=rv32ima -mabi=ilp32
+CFLAGS  += -mcmodel=medany -O2 -std=gnu99 -Wno-unused
 CFLAGS	+= -fno-builtin -Wall -nostdinc $(DEFS)
 CFLAGS	+= -fno-stack-protector -ffunction-sections -fdata-sections
 CTYPE	:= c S
@@ -168,7 +171,7 @@ $(kernel): tools/kernel.ld
 
 $(kernel): $(KOBJS) $(USER_BINS)
 	@echo + ld $@
-	$(V)$(LD) $(LDFLAGS) -T tools/kernel.ld -o $@ $(KOBJS) --format=binary $(USER_BINS) --format=default
+	$(V)$(LD) $(LDFLAGS) -T tools/kernel.ld -o $@ $(KOBJS) --format=binary $(USER_BINS) --format=elf32-littleriscv
 	@$(OBJDUMP) -S $@ > $(call asmfile,kernel)
 	@$(OBJDUMP) -t $@ | $(SED) '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(call symfile,kernel)
 
@@ -180,7 +183,7 @@ $(call create_target,kernel)
 UCOREIMG	:= $(call totarget,ucore.img)
 
 $(UCOREIMG): $(kernel)
-	cd ../../riscv-pk && rm -rf build && mkdir build && cd build && ../configure --prefix=$(RISCV) --host=riscv32-unknown-elf --with-payload=../../labcodes_answer/$(PROJ)/$(kernel) --disable-fp-emulation --enable-logo && make && cp bbl ../../labcodes_answer/$(PROJ)/$(UCOREIMG)
+	$(OBJCOPY) $(kernel) --strip-all -O binary $@
 
 $(call create_target,ucore.img)
 
@@ -210,8 +213,12 @@ TARGETS: $(TARGETS)
 QEMUOPTS = -hda $(UCOREIMG) -drive file=$(SWAPIMG),media=disk,cache=writeback
 
 .PHONY: qemu spike
-qemu: $(UCOREIMG)
-	$(V)$(QEMU) -machine virt -kernel $(UCOREIMG) -nographic
+qemu: $(UCOREIMG) $(SWAPIMG) $(SFSIMG) $(OPENSBI)
+	$(V)$(QEMU) \
+		-machine virt \
+		-kernel $(OPENSBI) \
+		-device loader,addr=0x80400000,file=$(UCOREIMG) \
+		-nographic
 
 spike: $(UCOREIMG)
 	$(V)$(SPIKE) $(UCOREIMG)

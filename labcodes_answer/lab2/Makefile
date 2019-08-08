@@ -6,7 +6,7 @@ SLASH	:= /
 V       := @
 
 ifndef GCCPREFIX
-GCCPREFIX := riscv32-unknown-elf-
+GCCPREFIX := riscv64-unknown-elf-
 endif
 
 ifndef QEMU
@@ -17,6 +17,8 @@ ifndef SPIKE
 SPIKE := spike
 endif
 
+OPENSBI := ../../opensbi/fw_jump.elf
+
 # eliminate default suffix rules
 .SUFFIXES: .c .S .h
 
@@ -24,14 +26,14 @@ endif
 .DELETE_ON_ERROR:
 
 # define compiler and flags
-# define compiler and flags
 HOSTCC		:= gcc
 HOSTCFLAGS	:= -Wall -O2
 
 GDB		:= $(GCCPREFIX)gdb
 
 CC		:= $(GCCPREFIX)gcc
-CFLAGS  := -mcmodel=medany -std=gnu99 -Wno-unused
+CFLAGS  := -march=rv32ima -mabi=ilp32
+CFLAGS  += -mcmodel=medany -std=gnu99 -Wno-unused -Werror
 CFLAGS	+= -fno-builtin -Wall -O2 -nostdinc $(DEFS)
 CFLAGS	+= -fno-stack-protector -ffunction-sections -fdata-sections
 CTYPE	:= c S
@@ -134,7 +136,7 @@ $(call create_target,kernel)
 UCOREIMG	:= $(call totarget,ucore.img)
 
 $(UCOREIMG): $(kernel)
-	cd ../../riscv-pk && rm -rf build && mkdir build && cd build && ../configure --prefix=$(RISCV) --host=riscv32-unknown-elf --with-payload=../../labcodes_answer/$(PROJ)/$(kernel) --disable-fp-emulation --enable-log && make && cp bbl ../../labcodes_answer/$(PROJ)/$(UCOREIMG)
+	$(OBJCOPY) $(kernel) --strip-all -O binary $@
 
 $(call create_target,ucore.img)
 
@@ -160,8 +162,12 @@ TARGETS: $(TARGETS)
 .DEFAULT_GOAL := TARGETS
 
 .PHONY: qemu spike
-qemu: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
-	$(V)$(QEMU) -machine virt -kernel $(UCOREIMG) -nographic
+qemu: $(UCOREIMG) $(SWAPIMG) $(SFSIMG) $(OPENSBI)
+	$(V)$(QEMU) \
+		-machine virt \
+		-kernel $(OPENSBI) \
+		-device loader,addr=0x80400000,file=$(UCOREIMG) \
+		-nographic
 
 spike: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
 	$(V)$(SPIKE) $(UCOREIMG)
