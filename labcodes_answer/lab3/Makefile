@@ -17,6 +17,8 @@ ifndef SPIKE
 SPIKE := spike
 endif
 
+OPENSBI := ../../opensbi/fw_jump.elf
+
 # eliminate default suffix rules
 .SUFFIXES: .c .S .h
 
@@ -132,7 +134,7 @@ $(call create_target,kernel)
 UCOREIMG	:= $(call totarget,ucore.img)
 
 $(UCOREIMG): $(kernel)
-	cd ../../riscv-pk && rm -rf build && mkdir build && cd build && ../configure --prefix=$(RISCV) --host=riscv64-unknown-elf --with-payload=../../labcodes_answer/$(PROJ)/$(kernel) --disable-fp-emulation --enable-logo && make && cp bbl ../../labcodes_answer/$(PROJ)/$(UCOREIMG)
+	$(OBJCOPY) $(kernel) --strip-all -O binary $@
 
 $(call create_target,ucore.img)
 
@@ -158,8 +160,12 @@ TARGETS: $(TARGETS)
 .DEFAULT_GOAL := TARGETS
 
 .PHONY: qemu spike
-qemu: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
-	$(V)$(QEMU) -machine virt -kernel $(UCOREIMG) -nographic
+qemu: $(UCOREIMG) $(SWAPIMG) $(SFSIMG) $(OPENSBI)
+	$(V)$(QEMU) \
+		-machine virt \
+		-kernel $(OPENSBI) \
+		-device loader,addr=0x80200000,file=$(UCOREIMG) \
+		-nographic
 
 spike: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
 	$(V)$(SPIKE) $(UCOREIMG)
