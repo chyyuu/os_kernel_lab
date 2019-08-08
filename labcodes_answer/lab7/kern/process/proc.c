@@ -809,17 +809,23 @@ do_kill(int pid) {
 static int
 kernel_execve(const char *name, unsigned char *binary, size_t size) {
     int ret, len = strlen(name);
+    // OpenSBI will not delegate Supervisor Ecall to S-Mode
+    // So we have to simulate a trap
+    write_csr(sstatus, read_csr(sstatus) | SSTATUS_SPP);    // sstatus.SPP = S-Mode
+    write_csr(scause, CAUSE_SUPERVISOR_ECALL);              // scause = SupervisorEcall
     asm volatile(
-        "li a0, %1\n"
-        "lw a1, %2\n"
-        "lw a2, %3\n"
-        "lw a3, %4\n"
-        "lw a4, %5\n"
-        "li a7, 10\n"
-        "ecall\n"
-        "sw a0, %0"
-        : "=m"(ret)
-        : "i"(SYS_exec), "m"(name), "m"(len), "m"(binary), "m"(size)
+        "la a0, 1f\n"
+        "csrw sepc, a0\n"   // sepc = address of 'ecall' instruction
+        "li a0, %1\n"       // a0 = syscall number
+        "mv a1, %2\n"       // a1 = arg0
+        "mv a2, %3\n"       // a2 = arg1
+        "mv a3, %4\n"       // a3 = arg2
+        "mv a4, %5\n"       // a4 = arg3
+        "1:\n"
+        "j __alltraps\n"    // 'ecall'
+        "mv %0, a0"         // ret = a0
+        : "=r"(ret)
+        : "i"(SYS_exec), "r"(name), "r"(len), "r"(binary), "r"(size)
         : "memory");
     return ret;
 }
