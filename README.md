@@ -4,6 +4,7 @@ ucore os labs was used as OS Experiments in OS Course Of Dept. of Computer Scien
 
 NEWS
 ====
+- 2019.09.11: [OS Trainning Course Autumn Semester](http://os.cs.tsinghua.edu.cn/oscourse/OsTrain2019)
 - 2019.07.07: [Tutorial of rCore Summer of Code](https://github.com/rcore-os/rCore/wiki/tutorial)
 - 2019.03.01: [step_by_step rcore os labs from scratch](https://github.com/LearningOS/rcore_step_by_step) is in progress. Thanks Qingling Pan, Fengyuan Liu's great work!
 - 2019.01.19: [rcore os labs(pre-alpha version)](https://github.com/oscourse-tsinghua/rcore_plus/tree/lab8-rv32) on RISC-V(32bit) were released. Thanks Runji Wang, Wei Zhang, Zhenyang Dai, Jiajie Chen, Yuekai Jia, Cheng Lu...'s great work!
