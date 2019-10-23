@@ -398,7 +398,7 @@ copy_fs(uint32_t clone_flags, struct proc_struct *proc) {
         goto bad_files_struct;
     }
 
-    if ((ret = dup_fs(filesp, old_filesp)) != 0) {
+    if ((ret = dup_files(filesp, old_filesp)) != 0) {
         goto bad_dup_cleanup_fs;
     }
 

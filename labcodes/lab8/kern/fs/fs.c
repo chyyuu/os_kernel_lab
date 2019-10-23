@@ -79,7 +79,7 @@ files_closeall(struct files_struct *filesp) {
 
 int
 dup_files(struct files_struct *to, struct files_struct *from) {
-//    cprintf("[dup_fs]\n");
+//    cprintf("[dup_files]\n");
     assert(to != NULL && from != NULL);
     assert(files_count(to) == 0 && files_count(from) > 0);
     if ((to->pwd = from->pwd) != NULL) {
