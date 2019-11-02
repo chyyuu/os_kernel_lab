@@ -450,7 +450,7 @@ add_entry(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inode *f
     assert(current->inode.type == SFS_TYPE_DIR && strlen(name) <= SFS_MAX_FNAME_LEN);
     entry->ino = file->ino, strcpy(entry->name, name);
     uint32_t entry_ino = sfs_alloc_ino(sfs);
-    write_block(sfs, entry, sizeof(entry->name), entry_ino);
+    write_block(sfs, entry, sizeof(struct sfs_entry), entry_ino);
     append_block(sfs, current, sizeof(entry->name), entry_ino, name);
     file->inode.nlinks ++;
 }
