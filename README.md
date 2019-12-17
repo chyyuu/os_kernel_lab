@@ -6,6 +6,7 @@ ucore os labs was used as OS Experiments in OS Course Of Dept. of Computer Scien
 
 NEWS
 ====
+- 2019.12.15: [OS Design/Impl Tutorial on OS2ATC 2019](https://github.com/rcore-os/rCore/wiki/os-tutorial-os2atc)
 - 2019.09.11: [OS Trainning Course Autumn Semester](http://os.cs.tsinghua.edu.cn/oscourse/OsTrain2019)
 - 2019.07.07: [Tutorial of rCore Summer of Code](https://github.com/rcore-os/rCore/wiki/tutorial)
 - 2019.03.01: [step_by_step rcore os labs from scratch](https://github.com/LearningOS/rcore_step_by_step) is in progress. Thanks Qingling Pan, Fengyuan Liu's great work!
