@@ -6,6 +6,8 @@ ucore os labs was used as OS Experiments in OS Course Of Dept. of Computer Scien
 
 NEWS
 ====
+- 2020.01.10: [Playground of Learning RUST by Example](https://www.shiyanlou.com/courses/1499)
+- 2020.01.10: [Playground of Learning OS in RUST, Verification Code: wfkblCQp ](https://www.shiyanlou.com/courses/1481)
 - 2019.12.15: [OS Design/Impl Tutorial on OS2ATC 2019](https://github.com/rcore-os/rCore/wiki/os-tutorial-os2atc)
 - 2019.09.11: [OS Trainning Course Autumn Semester](http://os.cs.tsinghua.edu.cn/oscourse/OsTrain2019)
 - 2019.07.07: [Tutorial of rCore Summer of Code](https://github.com/rcore-os/rCore/wiki/tutorial)
