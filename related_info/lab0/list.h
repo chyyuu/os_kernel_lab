@@ -3,7 +3,7 @@
 
 #ifndef __ASSEMBLER__
 
-#include <defs.h>
+#include "defs.h"
 
 /* *
  * Simple doubly linked list implementation.

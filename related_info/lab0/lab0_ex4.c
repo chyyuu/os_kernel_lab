@@ -3,7 +3,6 @@
 #include "list.h"
 
 struct entry {
-
     list_entry_t node;
     int num;
 };
