@@ -6,7 +6,13 @@ SLASH	:= /
 V       := @
 #need llvm/cang-3.5+
 #USELLVM := 1
+
 # try to infer the correct GCCPREFX
+# 找到gcc编译前缀，下面脚本的意思是：
+# 如果有命令i386-elf-objdump，就输出i386-elf-
+# 如果有objdump，就输出空格
+# 否则输出错误信息
+# 注意 2>&1的含义以及/dev/null
 ifndef GCCPREFIX
 GCCPREFIX := $(shell if i386-elf-objdump -i 2>&1 | grep '^elf32-i386$$' >/dev/null 2>&1; \
 	then echo 'i386-elf-'; \
@@ -23,6 +29,7 @@ GCCPREFIX := $(shell if i386-elf-objdump -i 2>&1 | grep '^elf32-i386$$' >/dev/nu
 endif
 
 # try to infer the correct QEMU
+# 找到系统中合适的qemu版本
 ifndef QEMU
 QEMU := $(shell if which qemu-system-i386 > /dev/null; \
 	then echo 'qemu-system-i386'; exit; \
@@ -38,12 +45,14 @@ QEMU := $(shell if which qemu-system-i386 > /dev/null; \
 endif
 
 # eliminate default suffix rules
+# 排除文件格式
 .SUFFIXES: .c .S .h
 
 # delete target files if there is an error (or make is interrupted)
 .DELETE_ON_ERROR:
 
 # define compiler and flags
+# 如果不适用LLVM，则用gcc，否则编译器是clang
 ifndef  USELLVM
 HOSTCC		:= gcc
 HOSTCFLAGS	:= -g -Wall -O2
@@ -60,6 +69,7 @@ endif
 
 CTYPE	:= c S
 
+# 连接器ld相关配置
 LD      := $(GCCPREFIX)ld
 LDFLAGS	:= -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
 LDFLAGS	+= -nostdlib
@@ -67,6 +77,7 @@ LDFLAGS	+= -nostdlib
 OBJCOPY := $(GCCPREFIX)objcopy
 OBJDUMP := $(GCCPREFIX)objdump
 
+# 一些命令配置
 COPY	:= cp
 MKDIR   := mkdir -p
 MV		:= mv
@@ -84,6 +95,7 @@ ALLOBJS	:=
 ALLDEPS	:=
 TARGETS	:=
 
+# 包含其它makefile配置文件
 include tools/function.mk
 
 listf_cc = $(call listf,$(1),$(CTYPE))
@@ -96,6 +108,7 @@ create_target_cc = $(call create_target,$(1),$(2),$(3),$(CC),$(CFLAGS))
 add_files_host = $(call add_files,$(1),$(HOSTCC),$(HOSTCFLAGS),$(2),$(3))
 create_target_host = $(call create_target,$(1),$(2),$(3),$(HOSTCC),$(HOSTCFLAGS))
 
+# %.什么意思？
 cgtype = $(patsubst %.$(2),%.$(3),$(1))
 objfile = $(call toobj,$(1))
 asmfile = $(call cgtype,$(call toobj,$(1)),o,asm)
@@ -135,13 +148,17 @@ KCFLAGS		+= $(addprefix -I,$(KINCLUDE))
 
 $(call add_files_cc,$(call listf_cc,$(KSRCDIR)),kernel,$(KCFLAGS))
 
+# read_packet定义在function.mk中了
 KOBJS	= $(call read_packet,kernel libs)
 
 # create kernel target
+# totarget = $(addprefix $(BINDIR)$(SLASH),$(1))
+# 就是添加前缀，bin/args，kernel为bin/kernel
 kernel = $(call totarget,kernel)
 
 $(kernel): tools/kernel.ld
 
+# $@变量含义　$@ 表示目标文件，$^ 表示所有的依赖文件，$< 表示第一个依赖文件，$? 表示比目标还要新的依赖文件列表。
 $(kernel): $(KOBJS)
 	@echo + ld $@
 	$(V)$(LD) $(LDFLAGS) -T tools/kernel.ld -o $@ $(KOBJS)
@@ -156,6 +173,7 @@ $(call create_target,kernel)
 bootfiles = $(call listf_cc,boot)
 $(foreach f,$(bootfiles),$(call cc_compile,$(f),$(CC),$(CFLAGS) -Os -nostdinc))
 
+# bin/bootblock
 bootblock = $(call totarget,bootblock)
 
 $(bootblock): $(call toobj,$(bootfiles)) | $(call totarget,sign)
@@ -176,8 +194,10 @@ $(call create_target_host,sign,sign)
 # -------------------------------------------------------------------
 
 # create ucore.img
+# create ucore.img by totarget from function.mk
 UCOREIMG	:= $(call totarget,ucore.img)
 
+# 依赖bin/kernel和bin/bootblock
 $(UCOREIMG): $(kernel) $(bootblock)
 	$(V)dd if=/dev/zero of=$@ count=10000
 	$(V)dd if=$(bootblock) of=$@ conv=notrunc
@@ -201,7 +221,8 @@ ifeq ($(call match,$(MAKECMDGOALS),$(IGNORE_ALLDEPS)),0)
 endif
 
 # files for grade script
-
+# 命名变量，经过make -p调试，TARGETS为：
+# bin/kernel bin/bootblock bin/sign bin/ucore.img
 TARGETS: $(TARGETS)
 
 .DEFAULT_GOAL := TARGETS
