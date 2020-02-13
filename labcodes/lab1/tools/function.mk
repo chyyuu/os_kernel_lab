@@ -4,6 +4,7 @@ OBJPREFIX	:= __objs_
 # -------------------- function begin --------------------
 
 # list all files in some directories: (#directories, #types)
+# 列出目录中符文件类型的文件？
 listf = $(filter $(if $(2),$(addprefix %.,$(2)),%),\
 		  $(wildcard $(addsuffix $(SLASH)*,$(1))))
 
@@ -87,6 +88,7 @@ add_objs = $(eval $(call do_add_objs_to_packet,$(1),$(2)))
 # add packets and objs to target (target, #packes, #objs, cc, [, flags])
 create_target = $(eval $(call do_create_target,$(1),$(2),$(3),$(4),$(5)))
 
+# 理解该函数的意思
 read_packet = $(foreach p,$(call packetname,$(1)),$($(p)))
 
 add_dependency = $(eval $(1): $(2))

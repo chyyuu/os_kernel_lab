@@ -95,12 +95,15 @@ ALLOBJS	:=
 ALLDEPS	:=
 TARGETS	:=
 
-# 包含其它makefile配置文件
+# 包含其它makefile配置文件，里面定义了一些帮助函数
 include tools/function.mk
 
+# 调用函数，把函数的返回值当作变量进行赋值
+# listf_cc 为空，这是把函数赋值给变量？
 listf_cc = $(call listf,$(1),$(CTYPE))
 
 # for cc
+# 下面两个变量都为空
 add_files_cc = $(call add_files,$(1),$(CC),$(CFLAGS) $(3),$(2),$(4))
 create_target_cc = $(call create_target,$(1),$(2),$(3),$(CC),$(CFLAGS))
 
@@ -108,7 +111,8 @@ create_target_cc = $(call create_target,$(1),$(2),$(3),$(CC),$(CFLAGS))
 add_files_host = $(call add_files,$(1),$(HOSTCC),$(HOSTCFLAGS),$(2),$(3))
 create_target_host = $(call create_target,$(1),$(2),$(3),$(HOSTCC),$(HOSTCFLAGS))
 
-# %.什么意思？
+# %.是patsubst模式替换函数的模式定义规则
+# 把$(1)中符合模式%.$(2)的内容替换为%.$(3)
 cgtype = $(patsubst %.$(2),%.$(3),$(1))
 objfile = $(call toobj,$(1))
 asmfile = $(call cgtype,$(call toobj,$(1)),o,asm)
@@ -148,7 +152,12 @@ KCFLAGS		+= $(addprefix -I,$(KINCLUDE))
 
 $(call add_files_cc,$(call listf_cc,$(KSRCDIR)),kernel,$(KCFLAGS))
 
-# read_packet定义在function.mk中了
+# read_packet定义在function.mk中了，这里KOBJS为：
+# obj/kern/init/init.o obj/kern/libs/readline.o obj/kern/libs/stdio.o \
+	obj/kern/debug/kdebug.o obj/kern/debug/kmonitor.o obj/kern/debug/panic.o \
+	obj/kern/driver/clock.o obj/kern/driver/console.o obj/kern/driver/intr.o \
+	obj/kern/driver/picirq.o obj/kern/trap/trap.o obj/kern/trap/trapentry.o \
+	obj/kern/trap/vectors.o obj/kern/mm/pmm.o obj/libs/printfmt.o obj/libs/string.o
 KOBJS	= $(call read_packet,kernel libs)
 
 # create kernel target
@@ -156,26 +165,37 @@ KOBJS	= $(call read_packet,kernel libs)
 # 就是添加前缀，bin/args，kernel为bin/kernel
 kernel = $(call totarget,kernel)
 
+# 这行是什么意思？有什么作用？
 $(kernel): tools/kernel.ld
 
 # $@变量含义　$@ 表示目标文件，$^ 表示所有的依赖文件，$< 表示第一个依赖文件，$? 表示比目标还要新的依赖文件列表。
+# 执行下面的命令：
+# 生成汇编代码 包含代码和反汇编内容(-S) objdump -S bin/kernel > obj/kernel.asm
+# 拿到符号表部分的信息，-t表示显示文件的符号表信息 objdump -t bin/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > obj/kernel.sym
+# bin/kernel: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), statically linked, not stripped
 $(kernel): $(KOBJS)
-	@echo + ld $@
+	echo + ld $@
+	# 下面的命令为： @ld -m elf_i386 -nostdlib -T tools/kernel.ld -o bin/kernel obj/kern/init/init.o obj/kern/libs/readline.o obj/kern/libs/stdio.o obj/kern/debug/kdebug.o obj/kern/debug/kmonitor.o obj/kern/debug/panic.o obj/kern/driver/clock.o obj/kern/driver/console.o obj/kern/driver/intr.o obj/kern/driver/picirq.o obj/kern/trap/trap.o obj/kern/trap/trapentry.o obj/kern/trap/vectors.o obj/kern/mm/pmm.o obj/libs/printfmt.o obj/libs/string.o
+	# 将目标文件链接成为可执行文件 -T读取连接器脚本
 	$(V)$(LD) $(LDFLAGS) -T tools/kernel.ld -o $@ $(KOBJS)
 	@$(OBJDUMP) -S $@ > $(call asmfile,kernel)
 	@$(OBJDUMP) -t $@ | $(SED) '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(call symfile,kernel)
 
+# 这行代码什么意思？
 $(call create_target,kernel)
 
 # -------------------------------------------------------------------
 
 # create bootblock
+# bootfiles为boot/bootasm.S boot/bootmain.c
 bootfiles = $(call listf_cc,boot)
+# 下面的作用是创建相关boot文件
 $(foreach f,$(bootfiles),$(call cc_compile,$(f),$(CC),$(CFLAGS) -Os -nostdinc))
 
 # bin/bootblock
 bootblock = $(call totarget,bootblock)
 
+# 依赖的目标是什么意思？
 $(bootblock): $(call toobj,$(bootfiles)) | $(call totarget,sign)
 	@echo + ld $@
 	$(V)$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 $^ -o $(call toobj,bootblock)
@@ -265,7 +285,7 @@ touch:
 	$(V)$(foreach f,$(TOUCH_FILES),$(TOUCH) $(f))
 
 print-%:
-	@echo $($(shell echo $(patsubst print-%,%,$@) | $(TR) [a-z] [A-Z]))
+	echo $($(shell echo $(patsubst print-%,%,$@) | $(TR) [a-z] [A-Z]))
 
 .PHONY: clean dist-clean handin packall tags
 clean:
@@ -288,3 +308,8 @@ tags:
 	$(V)find . -type f -name "*.[chS]" >cscope.files
 	$(V)cscope -bq 
 	$(V)ctags -L cscope.files
+
+# refer to https://coolshell.cn/articles/3790.html
+# used to print value
+%:
+	@echo '$*=$($*)'
