@@ -18,7 +18,6 @@ ifndef SPIKE
 SPIKE := spike
 endif
 
-OPENSBI := ../../opensbi/fw_jump.elf
 
 # eliminate default suffix rules
 .SUFFIXES: .c .S .h
@@ -210,10 +209,10 @@ TARGETS: $(TARGETS)
 QEMUOPTS = -hda $(UCOREIMG) -drive file=$(SWAPIMG),media=disk,cache=writeback
 
 .PHONY: qemu spike
-qemu: $(UCOREIMG) $(SWAPIMG) $(SFSIMG) $(OPENSBI)
+qemu: $(UCOREIMG) $(SWAPIMG) $(SFSIMG)
 	$(V)$(QEMU) \
 		-machine virt \
-		-kernel $(OPENSBI) \
+		-bios default \
 		-device loader,addr=0x80200000,file=$(UCOREIMG) \
 		-nographic
 
