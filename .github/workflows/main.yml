@@ -1,0 +1,24 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Environment
+      run: |
+        if [ `uname` = Linux ]; then 
+          export FILE=riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-linux-ubuntu14;
+        elif [ `uname` = Darwin ]; then 
+          export FILE=riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-apple-darwin;
+        fi
+        wget https://static.dev.sifive.com/dev-tools/$FILE.tar.gz
+        tar xf $FILE.tar.gz
+        export PATH=$PATH:$PWD/$FILE/bin
+    - name: Build
+      run: cd labcodes_answer && bash ./gccbuildall.sh
