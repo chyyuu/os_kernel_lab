@@ -1,5 +1,18 @@
 # rCore 教学实验（开发中）
 
+*（介绍）*
+
+
+
+## 仓库目录
+
+- `docs/`：教学实验指导分实验内容
+- `notes/`：开发日志
+- `SUMMARY.md`：GitBook 目录页
+- `book.json`：GitBook 配置文件
+
+
+
 ## 实验指导
 
 基于 GitBook，目前尚未部署到服务器
