@@ -6,5 +6,13 @@
 # VS Code
 **/.vscode
 
+### GitBook
+# GitBook 部署文件
+_book
+public
+# npm 依赖文件
+node_modules
+
+### rCore
 # Rust 编译文件
 os/target
