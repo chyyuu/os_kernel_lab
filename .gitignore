@@ -1,0 +1,10 @@
+### 环境文件
+# macOS
+.DS_Store
+# JetBrains
+**/.idea
+# VS Code
+**/.vscode
+
+# Rust 编译文件
+os/target
