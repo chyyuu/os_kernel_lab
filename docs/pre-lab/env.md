@@ -6,17 +6,14 @@
   - Rust 软件包管理工具：cargo
   - Rust 编译器：rustc
   - 等等
-- 虚拟机软件：qemu (版本至少为 `4.1.0`)
+- 虚拟机软件：qemu （版本至少支持 RISC-V 64）
 
 具体安装的方法在不同平台上安装方式类似，但也有细微差别，后面会有具体说明。
 
 <!-- TODO: Normal Windows -->
-<!-- TODO: 标题分级规定 -->
 
 ## 安装 qemu
 根据不同平台，我们分为下面 2 个部分来介绍。
-
-<!-- TODO: 为什么之前的 tutorial 要从源编译 -->
 
 ### macOS
 在 macOS 中，我们可以直接打开命令行用 Homebrew 软件包管理器来安装最新版 qemu 和其依赖：
@@ -25,7 +22,27 @@ brew install qemu
 ```
 
 ### Linux/Windows WSL
-在 Linux 中，我们根据不同操作系统的不同软件包管理器来安装最新版 qemu 和其依赖：
+在 Linux 中，由于很多软件包管理器的默认软件源中包含的 qemu 版本过低，这里**推荐**的方式是我们自己手动从源码编译安装：
+```bash
+# 下载源码包 （如果下载速度过慢可以把地址替换为我们提供的地址：TODO）
+wget https://download.qemu.org/qemu-4.2.0.tar.xz
+# 解压
+tar xvJf qemu-4.2.0.tar.xz
+# 编译安装
+cd qemu-4.2.0
+./configure --target-list=riscv32-softmmu,riscv64-softmmu
+make -j$(nproc)
+sudo make install
+```
+
+如果在进行 `configure` 时遇到软件包依赖的问题（以 Ubuntu 系统举例）：
+- 出现 `ERROR: pkg-config binary 'pkg-config' not found` 时，可以通过 `sudo apt-get install pkg-config` 安装；
+- 出现 `ERROR: glib-2.48 gthread-2.0 is required to compile QEMU` 时，可以通过 `sudo apt-get install libglib2.0-dev` 安装；
+- 出现 `ERROR: pixman >= 0.21.8 not present` 时，可以通过 `sudo apt-get install libpixman-1-dev` 安装。
+
+如果有其他问题，请针对不同操作系统在软件包管理器中查找并安装依赖。
+
+当然如果你可以找到包含较新版本的 qemu 的软件包源，**也可以**通过软件包管理器直接安装：
 ```bash
 # Ubuntu/Debian/Windows WSL
 sudo apt-get install qemu
@@ -49,7 +66,7 @@ curl https://sh.rustup.rs -sSf | sh
 
 如果通过官方的脚本下载失败了，可以在浏览器的地址栏中输入 https://sh.rustup.rs 来下载脚本，在本地运行即可。
 
-如果官方的脚本在运行时出现了网络速度较慢的问题，可以通过修改 rustup 的镜像地址（修改为中国科学院大学的镜像服务器）来加速：
+如果官方的脚本在运行时出现了网络速度较慢的问题，**可选地**可以通过修改 rustup 的镜像地址（修改为中国科学技术大学的镜像服务器）来加速：
 ```bash
 export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
 export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
@@ -64,7 +81,7 @@ export http_proxy=http://127.0.0.1:1080
 export ftp_proxy=http://127.0.0.1:1080
 ```
 
-安装完成后，最好我们也可以把软件包管理器 cargo 所用的软件包镜像地址 crates.io 也换成中国科学院大学的镜像服务器来加速。我们打开（如果没有就新建）`~/.cargo/config` 文件，并把内容修改为：
+安装完成后，**最好**我们也可以把软件包管理器 cargo 所用的软件包镜像地址 crates.io 也换成中国科学技术大学的镜像服务器来加速。我们打开（如果没有就新建）`~/.cargo/config` 文件，并把内容修改为：
 ```bash
 [source.crates-io]
 registry = "https://github.com/rust-lang/crates.io-index"
