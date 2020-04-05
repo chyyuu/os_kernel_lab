@@ -13,3 +13,5 @@ CURRENT_TIME=$(date +"%Y-%m-%d %H:%m:%S")
 git add *
 git commit -m "[Auto-deploy] Build $CURRENT_TIME"
 git push origin master
+
+cd -
