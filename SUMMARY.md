@@ -14,5 +14,5 @@
   * [创建项目](docs/lab-1/guide/part-1.md)
   * [移除标准库依赖](docs/lab-1/guide/part-2.md)
   * [移除 Runtime 依赖](docs/lab-1/guide/part-3.md)
-  * [编译并生成内核镜像](docs/lab-1/guide/part-4.md)
+  * [编译为裸机目标](docs/lab-1/guide/part-4.md)
 * [实验练习](docs/lab-1/exercise/intro.md)
