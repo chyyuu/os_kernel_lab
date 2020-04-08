@@ -5,7 +5,11 @@
 ```rust
 // os/src/main.rs
 
+//! # 全局属性
+//! - `#![no_std]`  
+//!   禁用标准库
 #![no_std]
+
 fn main() {
     println!("Hello, world!");
 }
@@ -13,7 +17,7 @@ fn main() {
 
 我们使用 `cargo build` 构建项目，会出现下面的错误：
 
-> **[danger] cargo build error**
+> **[danger] Build Error**
 >
 > ```rust
 > error: cannot find macro `println` in this scope
@@ -44,7 +48,7 @@ fn main() {
 
 use core::panic::PanicInfo;
 
-/// 当 Panic 发生时会调用该函数
+/// 当 panic 发生时会调用该函数
 /// 我们暂时将他的实现为一个死循环
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
@@ -62,13 +66,13 @@ fn panic(info: &PanicInfo) -> ! {
 
 ### eh_personality
 
-第三个错误提到了语义项 (language item) ，它是编译器内部所需的特殊函数或类型。刚才的 `panic_handler` 也是一个语义项，我们要用它告诉编译器当程序 panic 之后如何处理。
+第三个错误提到了语义项（language item） ，它是编译器内部所需的特殊函数或类型。刚才的 `panic_handler` 也是一个语义项，我们要用它告诉编译器当程序 panic 之后如何处理。
 
-而这个错误相关语义项 `eh_personality` ，其中 `eh` 是 `exception handling` 的缩写，它是一个标记某函数用来实现 **堆栈展开** 处理功能的语义项。这个语义项也与 `panic` 有关。
+而这个错误相关语义项 `eh_personality` ，其中 "eh" 是 "exception handling" 的缩写，它是一个标记某函数用来实现 **堆栈展开** 处理功能的语义项。这个语义项也与 `panic` 有关。
 
-> **[info] 堆栈展开 (stack unwinding) **
+> **[info] 堆栈展开 (Stack Unwinding) **
 >
-> 通常，当程序出现了异常 (这里指类似 Java 中层层抛出的异常)，从异常点开始会沿着 caller 调用栈一层一层回溯，直到找到某个函数能够捕获 (catch) 这个异常。这个过程称为 堆栈展开。
+> 通常，当程序出现了异常 (这里指类似 Java 中层层抛出的异常)，从异常点开始会沿着 caller 调用栈一层一层回溯，直到找到某个函数能够捕获 (catch) 这个异常。这个过程称为堆栈展开。
 >
 > 当程序出现不可恢复错误时，我们需要沿着调用栈一层层回溯上去回收每个 caller 中定义的局部变量 **避免造成内存溢出** 。这里的回收包括 C++ 的 RAII 的析构以及 Rust 的 drop。
 >
@@ -83,15 +87,15 @@ fn panic(info: &PanicInfo) -> ! {
 ```rust
 // Cargo.toml
 
+# panic 时直接终止，因为我们没有实现堆栈展开的功能
 [profile.dev]
 panic = "abort"
-
 [profile.release]
 panic = "abort"
 ```
 
 此时，我们 `cargo build` ，但是又出现了新的错误，我们将在后面的部分解决：
 
-> **[danger] cargo build error**
+> **[danger] Build Error**
 >
 > `` error: requires `start` lang_item ``
