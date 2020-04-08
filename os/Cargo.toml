@@ -1,0 +1,16 @@
+[package]
+name = "os"
+version = "0.1.0"
+authors = ["涂轶翔 <tyx17@mails.tsinghua.edu.cn>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+
+# panic 时直接终止，因为我们没有实现堆栈展开的功能
+[profile.dev]
+panic = "abort"
+[profile.release]
+panic = "abort"

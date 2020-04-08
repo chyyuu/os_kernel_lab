@@ -2,15 +2,15 @@
 
 *（介绍）*
 
-
-
 ## 仓库目录
 
 - `docs/`：教学实验指导分实验内容
 - `notes/`：开发日志
+- `os/`：操作系统代码
 - `SUMMARY.md`：GitBook 目录页
 - `book.json`：GitBook 配置文件
-
+- `rust-toolchain`：限定 Rust 工具链版本  
+  *note 目前使用比较旧的，整体完成之后在考虑更新*
 
 
 ## 实验指导
