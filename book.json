@@ -1,3 +1,14 @@
 {
-    "plugins": ["expandable-chapters-interactive"]
+    "plugins": [
+        "hide-element",
+        "chapter-fold",
+        "katex",
+        "alerts",
+        "emphasize",
+        "-highlight",
+        "prism",
+        "localized-footer",
+        "mermaid-gb3",
+        "expandable-chapters-interactive"
+      ]
 }
