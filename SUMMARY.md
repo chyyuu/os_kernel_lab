@@ -10,10 +10,9 @@
 * [环境部署](docs/pre-lab/env.md)
 
 ## 实验一
-* [独立可执行程序](docs/lab-1/env/intro.md)
-  * [创建项目](docs/lab-1/env/part-1.md)
-  * [移除标准库依赖](docs/lab-1/env/part-2.md)
-  * [移除 Runtime 依赖](docs/lab-1/env/part-3.md)
-* [最小化内核](docs/lab-1/kernel/intro.md)
-  * [创建项目](docs/lab-1/env/part-1.md)
+* [实验指导](docs/lab-1/guide/intro.md)
+  * [创建项目](docs/lab-1/guide/part-1.md)
+  * [移除标准库依赖](docs/lab-1/guide/part-2.md)
+  * [移除 Runtime 依赖](docs/lab-1/guide/part-3.md)
+  * [编译并生成内核镜像](docs/lab-1/guide/part-4.md)
 * [实验练习](docs/lab-1/exercise/intro.md)
