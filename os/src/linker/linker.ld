@@ -45,7 +45,7 @@ SECTIONS
         edata = .;
     }
 
-    /* stack 字段（最开始的栈将指向这里） */
+    /* stack 字段 */
     .stack : {
         /* 把 bss.stack 字段所申请的空间放在这里作为启动时的栈空间 */
         *(.bss.stack)
