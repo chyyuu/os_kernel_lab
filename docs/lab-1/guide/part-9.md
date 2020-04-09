@@ -4,7 +4,7 @@
 
 OpenSBI 实际上不仅起到了 bootloader 的作用，还为我们提供了一些服务供我们在编写内核时使用。这层接口称为 SBI（Supervisor Binary Interface），是 S Mode 的 OS 和 M Mode 执行环境之间的标准接口。
 
-参考[OpenSBI 文档](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc#legacy-sbi-extension-extension-ids-0x00-through-0x0f) ，我们会发现里面包含了一些以 C 函数格式给出的我们可以调用的接口。
+参考 [OpenSBI 文档](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc#legacy-sbi-extension-extension-ids-0x00-through-0x0f) ，我们会发现里面包含了一些以 C 函数格式给出的我们可以调用的接口。
 
 上一节中我们的 `console_putchar` 函数类似于调用下面的接口来实现的：
 ```c

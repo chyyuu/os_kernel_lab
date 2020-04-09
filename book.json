@@ -6,8 +6,6 @@
         "alerts",
         "emphasize",
         "-highlight",
-        "prism",
-        "localized-footer",
         "mermaid-gb3",
         "expandable-chapters-interactive"
       ]

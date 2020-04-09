@@ -2,6 +2,10 @@
 
 * [实验简介](README.md)
 
+## 开发笔记
+* [文档格式规范](docs/format/doc.md)
+* [代码格式规范](docs/format/code.md)
+
 ## 实验之前
 <!-- TODO -->
 * [Rust 基础介绍](docs/pre-lab/rust.md) 
@@ -20,5 +24,5 @@
   * [重写程序入口点](docs/lab-1/guide/part-7.md)
   * [使用 QEMU 运行](docs/lab-1/guide/part-8.md)
   * [接口封装和代码整理](docs/lab-1/guide/part-9.md)
-  * [总结和展望](docs/lab-1/guide/summary.md)
+  * [小结](docs/lab-1/guide/summary.md)
 * [实验练习](docs/lab-1/exercise/intro.md)
