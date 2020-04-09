@@ -5,7 +5,6 @@ BASE_ADDRESS = 0x80200000;
 
 SECTIONS
 {
-    /* Load the kernel at this address: "." means the current address */
     . = BASE_ADDRESS;
     start = .;
 
