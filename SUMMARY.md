@@ -13,7 +13,7 @@
 * [实验指导](docs/lab-1/guide/intro.md)
   * [创建项目](docs/lab-1/guide/part-1.md)
   * [移除标准库依赖](docs/lab-1/guide/part-2.md)
-  * [移除 Runtime 依赖](docs/lab-1/guide/part-3.md)
+  * [移除运行时环境依赖](docs/lab-1/guide/part-3.md)
   * [编译为裸机目标](docs/lab-1/guide/part-4.md)
   * [生成内核镜像](docs/lab-1/guide/part-5.md)
   * [调整内存布局](docs/lab-1/guide/part-6.md)

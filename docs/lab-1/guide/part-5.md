@@ -7,11 +7,11 @@
 Rust 社区提供了一个 cargo-binutils 项目，可以帮助我们方便地调用 Rust 内置的 LLVM binutils。我们用以下命令安装它：
 
 ```bash
-$ cargo install cargo-binutils
-$ rustup component add llvm-tools-preview
+cargo install cargo-binutils
+rustup component add llvm-tools-preview
 ```
 
-之后尝试使用 `rust-objdump` 看看是否安装成功。
+之后尝试使用 `rust-objdump --version` 命令看看是否安装成功。
 
 > **[info] 其它选择：GNU 工具链**
 >
@@ -28,11 +28,11 @@ $ file target/riscv64imac-unknown-none-elf/debug/os
 target/riscv64imac-unknown-none-elf/debug/os: ELF 64-bit LSB executable, UCB RISC-V, version 1 (SYSV), statically linked, with debug_info, not stripped
 ```
 
-从中，我们可以看出它是一个 64 位的 elf 格式的可执行文件，架构是 `RISC-V` ；链接方式为静态链接；`not stripped` 指的是里面符号表的信息未被剔除，而这些信息在调试程序时会用到，程序正常执行时通常不会使用。
+从中，我们可以看出它是一个 64 位的 elf 格式的可执行文件，架构是 RISC-V；链接方式为静态链接；not stripped 指的是里面符号表的信息未被剔除，而这些信息在调试程序时会用到，程序正常执行时通常不会使用。
 
-接下来使用刚刚安装的工具链中的 `rust-objdump` 工具看看它的具体信息：
+接下来使用刚刚安装的工具链中的 rust-objdump 工具看看它的具体信息：
 
-```bash
+```clike
 $ rust-objdump target/riscv64imac-unknown-none-elf/debug/os -x --arch-name=riscv64
 
 target/riscv64imac-unknown-none-elf/debug/os:	file format ELF64-riscv
@@ -86,16 +86,15 @@ Dynamic Section:
 
 我们按顺序逐个查看：
 
-- start address：是程序的入口地址。
-- Sections：从这里我们可以看到程序各段的各种信息。后面以 `debug` 开头的段是调试信息。
-- SYMBOL TABLE：即符号表，从中我们可以看到程序中所有符号的地址。例如 `_start` 就位于入口地址上。
-- Program Header：是程序加载时所需的段信息。
-
-  - 其中 `off` 是它在文件中的位置，`vaddr` 和 `paddr` 是要加载到的虚拟地址和物理地址，`align` 规定了地址的对齐，`filesz` 和 `memsz` 分别表示它在文件和内存中的大小，`flags` 描述了相关权限（`r` 表示可读，`w` 表示可写，`x` 表示可执行）
+- start address：程序的入口地址
+- Sections：从这里我们可以看到程序各段的各种信息。后面以 debug 开头的段是调试信息
+- SYMBOL TABLE：符号表，从中我们可以看到程序中所有符号的地址。例如 `_start` 函数就位于入口地址上
+- Program Header：程序加载时所需的段信息
+  - 其中的 off 是它在文件中的位置，vaddr 和 paddr 是要加载到的虚拟地址和物理地址，align 规定了地址的对齐，filesz 和 memsz 分别表示它在文件和内存中的大小，flags 描述了相关权限（r 表示可读，w 表示可写，x 表示可执行）
 
 在这里我们使用的是 `-x` 来查看程序的元信息，下面我们用 `-d` 来对代码进行反汇编：
 
-```sh
+```bash
 $ rust-objdump target/riscv64imac-unknown-none-elf/debug/os -d --arch-name=riscv64
 
 target/riscv64imac-unknown-none-elf/debug/os:	file format ELF64-riscv
@@ -117,15 +116,15 @@ Disassembly of section .text:
 
 我们之前生成的 elf 格式可执行文件有以下特点：
 
-- 含有冗余的调试信息，使得程序体积较大；
-- 需要对 Program Header 部分进行手动解析才能知道各段的信息，而这需要我们了解 Program Header 的二进制格式，并以字节为单位进行解析。
+- 含有冗余的调试信息，使得程序体积较大
+- 需要对 Program Header 部分进行手动解析才能知道各段的信息，而这需要我们了解 Program Header 的二进制格式，并以字节为单位进行解析
 
-由于我们目前没有调试的手段，不需要调试信息；同时也不会解析 elf 格式文件，所以使用工具 `rust-objcopy` 从 `elf` 格式可执行文件生成内核镜像：
+由于我们目前没有调试的手段，不需要调试信息；同时也不会解析 elf 格式文件，所以我们可以使用工具 rust-objcopy 从 elf 格式可执行文件生成内核镜像：
 
 ```bash
-$ rust-objcopy target/riscv64imac-unknown-none-elf/debug/os --strip-all -O binary target/riscv64imac-unknown-none-elf/debug/kernel.bin
+rust-objcopy target/riscv64imac-unknown-none-elf/debug/os --strip-all -O binary target/riscv64imac-unknown-none-elf/debug/kernel.bin
 ```
 
 这里 `--strip-all` 表明丢弃所有符号表及调试信息，`-O binary` 表示输出为二进制文件。
 
-至此，我们编译并生成了内核镜像 `kernel.bin`。接下来，我们将使用 qemu 模拟器真正将我们的内核镜像跑起来。不过在此之前还需要完成两个工作：**调整内存布局** 和 **重写入口函数**。
+至此，我们编译并生成了内核镜像 `kernel.bin` 文件。接下来，我们将使用 qemu 模拟器真正将我们的内核镜像跑起来。不过在此之前还需要完成两个工作：**调整内存布局**和**重写入口函数**。
