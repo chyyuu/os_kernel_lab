@@ -1,5 +1,3 @@
-//! `main.rs` 是编译的入口
-
 //! # 全局属性
 //! - `#![no_std]`  
 //!   禁用标准库
@@ -12,7 +10,6 @@
 //! - `#![deny(missing_docs)]`  
 //!   任何没有注释的地方都会产生警告：这个属性用来压榨写实验指导的学长，同学可以删掉了
 #![warn(missing_docs)]
-
 //! # 一些 unstable 的功能需要在 crate 层级声明后才可以使用
 //! - `#![feature(asm)]`  
 //!   内嵌汇编
@@ -22,15 +19,9 @@
 //!   内嵌整个汇编文件
 #![feature(global_asm)]
 //!
-//! - `#![feature(naked_functions)]`  
-//!   使用裸函数，不让编译器在函数前后自动添加指令（例如栈上开临时变量），防止干扰我们的内嵌汇编  
-//！  如有兴趣可以参考裸函数的 RFC (https://github.com/rust-lang/rfcs/blob/master/text/1201-naked-fns.md)
-#![feature(naked_functions)]
-//!
 //! - `#![feature(panic_info_message)]`  
 //!   panic! 时，获取其中的信息并打印
 #![feature(panic_info_message)]
-
 
 #[macro_use]
 mod console;
