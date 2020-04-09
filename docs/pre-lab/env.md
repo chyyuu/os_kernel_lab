@@ -22,7 +22,7 @@
 brew install qemu
 ```
 
-### Linux/Windows WSL
+### Linux / Windows WSL
 在 Linux 中，由于很多软件包管理器的默认软件源中包含的 qemu 版本过低，这里**推荐**的方式是我们自己手动从源码编译安装：
 
 ```bash
@@ -30,14 +30,14 @@ brew install qemu
 wget https://download.qemu.org/qemu-4.2.0.tar.xz
 # 解压
 tar xvJf qemu-4.2.0.tar.xz
-# 编译安装
+# 编译安装并配置 RISC-V 支持
 cd qemu-4.2.0
 ./configure --target-list=riscv32-softmmu,riscv64-softmmu
 make -j$(nproc)
 sudo make install
 ```
 
-如果在进行 `configure` 时遇到软件包依赖的问题（以 Ubuntu 系统举例）：
+如果在运行 `configure` 时遇到软件包依赖的问题（以 Ubuntu 系统举例）：
 - 出现 `ERROR: pkg-config binary 'pkg-config' not found` 时，可以通过 `sudo apt-get install pkg-config` 安装；
 - 出现 `ERROR: glib-2.48 gthread-2.0 is required to compile QEMU` 时，可以通过 `sudo apt-get install libglib2.0-dev` 安装；
 - 出现 `ERROR: pixman >= 0.21.8 not present` 时，可以通过 `sudo apt-get install libpixman-1-dev` 安装。
@@ -47,21 +47,15 @@ sudo make install
 当然如果你可以找到包含较新版本的 qemu 的软件包源，**也可以**通过软件包管理器直接安装：
 
 ```bash
-# Ubuntu/Debian/Windows WSL
+# Ubuntu / Debian / Windows WSL
 sudo apt-get install qemu
 
-# CentOS/Fedora/RedHat/SUSE
+# CentOS / Fedora / RedHat / SUSE
 sudo yum install qemu
 ```
 
 ### 完成后
-安装完成后可以用：
-
-```bash
-qemu-system-riscv64 --version
-```
-
-命令检查是否成功安装我们需要的 RISC-V 64 虚拟器并检查版本是否至少是 4.1.0。
+安装完成后可以用 `qemu-system-riscv64 --version` 命令检查是否成功安装我们需要的 RISC-V 64 虚拟器。
 
 ## 安装 Rust 工具链
 首先安装 Rust 版本管理器 rustup 和 Rust 包管理器 cargo，这里我们用官方的安装脚本来安装：
@@ -89,7 +83,7 @@ export ftp_proxy=http://127.0.0.1:1080
 ```
 
 安装完成后，**最好**我们也可以把软件包管理器 cargo 所用的软件包镜像地址 crates.io 也换成中国科学技术大学的镜像服务器来加速。我们打开（如果没有就新建）`~/.cargo/config` 文件，并把内容修改为：
-```bash
+```toml
 [source.crates-io]
 registry = "https://github.com/rust-lang/crates.io-index"
 replace-with = 'ustc'
@@ -107,8 +101,10 @@ git checkout master
 
 # 编译运行
 make run
+```
 
-# 如果一切正常，则 qemu 模拟的 RISC-V 64 处理器将输出
+如果一切正常，则 qemu 模拟的 RISC-V 64 处理器将输出
+```bash
 TODO
 ```
 
@@ -122,4 +118,4 @@ TODO
 nightly-2020-03-06
 ```
 
-在第一次编译项目时，rustup 会自动去下载对应版本的工具链。今后所有在这个目录或其子目录下使用 Rust 时都会自动切换到这个版本的工具链。随着日后的更新，后面的日期可能会变化，请以 Github 仓库上的版本为准。
+在第一次编译项目时，rustup 会自动去下载对应版本的工具链。今后所有在这个目录或其子目录下使用 Rust 时都会自动切换到这个版本的工具链。随着日后的更新，后面的日期可能会变化，请以 GitHub 仓库上的版本为准。
