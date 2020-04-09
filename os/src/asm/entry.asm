@@ -13,7 +13,7 @@ _start:
     call rust_main
 
     # 回忆：bss 段是 ELF 文件中只记录长度，而全部初始化为 0 的一段内存空间
-    # 这里声明字段 .bss.stack 作为操作系统的栈
+    # 这里声明字段 .bss.stack 作为操作系统启动时的栈
     .section .bss.stack
     # 和一些环境不同，这里的 .align 是 .p2align 的别名，表示其中的变量应当 2^12=4096 字节对齐
     .align 12
