@@ -6,24 +6,24 @@
   - Rust 软件包管理工具：cargo
   - Rust 编译器：rustc
   - 等等
-- 虚拟机软件：qemu （版本至少支持 RISC-V 64）
+- 虚拟机软件：QEMU （版本至少支持 RISC-V 64）
 
 具体安装的方法在不同平台上安装方式类似，但也有细微差别，后面会有具体说明。
 
 <!-- TODO: Normal Windows -->
 
-## 安装 qemu
+## 安装 QEMU
 根据不同平台，我们分为下面 2 个部分来介绍。
 
 ### macOS
-在 macOS 中，我们可以直接打开命令行用 Homebrew 软件包管理器来安装最新版 qemu 和其依赖：
+在 macOS 中，我们可以直接打开命令行用 Homebrew 软件包管理器来安装最新版 QEMU 和其依赖：
 
 ```bash
 brew install qemu
 ```
 
 ### Linux / Windows WSL
-在 Linux 中，由于很多软件包管理器的默认软件源中包含的 qemu 版本过低，这里**推荐**的方式是我们自己手动从源码编译安装：
+在 Linux 中，由于很多软件包管理器的默认软件源中包含的 QEMU 版本过低，这里**推荐**的方式是我们自己手动从源码编译安装：
 
 ```bash
 # 下载源码包 （如果下载速度过慢可以把地址替换为我们提供的地址：TODO）
@@ -44,7 +44,7 @@ sudo make install
 
 如果有其他问题，请针对不同操作系统在软件包管理器中查找并安装依赖。
 
-当然如果你可以找到包含较新版本的 qemu 的软件包源，**也可以**通过软件包管理器直接安装：
+当然如果你可以找到包含较新版本的 QEMU 的软件包源，**也可以**通过软件包管理器直接安装：
 
 ```bash
 # Ubuntu / Debian / Windows WSL
@@ -103,7 +103,7 @@ git checkout master
 make run
 ```
 
-如果一切正常，则 qemu 模拟的 RISC-V 64 处理器将输出
+如果一切正常，则 QEMU 模拟的 RISC-V 64 处理器将输出
 ```bash
 TODO
 ```

@@ -18,7 +18,7 @@
   * [生成内核镜像](docs/lab-1/guide/part-5.md)
   * [调整内存布局](docs/lab-1/guide/part-6.md)
   * [重写程序入口点](docs/lab-1/guide/part-7.md)
-  * [使用 qemu 运行](docs/lab-1/guide/part-8.md)
+  * [使用 QEMU 运行](docs/lab-1/guide/part-8.md)
   * [封装 SBI 接口](docs/lab-1/guide/part-9.md)
   * [实现格式化输出](docs/lab-1/guide/part-10.md)
   * [总结和展望](docs/lab-1/guide/summary.md)
