@@ -7,6 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 
 # panic 时直接终止，因为我们没有实现堆栈展开的功能
 [profile.dev]
