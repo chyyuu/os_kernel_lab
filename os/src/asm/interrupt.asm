@@ -14,7 +14,8 @@
     addi    sp, sp, -36*8
     # 保存通用寄存器，除了 x0（固定为 0）
     SAVE    x1, 1
-    SAVE    x2, 2
+    addi    x1, sp, 36*8
+    SAVE    x1, 2
     SAVE    x3, 3
     SAVE    x4, 4
     SAVE    x5, 5

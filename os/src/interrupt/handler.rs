@@ -1,11 +1,15 @@
 //! 处理不同种类中断的流程
 
+use super::timer;
 use super::trap_frame::TrapFrame;
-use riscv::register::stvec;
+use riscv::register::{
+    stvec,
+    scause::{Trap, Exception, Interrupt},
+};
 
 global_asm!(include_str!("../asm/interrupt.asm"));
 
-/// 初始化中断模块
+/// 初始化中断处理
 /// 
 /// 把中断入口 `__interrupt` 写入 `stvec` 中，并且开启中断使能
 pub fn init() {
@@ -25,6 +29,28 @@ pub fn init() {
 /// 具体的中断类型需要根据 TrapFram::scause 来推断，然后分别处理
 #[no_mangle]
 pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
-    println!("Interrupt handled!");
+    match trap_frame.scause.cause() {
+        // 断点中断（ebreak）
+        Trap::Exception(Exception::Breakpoint) => breakpoint(trap_frame),
+        // 时钟中断
+        Trap::Interrupt(Interrupt::SupervisorTimer) => supervisor_timer(trap_frame),
+        // 其他情况未实现
+        Trap::Exception(x) => panic!("{:?}", x),
+        _ => unimplemented!(),
+    }
+}
+
+/// 处理 ebreak 断点
+/// 
+/// 继续执行，其中 `sepc` 增加 2 字节，以跳过当前这条 `ebreak` 指令
+fn breakpoint(trap_frame: &mut TrapFrame) {
+    println!("Breakpoint at 0x{:x}", trap_frame.sepc);
     trap_frame.sepc += 2;
+}
+
+/// 处理时钟中断
+/// 
+/// 目前只会在 [`timer`] 模块中进行计数
+fn supervisor_timer(_: &TrapFrame) {
+    timer::tick();
 }
