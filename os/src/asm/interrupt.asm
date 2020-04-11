@@ -48,8 +48,8 @@
     # 取出 CSR 并保存
     csrr    s1, sstatus
     csrr    s2, sepc
-    csrr    s3, stval
-    csrr    s4, scause
+    csrr    s3, scause
+    csrr    s4, stval
     SAVE    s1, 32
     SAVE    s2, 33
     SAVE    s3, 34
