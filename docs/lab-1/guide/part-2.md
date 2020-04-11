@@ -1,102 +1,101 @@
-## 移除标准库依赖
+## RISC-V 与中断相关的寄存器和指令
 
-### 禁用标准库
-项目默认是链接 Rust 标准库 std 的，它依赖于操作系统，因此我们需要显式将其禁用：
-
-```rust
-// os/src/main.rs
-
-//! # 全局属性
-//! - `#![no_std]`  
-//!   禁用标准库
-#![no_std]
-
-fn main() {
-    println!("Hello, world!");
-}
-```
-
-我们使用 `cargo build` 构建项目，会出现下面的错误：
-
-```rust
-error: cannot find macro `println` in this scope
- --> src/main.rs:3:5
-  |
-7 |     println!("Hello, world!");
-  |     ^^^^^^^
-error: `#[panic_handler]` function required, but not found
-error: language item required, but not found: `eh_personality`
-```
-
-接下来，我们依次解决这些问题。
-
-### 宏 println!
-
-第一个错误是说 `println!` 宏未找到，实际上这个宏属于 Rust 标准库 std，由于它被我们禁用了当然就找不到了。我们暂时将该输出语句删除，之后给出不依赖操作系统的实现。
-
-> **[info] `println!` 哪里依赖了操作系统**
+> **[info] 回顾：RISC-V 中的 M 模式（Machine mode）**
+> - 是 RISC-V 中的最高权限模式，一些底层操作的指令只能由 M 模式进行使用。
+> - 是所有标准 RISC-V 处理器都必须实现的模式。
+> - 默认所有中断实际上是交给 M 模式处理的，但是为了实现更多功能，M 模式会将某些中断交由 S 模式处理。这些异常也正是我们编写操作系统所需要实现的。
 > 
-> 这个宏所调用的函数会输出到标准输出，而这需要操作系统的支持。
+> **回顾：RISC-V 中的 S 模式（Supervisor mode）**
+> - 通常为操作系统使用，可以访问一些 supervisor 级别的寄存器，通过这些寄存器对中断和虚拟内存映射进行管理。
+> - Unix 系统中，大部分的中断都是 S 模式的系统调用。M 模式可以通过异常委托机制（machine interrupt delegation）将一部分中断设置为不经过 M 模式，直接由 S 模式处理
 
-### panic 处理函数
+在实验中，我们主要关心的就是 S 模式可以使用的一些特权指令和寄存器。其中关于中断的会在本章用到，而关于内存映射的部分将会在第三部分用到。
 
-第二个错误是说需要一个函数作为 `panic_handler` ，这个函数负责在程序 `panic` 时调用。它默认使用标准库 std 中实现的函数并依赖于操作系统特殊的文件描述符，由于我们禁用了标准库，因此只能自己实现它：
+### 与中断相关的寄存器
 
-```rust
-// os/src/main.rs
+在 S 模式和 M 模式中，RISC-V 设计了一些 CSR（Control and Status Registers）寄存器用来保存控制信息。目前我们关心的是其中涉及到控制中断的寄存器。
 
-use core::panic::PanicInfo;
+#### 发生中断时，硬件自动填写的寄存器
 
-/// 当 panic 发生时会调用该函数
-/// 我们暂时将他的实现为一个死循环
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    loop {}
-}
-```
+- `sepc`：Exception Program Counter  
+记录触发中断的指令的地址。
 
-> **[info] Rust panic**
->
-> panic 在 Rust 中表明程序遇到了不可恢复的错误，只能被迫停止运行。
+  > 和我们之前学的 MIPS 32 系统不同，RISC-V 中不需要考虑延迟槽的问题。但是 RISC-V 中的指令不定长，如果中断处理需要恢复到异常指令后一条指令进行执行，就需要正确判断将 `pc` 寄存器加上多少字节。
 
-类型为 `PanicInfo` 的参数包含了 panic 发生的文件名、代码行数和可选的错误信息。这个函数从不返回，所以他被标记为发散函数（diverging function）。发散函数的返回类型称作 Never 类型（"never" type），记为 `!`。对这个函数，我们目前能做的很少，所以我们只需编写一个死循环 `loop {}`。
+- `scause`  
+记录中断是否是硬件中断，以及具体的中断原因。
 
-这里我们用到了核心库 core，与标准库 std 不同，这个库不需要操作系统的支持，下面我们还会与它打交道。
+- `stval`  
+`scause` 不足以存下中断所有的必须信息。例如缺页异常，就会将 `stval` 设置成需要访问但是不在内存中的地址，以便于操作系统将这个地址所在的页面加载进来。
 
-### eh_personality 语义项
+#### 指导硬件处理中断的寄存器
 
-第三个错误提到了语义项（language item） ，它是编译器内部所需的特殊函数或类型。刚才的 `panic_handler` 也是一个语义项，我们要用它告诉编译器当程序 panic 之后如何处理。
+- `stvec`  
+设置 S 模式中断处理流程的入口地址。存储了一个基址 `BASE` 和模式 `MODE`：
 
-而这个错误相关语义项 `eh_personality` ，其中 eh 是 exception handling 的缩写，它是一个标记某函数用来实现**堆栈展开**处理功能的语义项。这个语义项也与 panic 有关。
+  - `MODE` 为 0 表示 Direct 模式，即遇到中断便跳转至 `BASE` 进行执行。
 
-> **[info] 堆栈展开 (stack unwinding) **
->
-> 通常，当程序出现了异常 (这里指类似 Java 中层层抛出的异常)，从异常点开始会沿着 caller 调用栈一层一层回溯，直到找到某个函数能够捕获这个异常。这个过程称为堆栈展开。
->
-> 当程序出现不可恢复错误时，我们需要沿着调用栈一层层回溯上去回收每个 caller 中定义的局部变量避免造成内存溢出。这里的回收包括 C++ 的 RAII 的析构以及 Rust 的 drop。
->
-> 而在 Rust 中，panic 证明程序出现了不可恢复错误，我们则会对于每个 caller 函数调用依次这个被标记为堆栈展开处理函数的函数。
->
-> 这个处理函数是一个依赖于操作系统的复杂过程，在标准库中实现，我们禁用了标准库使得编译器找不到该过程的实现函数了。
+  - `MODE` 为 1 表示 Vectored 模式，此时 `BASE` 应当指向一个向量，存有不同处理流程的地址，遇到中断会跳转至 `BASE + 4 * cause` 进行处理流程。
 
-简单起见，我们暂时不考虑内存溢出，设置当程序 panic 时不做任何清理工作，直接退出程序即可。这样堆栈展开处理函数不会被调用，编译器也就不会去寻找它的实现了。
+- `sstatus`  
+具有许多状态位，控制全局中断使能等。
 
-因此，我们在项目配置文件中直接将 dev 配置 (对应构建命令为 `cargo build`) 和 release 配置（对应构建命令为 `cargo build --release`）的 panic 的处理策略设为直接终止（abort）而不进行堆栈展开（当然我们写的 panic 处理函数还是会调用的）。
+- `sie` （Supervisor Interrupt-Enable）  
+控制具体类型中断的使能，例如其中的 `STIE` 控制时钟中断使能。
 
-```toml
-// Cargo.toml
-...
+#### `sscratch`
 
-# panic 时直接终止，因为我们没有实现堆栈展开的功能
-[profile.dev]
-panic = "abort"
+（这个寄存器的用处会在实现线程时起到作用，目前仅了解即可）
 
-[profile.release]
-panic = "abort"
-```
+在 U 模式，`sscratch` 保存内核栈的地址；在 S 模式，`sscratch` 的值为 0。
 
-此时，我们 `cargo build` ，但是又出现了新的错误，我们将在后面的部分解决：
+为了能够执行 S 模式的中断处理流程，仅有一个入口地址是不够的。中断处理流程很可能需要使用栈，而程序当前的用户栈是不安全的。因此，我们还需要一个预设的安全的栈空间，存放在这里。
 
-```bash
-error: requires `start` lang_item
-```
+在 S 模式中，`sp` 可以认为是一个安全的栈空间，`sscratch` 便不需要保存任何值。此时将其设为 0，可以在遇到中断时通过 `sscratch` 中的值判断中断前程序是否处于 S 态。
+
+### 与中断相关的指令
+
+#### 进入和退出中断
+
+- `ecall`  
+触发中断，进入更高一层的中断处理流程之中。U 模式进行系统调用进入 S 模式中断处理流程，S 模式进行 SBI 调用进入 M 模式中断处理流程，使用的都是这条指令。
+
+- `sret`  
+从 S 模式返回 U 模式，同时将 `pc` 的值设置为 `sepc`。（如果需要返回到 `sepc` 后一条指令，就需要在 `sret` 之前修改 `sepc` 的值）
+
+- `ebreak`  
+触发一个断点
+
+- `mret`  
+从 M 模式返回 S 模式，同时将 `pc` 的值设置为 `mepc`。
+
+#### 操作 CSR
+
+只有一系列特殊的指令（CSR Instruction）可以读写 CSR。尽管所有模式都可以使用这些指令，U 模式只能只读的访问某几个寄存器。
+
+为了让操作 CSR 的指令不被干扰，许多 CSR 指令都是结合了读写的原子操作。不过在实验中，我们只用到几个简单的指令。
+
+- `csrrw dst, csr, src`（CSR Read Write）  
+同时读写的原子操作，将指定 CSR 的值写入 `dst`，同时将 `src` 的值写入 CSR。
+
+- `csrr dst, csr`（CSR Read）  
+仅读取一个 CSR 寄存器。
+
+- `csrw csr, src`（CSR Write）  
+仅写入一个 CSR 寄存器。
+
+- `csrc(i) csr, rs1`（CSR Clear）
+将 CSR 寄存器中指定的位清零，`csrc` 使用通用寄存器作为 mask，`csrci` 则使用立即数。
+
+- `csrs(i) csr, rs1`（CSR Set）
+将 CSR 寄存器中指定的位置 1，`csrc` 使用通用寄存器作为 mask，`csrci` 则使用立即数。
+
+### 了解更多
+
+RISC-V 官方文档：
+
+- CSR 寄存器（Chapter 4，p59）  
+https://content.riscv.org/wp-content/uploads/2017/05/riscv-privileged-v1.10.pdf
+
+- CSR 指令（Section 2.8，p33）  
+https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf
