@@ -28,6 +28,7 @@ mod console;
 mod panic;
 mod sbi;
 mod interrupt;
+mod memory;
 
 // 汇编编写的程序入口，具体见该文件
 global_asm!(include_str!("asm/entry.asm"));
