@@ -103,14 +103,15 @@
 
     .section .text
     .globl __interrupt
+# 保存 TrapFrame 并且进入 rust 中的中断处理函数 interrupt::handler::handle_interrupt()
 __interrupt:
     SAVE_ALL
-    # TrapFrame 作为参数传入中断处理函数
+    # TrapFrame 作为参数传入
     mv a0, sp
     jal handle_interrupt
 
-    .globl __restore_frame
-__restore_frame:
+    .globl __restore
+# 从 TrapFrame 中恢复所有寄存器，并跳转至 TrapFrame 中 sepc 的位置
+__restore:
     LOAD_ALL
-    # 返回地址是原先存储在 TrapFrame 中的
     sret

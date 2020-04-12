@@ -29,14 +29,15 @@ pub fn init() {
 /// 具体的中断类型需要根据 TrapFram::scause 来推断，然后分别处理
 #[no_mangle]
 pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
+    // 可以通过 Debug 来查看发生了什么中断
+    // println!("{:x?}", trap_frame.scause.cause());
     match trap_frame.scause.cause() {
         // 断点中断（ebreak）
         Trap::Exception(Exception::Breakpoint) => breakpoint(trap_frame),
         // 时钟中断
         Trap::Interrupt(Interrupt::SupervisorTimer) => supervisor_timer(trap_frame),
         // 其他情况未实现
-        Trap::Exception(x) => panic!("{:?}", x),
-        _ => unimplemented!(),
+        trap => unimplemented!("{:?}", trap),
     }
 }
 
