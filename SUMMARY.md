@@ -13,7 +13,7 @@
 * [操作系统背景知识](docs/pre-lab/os.md)
 * [环境部署](docs/pre-lab/env.md)
 
-## 实验
+## 实验指导
 * 零：一个运行在 OpenSBI 之上的程序
   * [摘要](docs/lab-0/guide/intro.md)
   * [创建项目](docs/lab-0/guide/part-1.md)
@@ -30,3 +30,12 @@
   * [摘要](docs/lab-1/guide/intro.md)
   * [背景知识](docs/lab-1/guide/part-1.md)
   * [RISC-V 中的中断](docs/lab-1/guide/part-2.md)
+  * [程序运行状态](docs/lab-1/guide/part-3.md)
+  * [状态的保存与恢复](docs/lab-1/guide/part-4.md)
+  * [进入中断处理流程](docs/lab-1/guide/part-5.md)
+  * [时钟中断](docs/lab-1/guide/part-6.md)
+  * [小结](docs/lab-1/guide/summary.md)
+
+## 实验题目
+* [零：TODO](docs/lab-0/exercise/intro.md)
+* [一：异常处理](docs/lab-1/exercise/intro.md)
