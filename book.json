@@ -5,8 +5,11 @@
         "katex",
         "alerts",
         "emphasize",
-        "-highlight",
         "mermaid-gb3",
+        "codeblock-label",
+        "code",
+        "search-pro",
+        "click-reveal",
         "expandable-chapters-interactive"
       ]
 }
