@@ -1,14 +1,14 @@
 ## 重写程序入口点 `_start`
 
-我们在第一章中，曾自己重写了一个入口点 `_start`，在那里我们仅仅只是让它死循环。但是现在，类似 C 语言运行时环境，我们希望这个函数可以为我们设置内核的运行环境（不妨称为 kernel runtime）。随后，我们才真正开始执行内核的代码。
+我们在第一章中，曾自己重写了一个入口点 `_start`，在那里我们仅仅只是让它死循环。但是现在，类似 C 语言运行时环境，我们希望这个函数可以为我们设置内核的运行环境。随后，我们才真正开始执行内核的代码。
 
 但是具体而言我们需要设置怎样的运行环境呢？
 
 > **[info] 第一条指令**
 >
-> 在 CPU 加电或 Reset 后，它首先会进行自检（POST, Power-On Self-Test），通过自检后会跳转到**启动代码（bootloader）**的入口。在 bootloader 中，我们进行外设探测，并对内核的运行环境进行初步设置。随后，bootloader 会将内核代码从硬盘 load 到内存中，并跳转到内核入口，正式进入内核。也就是说，CPU 所执行的第一条指令其实是指 bootloader 的第一条指令。
+> 在 CPU 加电或 Reset 后，它首先会进行自检（POST, Power-On Self-Test），通过自检后会跳转到**启动代码（Bootloader）**的入口。在 bootloader 中，我们进行外设探测，并对内核的运行环境进行初步设置。随后，bootloader 会将内核代码从硬盘加载到内存中，并跳转到内核入口，正式进入内核。也就是说，CPU 所执行的第一条指令其实是指 bootloader 的第一条指令。
 
-幸运的是， 我们已经有现成的 bootloader 实现 [OpenSBI](https://github.com/riscv/opensbi) 固件（firmware）。
+幸运的是， 我们已经有现成的 bootloader 实现 [OpenSBI](https://github.com/riscv/opensbi) 固件（Firmware）。
 
 > **[info] Firmware 固件**
 >
@@ -35,9 +35,8 @@ OpenSBI 所做的一件事情就是把 CPU 从 M Mode 切换到 S Mode，接着�
 
 接着我们要在 `_start` 中设置内核的运行环境了，我们直接来看代码：
 
+{% label %}os/src/asm/entry.asm{% endlabel %}
 ```assembly
-# src/asm/entry.asm
-
 # 操作系统启动时所需的指令以及字段
 #
 # 我们在 linker.ld 中将程序入口设置为了 _start，因此在这里我们将填充这个标签
@@ -63,18 +62,17 @@ bootstacktop:
     # 栈结尾
 ```
 
-可以看到之前未被定义的 .bss.stack 段出现了，我们只是在这里分配了一块 $$4096\times{4}\text{Bytes}=\text{16\ KiB}$$ 的内存作为启动时内核的栈。之前的 .text.entry 也出现了，也就是我们将 `_start` 函数放在了 .text 段的开头。
+可以看到之前未被定义的 .bss.stack 段出现了，我们只是在这里分配了一块 $$4096\times{4}\text{\ Bytes}=16 \text{\ KBytes}$$ 的内存作为启动时内核的栈。之前的 .text.entry 也出现了，也就是我们将 `_start` 函数放在了 .text 段的开头。
 
 我们看看 `_start` 里面做了什么：
 
-1. 修改栈指针寄存器 sp 为 .bss.stack 段的结束地址，由于栈是从高地址往低地址增长，所以高地址是初始的栈顶；
+1. 修改栈指针寄存器 `sp` 为 .bss.stack 段的结束地址，由于栈是从高地址往低地址增长，所以高地址是初始的栈顶；
 2. 使用 `call` 指令跳转到 `rust_main` 。这意味着我们的内核运行环境设置完成了，正式进入内核。
 
-我们将 `src/main.rs` 里面的 `_start` 函数删除，并换成 `rust_main` ：
+我们将 `os/src/main.rs` 里面的 `_start` 函数删除，并换成 `rust_main` ：
 
+{% label %}os/src/main.rs{% endlabel %}
 ```rust
-// src/main.rs
-
 //! # 全局属性
 //! - `#![no_std]`  
 //!   禁用标准库

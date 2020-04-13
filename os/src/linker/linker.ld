@@ -1,5 +1,3 @@
-/* rCore Linker Script */
-
 /* Linker Script 语法可以参见：http://www.scoberlin.de/content/media/http/informatik/gcc_docs/ld_3.html */
 
 /* 目标架构 */

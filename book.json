@@ -11,5 +11,12 @@
         "search-pro",
         "click-reveal",
         "expandable-chapters-interactive"
-      ]
+      ],
+    "pluginsConfig": {
+      "fontsettings": {
+        "theme": "white",
+        "family": "sans",
+        "size": 1
+      }
+    }
 }

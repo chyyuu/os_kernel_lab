@@ -6,6 +6,7 @@
 
 Rust 社区提供了一个 cargo-binutils 项目，可以帮助我们方便地调用 Rust 内置的 LLVM binutils。我们用以下命令安装它：
 
+{% label %}运行命令{% endlabel %}
 ```bash
 cargo install cargo-binutils
 rustup component add llvm-tools-preview
@@ -21,8 +22,9 @@ rustup component add llvm-tools-preview
 
 ### 查看生成的可执行文件
 
-我们编译之后的产物为 `target/riscv64imac-unknown-none-elf/debug/os`，让我们先看看它的文件类型：
+我们编译之后的产物为 `os/target/riscv64imac-unknown-none-elf/debug/os`，让我们先看看它的文件类型：
 
+{% label %}运行输出{% endlabel %}
 ```bash
 $ file target/riscv64imac-unknown-none-elf/debug/os
 target/riscv64imac-unknown-none-elf/debug/os: ELF 64-bit LSB executable, UCB RISC-V, version 1 (SYSV), statically linked, with debug_info, not stripped
@@ -32,6 +34,7 @@ target/riscv64imac-unknown-none-elf/debug/os: ELF 64-bit LSB executable, UCB RIS
 
 接下来使用刚刚安装的工具链中的 rust-objdump 工具看看它的具体信息：
 
+{% label %}运行输出{% endlabel %}
 ```clike
 $ rust-objdump target/riscv64imac-unknown-none-elf/debug/os -x --arch-name=riscv64
 
@@ -94,6 +97,7 @@ Dynamic Section:
 
 在这里我们使用的是 `-x` 来查看程序的元信息，下面我们用 `-d` 来对代码进行反汇编：
 
+{% label %}运行输出{% endlabel %}
 ```bash
 $ rust-objdump target/riscv64imac-unknown-none-elf/debug/os -d --arch-name=riscv64
 
@@ -127,4 +131,4 @@ rust-objcopy target/riscv64imac-unknown-none-elf/debug/os --strip-all -O binary 
 
 这里 `--strip-all` 表明丢弃所有符号表及调试信息，`-O binary` 表示输出为二进制文件。
 
-至此，我们编译并生成了内核镜像 `kernel.bin` 文件。接下来，我们将使用 qemu 模拟器真正将我们的内核镜像跑起来。不过在此之前还需要完成两个工作：**调整内存布局**和**重写入口函数**。
+至此，我们编译并生成了内核镜像 `kernel.bin` 文件。接下来，我们将使用 QEMU 模拟器真正将我们的内核镜像跑起来。不过在此之前还需要完成两个工作：**调整内存布局**和**重写入口函数**。

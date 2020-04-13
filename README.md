@@ -1,28 +1,38 @@
 # rCore 教学实验（开发中）
 
-*（介绍）*
+本教学仓库是继 [rCore_tutorial](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的版本。
 
 ## 仓库目录
 
-- `docs/`：教学实验指导分实验内容
-- `notes/`：开发日志
+- `docs/`：教学实验指导分实验内容和开发规范
+- `notes/`：开题报告和若干讨论
 - `os/`：操作系统代码
 - `SUMMARY.md`：GitBook 目录页
 - `book.json`：GitBook 配置文件
-- `rust-toolchain`：限定 Rust 工具链版本  
-  *note 目前使用比较旧的，整体完成之后在考虑更新*
-
+- `rust-toolchain`：限定 Rust 工具链版本
+<!-- Rust 工具链版本需要根据时间更新 -->
 
 ## 实验指导
 
-基于 GitBook，目前尚未部署到服务器
-
-*部署好像需要一些特殊的配置，需要 Tsinghua Git 提供域名，以及添加服务器（在 gitlab.io 上的话似乎可以直接搞）*
+基于 GitBook，目前已经部署到了 [GitHub Pages](https://os20-rcore-tutorial.github.io/rCore-Tutorial-deploy)
+ 上面。
 
 ### 本地使用方法
 
-```shell
+```bash
 npm install -g gitbook-cli
 gitbook install
 gitbook serve
+```
+
+## 代码
+
+### 操作系统代码
+基于 cargo 项目，进入 `os` 目录通过相关命令可以运行：
+```bash
+cd os
+# 编译并运行
+make run
+# 根据代码注释生成文档
+cargo doc
 ```

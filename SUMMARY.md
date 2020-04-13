@@ -15,7 +15,7 @@
 * [环境部署](docs/pre-lab/env.md)
 
 ## 实验指导
-* 零：一个运行在 OpenSBI 之上的程序
+* 实验指导零
   * [摘要](docs/lab-0/guide/intro.md)
   * [创建项目](docs/lab-0/guide/part-1.md)
   * [移除标准库依赖](docs/lab-0/guide/part-2.md)
@@ -27,7 +27,7 @@
   * [使用 QEMU 运行](docs/lab-0/guide/part-8.md)
   * [接口封装和代码整理](docs/lab-0/guide/part-9.md)
   * [小结](docs/lab-0/guide/summary.md)
-* 一：中断处理
+* 实验指导一
   * [摘要](docs/lab-1/guide/intro.md)
   * [背景知识](docs/lab-1/guide/part-1.md)
   * [RISC-V 中的中断](docs/lab-1/guide/part-2.md)
@@ -38,5 +38,4 @@
   * [小结](docs/lab-1/guide/summary.md)
 
 ## 实验题目
-* [零：TODO](docs/lab-0/exercise/intro.md)
-* [一：异常处理](docs/lab-1/exercise/intro.md)
+* [实验题目一](docs/lab-1/exercise/intro.md)
