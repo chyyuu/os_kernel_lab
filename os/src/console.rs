@@ -17,8 +17,6 @@ use core::fmt::{self, Write};
 /// 一个 [Zero-Sized Type]，实现 [`core::fmt::Write`] trait 来进行格式化输出
 /// 
 /// ZST 只可能有一个值（即为空），因此它本身就是一个单件
-/// 
-/// [Zero-Sized Type]: https://doc.rust-lang.org/nomicon/exotic-sizes.html#zero-sized-types-zsts
 struct Stdout;
 
 impl Write for Stdout {

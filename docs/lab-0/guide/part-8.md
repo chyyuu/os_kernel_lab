@@ -4,6 +4,7 @@
 
 新版 QEMU 中内置了 OpenSBI 固件，它主要负责在操作系统运行前的硬件初始化和加载操作系统的功能。我们使用以下命令尝试运行一下：
 
+{% label %}运行输出{% endlabel %}
 ```bash
 $ qemu-system-riscv64 \
   --machine virt \
@@ -38,9 +39,8 @@ PMP1: 0x0000000000000000-0xffffffffffffffff (A,R,W,X)
 
 为了确信我们已经跑起来了内核里面的代码，我们最好在 `rust_main` 里面加上简单的输出：
 
+{% label %}os/src/main.rs{% endlabel %}
 ```rust
-// src/main.rs
-
 //! # 全局属性
 //! - `#![no_std]`  
 //!   禁用标准库
@@ -54,7 +54,7 @@ PMP1: 0x0000000000000000-0xffffffffffffffff (A,R,W,X)
 //!   内嵌汇编
 #![feature(asm)]
 //!
-//! - `#![feature(global_asm)]`  
+//! - `#![feature(global_asm)]`
 //!   内嵌整个汇编文件
 #![feature(global_asm)]
 
@@ -107,9 +107,8 @@ pub extern "C" fn rust_main() -> ! {
 
 现在我们生成内核镜像要通过多条命令来完成，我们可以通过在 os 目录下建立一个 Makefile 来简化这一过程：
 
+{% label %}os/Makefile{% endlabel %}
 ```makefile
-# Makefile
-
 TARGET      := riscv64imac-unknown-none-elf
 MODE        := debug
 KERNEL_FILE := target/$(TARGET)/$(MODE)/os

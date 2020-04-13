@@ -7,19 +7,16 @@ OpenSBI 实际上不仅起到了 bootloader 的作用，还为我们提供了一
 参考 [OpenSBI 文档](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc#legacy-sbi-extension-extension-ids-0x00-through-0x0f) ，我们会发现里面包含了一些以 C 函数格式给出的我们可以调用的接口。
 
 上一节中我们的 `console_putchar` 函数类似于调用下面的接口来实现的：
-```c
+```int
 void sbi_console_putchar(int ch)
 ```
 
-而实际的过程是这样的：我们通过 ecall 发起系统调用。OpenSBI 会检查发起的系统调用的编号，如果编号在 0-8 之间，则进行处理，否则交由我们自己的中断处理程序处理（暂未实现）。
+而实际的过程是这样的：我们通过 ecall 发起系统调用。OpenSBI 会检查发起的系统调用的编号，如果编号在 0-8 之间，则进行处理，否则交由我们自己的中断处理程序处理（暂未实现）。想进一步了解编号在 0-8 之间的系统调用，请参考看 [OpenSBI 文档](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc#function-listing-1)
 
-> 编号在 0-8 之间的系统调用，具体请看 [OpenSBI 文档](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc#function-listing-1)
+执行 `ecall` 前需要指定系统调用的编号，传递参数。一般而言，`a7` 为系统调用编号，`a0`、`a1` 和 `a2` 为参数：
 
-执行 ecall 前需要指定系统调用的编号，传递参数。一般而言，$$a_7$$ 为系统调用编号，$$a_0 , a_1 , a_2$$ 为参数：
-
+{% label %}os/src/sbi.rs{% endlabel %}
 ```rust
-// src/sbi.rs
-
 //! 调用 Machine 层的操作
 // 目前还不会用到全部的 SBI 调用，暂时允许未使用的变量或函数
 #![allow(unused)]
@@ -32,8 +29,8 @@ fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
         asm!("ecall"
             : "={x10}" (ret)
             : "{x10}" (arg0), "{x11}" (arg1), "{x12}" (arg2), "{x17}" (which)
-            : "memory"
-            : "volatile");
+            : "memory"      // 如果汇编可能改变内存，则需要加入 memory 选项
+            : "volatile");  // 防止编译器做激进的优化（如调换指令顺序等破坏 SBI 调用行为的优化）
     }
     ret
 }
@@ -49,46 +46,22 @@ fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
 > - 如何传递返回值？
 > - 如何保证函数返回后能从我们期望的位置继续执行？
 >
-> 等更多事项。通常编译器按照某种规范去翻译所有的函数调用，这种规范被称为 [Calling convention](https://en.wikipedia.org/wiki/Calling_convention) 。值得一提的是，为了实现函数调用，我们需要预先分配一块内存作为 **调用栈** ，后面会看到调用栈在函数调用过程中极其重要。你也可以理解为什么第一章刚开始我们就要分配栈了。
+> 等更多事项。通常编译器按照某种规范去翻译所有的函数调用，这种规范被称为 [Calling convention](https://en.wikipedia.org/wiki/Calling_convention) 。值得一提的是，为了实现函数调用，我们需要预先分配一块内存作为**调用栈** ，后面会看到调用栈在函数调用过程中极其重要。你也可以理解为什么第一章刚开始我们就要分配栈了。
 
-对于参数比较少且是基本数据类型的时候，我们从左到右使用寄存器 $$a_0 \sim a_7$$ 就可以完成参数的传递。具体规范可参考 [RISC-V calling convention](https://riscv.org/wp-content/uploads/2015/01/riscv-calling.pdf)。
+对于参数比较少且是基本数据类型的时候，我们从左到右使用寄存器 `a0` 到 `a7` 就可以完成参数的传递。具体规范可参考 [RISC-V Calling Convention](https://riscv.org/wp-content/uploads/2015/01/riscv-calling.pdf)。
 
-然而，如这种情况一样，设置寄存器并执行汇编指令，这超出了 Rust 语言的描述能力。然而又与之前 `global_asm!` 大段插入汇编代码不同，我们要把 `u8` 类型的单个字符传给 $$a_0$$ 作为输入参数，这种情况较为强调 Rust 与汇编代码的交互。此时我们通常使用**内联汇编（inline assembly）**。
+然而，如这种情况一样，设置寄存器并执行汇编指令，这超出了 Rust 语言的描述能力。然而又与之前 `global_asm!` 大段插入汇编代码不同，我们要把 `u8` 类型的单个字符传给 `a0` 作为输入参数，这种情况较为强调 Rust 与汇编代码的交互。此时我们通常使用**内联汇编（Inline Assembly）**，具体规范请参考[这里](https://kaisery.gitbooks.io/rust-book-chinese/content/content/Inline%20Assembly%20%E5%86%85%E8%81%94%E6%B1%87%E7%BC%96.html)。
 
-> **[info] 内联汇编**
->
-> Rust 中拓展内联汇编的格式如下：
->
-> ```rust
-> asm!(assembler template
-> 	: /* output operands */
-> 	: /* input operands */
-> 	: /* clobbered registers list */
-> 	: /* option */
-> );
-> ```
->
-> 其中：
->
-> - assembler template 给出字符串形式的汇编代码；
-> - output operands 以及 input operands 分别表示输出和输入，体现着汇编代码与 Rust 代码的交互。每个输出和输入都是用 "constraint"(expr) 的形式给出的，其中 expr 部分是一个 Rust 表达式作为汇编代码的输入、输出，通常为了简单起见仅用一个变量。而 constraint 则是你用来告诉编译器如何进行参数传递；
-> - clobbered registers list 需要给出你在整段汇编代码中，除了用来作为输入、输出的寄存器之外，还曾经显式/隐式的修改过哪些寄存器。由于编译器对于汇编指令所知有限，你必须手动告诉它“我可能会修改这个寄存器”，这样它在使用这个寄存器时就会更加小心；
-> - option 是 Rust 语言内联汇编特有的（相对于 C 语言），用来对内联汇编整体进行配置。
-<!-- TODO 进一步参考 -->
+<!-- TODO 进一步参考内联汇编 -->
 
-输出部分，我们将结果保存到变量 `ret` 中，限制条件 `{x10}` 告诉编译器使用寄存器 $$x_{10}$$（即 `a0` 寄存器），前面的 `=` 表明汇编代码会修改该寄存器并作为最后的返回值。一般情况下 output operands 的 constraint 部分前面都要加上 `=` 。
+输出部分，我们将结果保存到变量 `ret` 中，限制条件 `{x10}` 告诉编译器使用寄存器 `x10`（即 `a0` 寄存器），前面的 `=` 表明汇编代码会修改该寄存器并作为最后的返回值。
 
-输入部分，我们分别通过寄存器 $$x_{10}(a_0),x_{11}(a_1),x_{12}(a_2),x_{17}(a_7)$$ 传入参数 `arg0`、`arg1`、`arg2` 和 `which` ，其中前三个参数分别代表接口可能所需的三个输入参数，最后一个 `which` 用来区分我们调用的是哪个接口（SBI Extension ID）。这里之所以提供三个输入参数是为了将所有接口囊括进去，对于某些接口有的输入参数是冗余的，比如 `sbi_console_putchar` 由于只需一个输入参数，它就只关心寄存器 $$a_0$$ 的值。
-
-在 clobbered registers list 中，出现了一个 `"memory"` ，这用来告诉编译器汇编代码隐式的修改了在汇编代码中未曾出现的某些寄存器。所以，它也不能认为汇编代码中未出现的寄存器就会在内联汇编前后保持不变了。
-
-在 option 部分出现了 `"volatile"` ，我们可能在很多地方看到过这个单词。不过在内联汇编中，主要意思是告诉编译器，不要将内联汇编代码移动到别的地方去。我们知道，编译器通常会对翻译完的汇编代码进行优化，其中就包括对指令的位置进行调换。像这种情况，调换可能就会产生我们预期之外的结果。谨慎起见，我们针对内联汇编禁用这一优化。
+输入部分，我们分别通过寄存器 `x10`、`x11`、`x12` 和 `x17`（这四个寄存器又名 `a0`、`a1`、`a2` 和 `a7`） 传入参数 `arg0`、`arg1`、`arg2` 和 `which` ，其中前三个参数分别代表接口可能所需的三个输入参数，最后一个 `which` 用来区分我们调用的是哪个接口（SBI Extension ID）。这里之所以提供三个输入参数是为了将所有接口囊括进去，对于某些接口有的输入参数是冗余的，比如 `sbi_console_putchar` 由于只需一个输入参数，它就只关心寄存器 `a0` 的值。
 
 接着利用 `sbi_call` 函数参考 OpenSBI 文档实现对应的接口，顺带也可以把关机函数通过 SBI 接口一并实现：
 
+{% label %}os/src/sbi.rs{% endlabel %}
 ```rust
-// src/sbi.rs
-
 const SBI_SET_TIMER: usize = 0;
 const SBI_CONSOLE_PUTCHAR: usize = 1;
 const SBI_CONSOLE_GETCHAR: usize = 2;
@@ -126,7 +99,7 @@ pub fn shutdown() -> ! {
 
 只能使用 `console_putchar` 这种苍白无力的输出手段让人头皮发麻。如果我们能使用 `println!` 宏的话该有多好啊！于是我们就来实现自己的 `print!`宏和 `println!`宏！
 
-我们将这一部分放在 `src/conosle.rs` 中，关于格式化输出，Rust 中提供了一个接口 `core::fmt::Write`，你需要实现函数：
+我们将这一部分放在 `os/src/conosle.rs` 中，关于格式化输出，Rust 中提供了一个接口 `core::fmt::Write`，你需要实现函数：
 
 ```rust
 fn write_str(&mut self, s: &str) -> Result
@@ -149,9 +122,8 @@ fn write_fmt(mut self: &mut Self, args: Arguments<'_>) -> Result
 
 最后，我们把整个 `print` 和 `println` 宏按照逻辑写出即可，整体逻辑的代码如下：
 
+{% label %}os/src/console.rs{% endlabel %}
 ```rust
-// src/console.rs
-
 //! 实现控制台的字符输入和输出
 //! 
 //! # 格式化输出
@@ -171,8 +143,6 @@ use core::fmt::{self, Write};
 /// 一个 [Zero-Sized Type]，实现 [`core::fmt::Write`] trait 来进行格式化输出
 /// 
 /// ZST 只可能有一个值（即为空），因此它本身就是一个单件
-/// 
-/// [Zero-Sized Type]: https://doc.rust-lang.org/nomicon/exotic-sizes.html#zero-sized-types-zsts
 struct Stdout;
 
 impl Write for Stdout {
@@ -220,6 +190,7 @@ macro_rules! println {
 ### 整理 panic 处理模块
 最后，我们用刚刚实现的格式化输出和关机的函数，将 `main.rs` 中处理 panic 的语义项抽取并完善到 `panic.rs` 中：
 
+{% label %}os/src/panic.rs{% endlabel %}
 ```rust
 //! 代替 std 库，实现 panic 和 abort 的功能
 
@@ -251,8 +222,9 @@ extern "C" fn abort() -> ! {
 
 ### 检验我们的成果
 
-最后，我们可以 `src/main.rs` 中去掉之前写的 `console_putchar`并调用我们新写的一系列函数，并在 Rust 入口处加入一些简单的输出看一看我们的逻辑是否正确：
+最后，我们可以 `os/src/main.rs` 中去掉之前写的 `console_putchar`并调用我们新写的一系列函数，并在 Rust 入口处加入一些简单的输出看一看我们的逻辑是否正确：
 
+{% label %}os/src/main.rs{% endlabel %}
 ```rust
 //! # 全局属性
 //! - `#![no_std]`  
@@ -297,5 +269,4 @@ pub extern "C" fn rust_main() -> ! {
 }
 ```
 
-在命令行中输入 `make run`，我们成功看到了 `println` 宏输出的 "Hello rCore-Tutorial!" 和一行红色的 "panic: 'end of rust_main'"！
-```
+在命令行中输入 `make run`，我们成功看到了 `println` 宏输出的 `Hello rCore-Tutorial!` 和一行红色的 `panic: 'end of rust_main'`！
