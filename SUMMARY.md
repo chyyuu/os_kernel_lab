@@ -3,6 +3,7 @@
 * [实验简介](README.md)
 
 ## 开发笔记
+* [文档代码划分](docs/format/partition.md)
 * [文档格式规范](docs/format/doc.md)
 * [代码格式规范](docs/format/code.md)
 

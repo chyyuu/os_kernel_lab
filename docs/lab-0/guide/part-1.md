@@ -30,6 +30,7 @@ Project                 项目目录
 
 接下来我们进入 os 文件夹，并尝试构建、运行项目：
 
+{% label %}运行输出{% endlabel %}
 ```bash
 $ cargo run
    ...
