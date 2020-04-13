@@ -17,8 +17,8 @@
 
 #### 发生中断时，硬件自动填写的寄存器
 
-- `sepc`：Exception Program Counter  
-记录触发中断的指令的地址。
+- `sepc`  
+即 Exception Program Counter，用来记录触发中断的指令的地址。
 
   > 和我们之前学的 MIPS 32 系统不同，RISC-V 中不需要考虑延迟槽的问题。但是 RISC-V 中的指令不定长，如果中断处理需要恢复到异常指令后一条指令进行执行，就需要正确判断将 `pc` 寄存器加上多少字节。
 
@@ -34,17 +34,17 @@
 设置内核态中断处理流程的入口地址。存储了一个基址 BASE 和模式 MODE：
 
   - MODE 为 0 表示 Direct 模式，即遇到中断便跳转至 BASE 进行执行。
-
+  
   - MODE 为 1 表示 Vectored 模式，此时 BASE 应当指向一个向量，存有不同处理流程的地址，遇到中断会跳转至 `BASE + 4 * cause` 进行处理流程。
 
 - `sstatus`  
 具有许多状态位，控制全局中断使能等。
 
-- `sie` （Supervisor Interrupt-Enable）  
-控制具体类型中断的使能，例如其中的 STIE 控制时钟中断使能。
+- `sie`  
+即 Supervisor Interrupt-Enable，用来控制具体类型中断的使能，例如其中的 STIE 控制时钟中断使能。
 
-- `sip` （Supervisor Interrupt-Pending）
-和 `sie` 相对应，记录每种中断是否被触发。仅当 `sie` 和 `sip` 的对应位都为 1 时，意味着开中断且已发生中断，这时中断最终触发。
+- `sip`  
+即 Supervisor Interrupt-Pending，和 `sie` 相对应，记录每种中断是否被触发。仅当 `sie` 和 `sip` 的对应位都为 1 时，意味着开中断且已发生中断，这时中断最终触发。
 
 #### `sscratch`
 
@@ -67,7 +67,7 @@
 从内核态返回用户态，同时将 `pc` 的值设置为 `sepc`。（如果需要返回到 `sepc` 后一条指令，就需要在 `sret` 之前修改 `sepc` 的值）
 
 - `ebreak`  
-触发一个断点
+触发一个断点。
 
 - `mret`  
 从机器态返回内核态，同时将 `pc` 的值设置为 `mepc`。
