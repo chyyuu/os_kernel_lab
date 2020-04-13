@@ -17,6 +17,9 @@
 
 {% label %}os/src/interrupt/timer.rs{% endlabel %}
 ```rust
+/// 初始化时钟中断
+/// 
+/// 开启时钟中断使能，并且预约第一次时钟中断
 pub fn init() {
     unsafe {
         // 开启 STIE，允许时钟中断
@@ -34,7 +37,7 @@ pub fn init() {
 
 ### 设置时钟中断
 
-每一次的时钟中断都需要操作系统设置一个下一次中断的时间，硬件会在指定的时间发出时钟中断。为了便于后续处理，我们设置时钟间隔为 100000 CPU 周期。越短的间隔可以让 CPU 调度资源更加细致，但同时也会导致更多资源浪费在操作系统上。
+每一次的时钟中断都需要操作系统设置一个下一次中断的时间，硬件会在指定的时间发出时钟中断。为了便于后续处理，我们设置时钟间隔为 100000 个 CPU 周期。越短的间隔可以让 CPU 调度资源更加细致，但同时也会导致更多资源浪费在操作系统上。
 
 {% label %}os/src/interrupt/timer.rs{% endlabel %}
 ```rust
@@ -42,8 +45,9 @@ pub fn init() {
 static INTERVAL: usize = 100000;
 
 /// 设置下一次时钟中断
+/// 
+/// 获取当前时间，加上中断间隔，通过 SBI 调用预约下一次中断
 fn set_next_timeout() {
-    // 内核态可以访问 time 寄存器，记录了当前时间
     set_timer(time::read() + INTERVAL);
 }
 ```
@@ -56,6 +60,8 @@ fn set_next_timeout() {
 pub static mut TICKS: usize = 0;
 
 /// 每一次时钟中断时调用
+/// 
+/// 设置下一次时钟中断，同时计数 +1
 pub fn tick() {
     set_next_timeout();
     unsafe {
@@ -73,8 +79,14 @@ pub fn tick() {
 
 {% label %}os/src/interrupt/handler.rs{% endlabel %}
 ```rust
+/// 中断的处理入口
+/// 
+/// `interrupt.asm` 首先保存寄存器至 TrapFrame，其作为参数传入此函数  
+/// 具体的中断类型需要根据 TrapFram::scause 来推断，然后分别处理
 #[no_mangle]
 pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
+    // 可以通过 Debug 来查看发生了什么中断
+    // println!("{:x?}", trap_frame.scause.cause());
     match trap_frame.scause.cause() {
         // 断点中断（ebreak）
         Trap::Exception(Exception::Breakpoint) => breakpoint(trap_frame),
@@ -86,15 +98,19 @@ pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
 }
 
 /// 处理 ebreak 断点
+/// 
+/// 继续执行，其中 `sepc` 增加 2 字节，以跳过当前这条 `ebreak` 指令
 fn breakpoint(trap_frame: &mut TrapFrame) {
     println!("Breakpoint at 0x{:x}", trap_frame.sepc);
     trap_frame.sepc += 2;
 }
 
 /// 处理时钟中断
+/// 
+/// 目前只会在 [`timer`] 模块中进行计数
 fn supervisor_timer(_: &TrapFrame) {
     timer::tick();
 }
 ```
 
-至此，时钟中断就可以正常工作了。最后我们在 main 函数中插入 `loop {}` 防止程序退出，然后观察时钟中断。应当可以看到程序每隔一秒左右输出一次 `100 ticks~`
+至此，时钟中断就可以正常工作了。最后我们在 main 函数中去掉 `unreachable!()` 并插入 `loop {}` 防止程序退出，然后观察时钟中断。应当可以看到程序每隔一秒左右输出一次 `100 ticks~`。

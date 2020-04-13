@@ -15,6 +15,7 @@
     # 保存通用寄存器，除了 x0（固定为 0）
     SAVE    x1, 1
     addi    x1, sp, 36*8
+    # 将原来的 sp（sp 又名 x2）写入 2 位置
     SAVE    x1, 2
     SAVE    x3, 3
     SAVE    x4, 4
@@ -97,20 +98,24 @@
     LOAD    x29, 29
     LOAD    x30, 30
     LOAD    x31, 31
+
+    # 恢复 sp（又名 x2）这里最后恢复是为了上面可以正常使用 LOAD 宏
     LOAD    x2, 2
 .endm
 
 
     .section .text
     .globl __interrupt
+# 进入中断
 # 保存 TrapFrame 并且进入 rust 中的中断处理函数 interrupt::handler::handle_interrupt()
 __interrupt:
     SAVE_ALL
-    # TrapFrame 作为参数传入
+    # TrapFrame 作为参数 a0 传入
     mv a0, sp
     jal handle_interrupt
 
     .globl __restore
+# 离开中断
 # 从 TrapFrame 中恢复所有寄存器，并跳转至 TrapFrame 中 sepc 的位置
 __restore:
     LOAD_ALL
