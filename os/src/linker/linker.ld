@@ -58,5 +58,5 @@ SECTIONS
     }
 
     /* 结束地址 */
-    end = .;
+    kernel_end = .;
 }

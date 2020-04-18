@@ -10,9 +10,11 @@
 - 可以使用 markdown 格式的链接，链接内容使用 rust 可以直接链上，例如
   ```rust
   /// 样例注释
-  /// [`link`](crate::xxx::xxx)
+  /// [`link`]: crate::xxx::xxx
   fn some_func() {}
   ```
+
+- 对于地址 literal，使用小写，使用 `_` 每隔四位进行标记，例如 `0x8000_0000` `0xffff_ffff_c000_0000`
 
 ### 参考
 - https://doc.rust-lang.org/1.26.2/book/first-edition/comments.html
