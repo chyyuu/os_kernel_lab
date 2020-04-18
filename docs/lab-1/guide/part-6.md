@@ -51,7 +51,6 @@ pub fn set_timer(time: usize) {
 }
 ```
 
-
 为了便于后续处理，我们设置时钟间隔为 100000 个 CPU 周期。越短的间隔可以让 CPU 调度资源更加细致，但同时也会导致更多资源浪费在操作系统上。
 
 {% label %}os/src/interrupt/timer.rs{% endlabel %}

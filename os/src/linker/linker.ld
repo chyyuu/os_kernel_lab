@@ -15,7 +15,7 @@ SECTIONS
     . = BASE_ADDRESS;
 
     /* start 符号表示全部的开始位置 */
-    start = .;
+    kernel_start = .;
 
     /* .text 字段 */
     .text : {

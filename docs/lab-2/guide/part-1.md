@@ -1,4 +1,4 @@
-## QEMU 虚拟的物理内存
+## 物理内存探测
 
 ### 物理内存的相关概念
 
@@ -41,4 +41,124 @@
 > | 0x40000000 | 0x80000000 | QEMU VIRT_PCIE_MMIO                                   |
 > | 0x80000000 | 0x88000000 | DRAM 缺省 128MB，大小可配置                              |
 
-不过为了简单起见，我们并不打算自己去解析这个结果。因为我们知道，QEMU 规定的 DRAM 物理内存的起始物理地址为 0x80000000 。而在 QEMU 中，可以使用 `-m` 指定 RAM 的大小，默认是 128 MB 。因此，默认的 DRAM 物理内存地址范围就是 [0x80000000, 0x88000000)。我们直接将 DRAM 物理内存结束地址硬编码到内核中。
+不过为了简单起见，我们并不打算自己去解析这个结果。因为我们知道，QEMU 规定的 DRAM 物理内存的起始物理地址为 0x80000000 。而在 QEMU 中，可以使用 `-m` 指定 RAM 的大小，默认是 128 MB 。因此，默认的 DRAM 物理内存地址范围就是 [0x80000000, 0x88000000)。
+
+因为后面还会涉及到虚拟地址、物理页和虚拟页面的概念，为了进一步区分而不是简单的只是使用 `usize` 类型来存储，我们首先建立一个 `PhysicalAddress` 的类，然后对其实现一系列的 `usize` 的加、减和输出等等操作：
+
+{% label %}os/src/memory/address.rs{% endlabel %}
+```rust
+/// 物理地址
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PhysicalAddress(pub usize);
+
+/// 为各种仅包含一个 usize 的类型实现运算操作
+macro_rules! implement_usize_operations {
+    ($type_name: ty) => {
+        /// `+`
+        impl core::ops::Add<usize> for $type_name {
+            type Output = Self;
+            fn add(self, other: usize) -> Self::Output { Self(self.0 + other) }
+        }
+        /// `+=`
+        impl core::ops::AddAssign<usize> for $type_name {
+            fn add_assign(&mut self, rhs: usize) { self.0 += rhs; }
+        }
+        /// `-`
+        impl core::ops::Sub<usize> for $type_name {
+            type Output = Self;
+            fn sub(self, other: usize) -> Self::Output { Self(self.0 + other) }
+        }
+        /// `-=`
+        impl core::ops::SubAssign<usize> for $type_name {
+            fn sub_assign(&mut self, rhs: usize) { self.0 -= rhs; }
+        }
+        impl core::ops::Deref for $type_name {
+            type Target = usize;
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
+        impl $type_name {
+            /// 是否有效（0 为无效）
+            fn valid(&self) -> bool {
+                self.0 != 0
+            }
+        }
+        /// {} 输出
+        impl core::fmt::Display for $type_name {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{}(0x{:x})", stringify!($type_name), self.0)
+            }
+        }
+    }
+}
+
+implement_usize_operations!(PhysicalAddress);
+```
+
+然后，我们直接将 DRAM 物理内存结束地址硬编码到内核中，同时因为我们操作系统本身也用了一部分空间，我们也记录下操作系统用到的地址结尾（即 linker script 中的 `kernel_end`）。
+
+{% label %}os/src/memory/config.rs{% endlabel %}
+```rust
+use super::address::*;
+use lazy_static::*;
+
+/// 可以访问的内存区域起始地址
+pub const MEMORY_START_ADDRESS: PhysicalAddress = PhysicalAddress(0x8000_0000);
+/// 可以访问的内存区域结束地址
+pub const MEMORY_END_ADDRESS: PhysicalAddress = PhysicalAddress(0x8800_0000);
+lazy_static! {
+    /// 内核代码结束的地址，即可以用来分配的内存起始地址
+    ///
+    /// 因为 Rust 语言限制，我们只能将其作为一个运行时求值的 static 变量，而不能作为 const
+    pub static ref KERNEL_END_ADDRESS: PhysicalAddress = PhysicalAddress(kernel_end as usize);
+}
+
+extern "C" {
+    /// 由 `linker.ld` 指定的内核代码结束位置
+    ///
+    /// 作为变量存在 [`KERNEL_END_ADDRESS`]
+    fn kernel_end();
+}
+```
+
+这里使用了 `lazy_static` 库，由于 Rust 语言的限制，我们能对编译时 `kernel_end` 做一个求值然后赋值到 `KERNEL_END_ADDRESS` 中；所以，`lazy_static!` 宏帮助我们在运行开始时自动完成这些求值工作。
+
+最后，我们打包为新建 `os/src/memory/mod.rs`。
+
+{% label %}os/src/memory/mod.rs{% endlabel %}
+```rust
+//! 内存管理模块
+//!
+//! 负责空间分配和虚拟地址映射
+
+// 因为模块内包含许多基础设施类别，实现了许多以后可能会用到的函数，
+// 所以在模块范围内不提示“未使用的函数”等警告
+#![allow(dead_code)]
+
+pub mod config;
+pub mod address;
+```
+
+并在 `os/src/main.rs` 尝试输出。
+{% label %}os/src/main.rs{% endlabel %}
+```rust
+...
+mod memory;
+...
+
+/// Rust 的入口函数
+///
+/// 在 `_start` 为我们进行了一系列准备之后，这是第一个被调用的 Rust 函数
+#[no_mangle]
+pub extern "C" fn rust_main() -> ! {
+    // 初始化各种模块
+    interrupt::init();
+
+    println!("{}", *memory::config::KERNEL_END_ADDRESS); // 注意这里的 KERNEL_END_ADDRESS 为 ref 类型，需要加 *
+
+    loop{}
+}
+```
+
+最后运行，可以看到成功显示了我们内核使用的结尾地址 `PhysicalAddress(0x8020b220)`；注意到这里，你的输出可能因为实现上的细节并不完全一样。

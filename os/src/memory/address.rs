@@ -111,6 +111,12 @@ macro_rules! implement_usize_operations {
                 self.0 != 0
             }
         }
+        /// {} 输出
+        impl core::fmt::Display for $type_name {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{}(0x{:x})", stringify!($type_name), self.0)
+            }
+        }
     }
 }
 implement_usize_operations!{PhysicalAddress}
