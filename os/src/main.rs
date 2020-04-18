@@ -60,6 +60,7 @@ pub extern "C" fn rust_main() -> ! {
     loop{}
 }
 
+// 从更新的 rcore_tutorial 摘过来
 // to be removed
 fn test_heap() {
     use alloc::vec::Vec;

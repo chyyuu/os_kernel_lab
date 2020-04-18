@@ -14,17 +14,17 @@
 use super::frame::*;
 use crate::memory::address::*;
 use crate::memory::config::*;
-use spin::Mutex;
 use lazy_static::*;
+use spin::Mutex;
 
 /// 可用的首个物理页号
 const BEGIN_PPN: PhysicalPageNumber = PhysicalPageNumber::ceil(MEMORY_END_ADDRESS);
 /// 可用的最后物理页号 + 1
 const END_PPN: PhysicalPageNumber = PhysicalPageNumber::floor(MEMORY_END_ADDRESS);
 
-lazy_static!{
+lazy_static! {
     /// 帧分配器
-    pub static ref frame_allocator: Mutex<FrameAllocator> = Mutex::new(FrameAllocator::new());
+    pub static ref FRAME_ALLOCATOR: Mutex<FrameAllocator> = Mutex::new(FrameAllocator::new());
 }
 
 /// 基于链表的帧分配 / 回收
@@ -67,23 +67,25 @@ impl FrameAllocator {
                     // 如果其剩余帧数大于 1，则仅取出一个页面
                     // 为了方便取出其最后一个页面，就不需要修改地址了
                     head.size -= 1;
-                    Some(AllocatedFrame((head as *const Frame).add(head.size)))
+                    Some(AllocatedFrame(PhysicalAddress(head as *const _ as usize)))
                 } else {
                     // 剩余帧数为 1，则从链表中移除
-                    let popped_frame_address = head as *const Frame;
+                    let popped_frame_address = PhysicalAddress::from(head as *const _);
                     self.free_frame_list_head = head.next as *mut Frame;
                     Some(AllocatedFrame(popped_frame_address))
                 }
             } else {
-                // 链表已空
+                // 链表已空，返回 `None`
                 None
             }
         }
     }
 
     /// 将被释放的帧添加到空闲链表的头部
-    pub fn dealloc(&mut self, frame_pointer: *const Frame) {
-        let frame = unsafe { &mut *(frame_pointer as usize as *mut Frame) };
+    ///
+    /// 这个函数会在 [`AllocatedFrame`] 被 drop 时自动调用，不应在其他地方调用
+    pub(super) fn dealloc(&mut self, allocated_frame: &AllocatedFrame) {
+        let frame: &mut Frame = unsafe { allocated_frame.address().deref() };
         frame.next = self.free_frame_list_head as *const Frame;
         frame.size = 1;
         self.free_frame_list_head = frame as *mut Frame;

@@ -1,5 +1,4 @@
 //! 定义一些内存相关的常量
-#![allow(dead_code)]
 
 use super::address::*;
 use lazy_static::*;

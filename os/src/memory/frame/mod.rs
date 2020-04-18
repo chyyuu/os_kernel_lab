@@ -1,4 +1,4 @@
 //! 物理帧的分配与回收
 
-mod frame;
-mod allocator;
+pub mod frame;
+pub mod allocator;

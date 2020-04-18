@@ -2,8 +2,6 @@
 //! 
 //! 我们为虚拟地址和物理地址分别设立两种类型，利用编译器检查来防止混淆。
 
-#![allow(dead_code)]
-
 use super::config::PAGE_SIZE;
 
 /// 虚拟地址
@@ -26,6 +24,7 @@ pub struct PhysicalPageNumber(pub usize);
 // 以下是一大堆类型的相互转换、各种琐碎操作
 
 macro_rules! implement_address_to_page_number {
+    // 这里面的类型转换实现 [`From`] trait，会自动实现相反的 [`Into`] trait
     ($address_type: ty, $page_number_type: ty) => {
         impl From<$page_number_type> for $address_type {
             /// 从页号转换为地址
@@ -59,6 +58,19 @@ macro_rules! implement_address_to_page_number {
             /// 从指针转换为地址
             fn from(pointer: *const T) -> Self {
                 Self(pointer as usize)
+            }
+        }
+        impl<T> From<*mut T> for $address_type {
+            /// 从指针转换为地址
+            fn from(pointer: *mut T) -> Self {
+                Self(pointer as usize)
+            }
+        }
+        impl $address_type {
+            /// 从地址转换为对象
+            pub unsafe fn deref<T>(self) -> &'static mut T {
+                assert!(self.valid());
+                &mut *(self.0 as *mut T)
             }
         }
     }
