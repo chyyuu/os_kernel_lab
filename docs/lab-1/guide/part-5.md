@@ -8,10 +8,13 @@
 
 {% label %}os/src/interrupt/handler.rs{% endlabel %}
 ```rust
+use super::trap_frame::TrapFrame;
+use riscv::register::stvec;
+
 global_asm!(include_str!("../asm/interrupt.asm"));
 
 /// 初始化中断处理
-/// 
+///
 /// 把中断入口 `__interrupt` 写入 `stvec` 中，并且开启中断使能
 pub fn init() {
     unsafe {
@@ -43,10 +46,38 @@ pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
 
 ### 触发中断
 
-最后，我们在 main 函数中主动使用 `ebreak` 来触发一个中断。
+最后，我们把刚刚写的函数封装一下：
+
+{% label %}os/src/interrupt/mod.rs{% endlabel %}
+```rust
+//! 中断模块
+//! 
+//! 
+
+mod handler;
+mod trap_frame;
+
+/// 初始化中断相关的子模块
+/// 
+/// - [`handler::init`]
+/// - [`timer::init`]
+pub fn init() {
+    handler::init();
+    println!("mod interrupt initialized");
+}
+```
+
+同时，我们在 main 函数中主动使用 `ebreak` 来触发一个中断。
 
 {% label %}os/src/main.rs{% endlabel %}
 ```rust
+...
+mod interrupt;
+...
+
+/// Rust 的入口函数
+///
+/// 在 `_start` 为我们进行了一系列准备之后，这是第一个被调用的 Rust 函数
 pub extern "C" fn rust_main() -> ! {
     // 初始化各种模块
     interrupt::init();

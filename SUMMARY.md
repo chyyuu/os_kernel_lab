@@ -36,6 +36,13 @@
   * [进入中断处理流程](docs/lab-1/guide/part-5.md)
   * [时钟中断](docs/lab-1/guide/part-6.md)
   * [小结](docs/lab-1/guide/summary.md)
+* 实验指导二
+  * [摘要](docs/lab-2/guide/intro.md)
+  * [物理内存探测](docs/lab-2/guide/part-1.md)
+  * [物理内存管理](docs/lab-2/guide/part-2.md)
+  * [动态内存分配](docs/lab-2/guide/part-3.md)
+* 实验指导三
+  * [摘要](docs/lab-3/guide/intro.md)
 
 ## 实验题目
 * [实验题目一](docs/lab-1/exercise/intro.md)
