@@ -9,7 +9,7 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 /* 数据存放起始地址 */
-BASE_ADDRESS = 0x80200000;
+BASE_ADDRESS = 0xffffffff80200000;
 
 SECTIONS
 {   

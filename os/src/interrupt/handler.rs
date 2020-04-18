@@ -4,6 +4,7 @@ use super::timer;
 use super::trap_frame::TrapFrame;
 use riscv::register::{
     stvec,
+    stval,
     scause::{Trap, Exception, Interrupt},
 };
 
@@ -37,7 +38,7 @@ pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
         // 时钟中断
         Trap::Interrupt(Interrupt::SupervisorTimer) => supervisor_timer(trap_frame),
         // 其他情况未实现
-        trap => unimplemented!("{:?}", trap),
+        trap => unimplemented!("{:x?}", trap_frame),
     }
 }
 

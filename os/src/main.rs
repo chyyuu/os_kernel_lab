@@ -50,6 +50,10 @@ pub extern "C" fn rust_main() -> ! {
     // 初始化各种模块
     interrupt::init();
     memory::init();
+    
+    let kernel_mapping = memory::mapping::Mapping::new_kernel().unwrap();
+    println!("activate");
+    kernel_mapping.activate();
 
     test_heap();
 
