@@ -22,14 +22,11 @@ pub struct PageTableEntry(usize);
 
 impl PageTableEntry {
     /// 将相应页号和标志写入一个页表项
-    pub fn new(
-        page_number: PhysicalPageNumber,
-        flags: Flags,
-    ) -> Self {
+    pub fn new(page_number: PhysicalPageNumber, flags: Flags) -> Self {
         Self(
             *0usize
                 .set_bits(..8, flags.bits() as usize)
-                .set_bits(10..54, page_number.into())
+                .set_bits(10..54, page_number.into()),
         )
     }
     /// 获取页号
@@ -51,8 +48,9 @@ impl PageTableEntry {
 }
 
 impl core::fmt::Debug for PageTableEntry {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        f.debug_struct("PageTableEntry")
+    fn fmt(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+        formatter
+            .debug_struct("PageTableEntry")
             .field("page_number", &self.page_number())
             .field("flags", &self.flags())
             .finish()

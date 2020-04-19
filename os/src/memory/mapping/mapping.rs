@@ -13,16 +13,6 @@ use alloc::{vec, vec::Vec, sync::Arc};
 use core::ops::DerefMut;
 use riscv::register::satp;
 
-enum MapPair {
-    Linear {
-        page_number: VirtualPageNumber,
-    },
-    Framed {
-        page_number: VirtualPageNumber,
-        frame: FrameTracker,
-    },
-}
-
 #[derive(Default)]
 /// 某个线程的内存映射关系
 pub struct Mapping {

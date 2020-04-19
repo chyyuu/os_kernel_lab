@@ -48,7 +48,10 @@ impl Drop for FrameTracker {
 /// 如果这个物理帧没有被使用，那么我们就用其前两个 usize 来存储信息
 #[repr(C)]
 pub struct Frame {
-    pub(super) next: *mut Frame,
+    /// 下一个可用的物理帧的地址
+    pub(super) next: PhysicalAddress,
+    /// 从这一帧开始，有多少连续的物理帧是可用的
     pub(super) size: usize,
+    /// 帧中其他未被使用的数据
     _data: [u8; PAGE_SIZE - 16],
 }

@@ -118,6 +118,8 @@ macro_rules! implement_address_to_page_number {
 implement_address_to_page_number! {PhysicalAddress, PhysicalPageNumber}
 implement_address_to_page_number! {VirtualAddress, VirtualPageNumber}
 
+// 下面这些以后可能会删掉一些
+
 /// 为各种仅包含一个 usize 的类型实现运算操作
 macro_rules! implement_usize_operations {
     ($type_name: ty) => {
@@ -138,7 +140,14 @@ macro_rules! implement_usize_operations {
         impl core::ops::Sub<usize> for $type_name {
             type Output = Self;
             fn sub(self, other: usize) -> Self::Output {
-                Self(self.0 + other)
+                Self(self.0 - other)
+            }
+        }
+        /// `-`
+        impl core::ops::Sub<$type_name> for $type_name {
+            type Output = usize;
+            fn sub(self, other: $type_name) -> Self::Output {
+                self.0 - other.0
             }
         }
         /// `-=`
@@ -147,11 +156,13 @@ macro_rules! implement_usize_operations {
                 self.0 -= rhs;
             }
         }
+        /// 和 usize 相互转换
         impl From<usize> for $type_name {
             fn from(value: usize) -> Self {
                 Self(value)
             }
         }
+        /// 和 usize 相互转换
         impl From<$type_name> for usize {
             fn from(value: $type_name) -> Self {
                 value.0
@@ -159,7 +170,7 @@ macro_rules! implement_usize_operations {
         }
         impl $type_name {
             /// 是否有效（0 为无效）
-            fn valid(&self) -> bool {
+            pub fn valid(&self) -> bool {
                 self.0 != 0
             }
         }
