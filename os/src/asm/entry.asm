@@ -47,7 +47,8 @@ boot_page_table:
     # 0x8000_0000 -> 0x8000_0000
     # 0xffff_ffff_8000_0000 -> 0x8000_0000
     .quad 0
+    .quad 0
     .quad (0x80000 << 10) | 0xcf
-    .zero 508 * 8
+    .zero 507 * 8
     .quad (0x80000 << 10) | 0xcf
     .quad 0

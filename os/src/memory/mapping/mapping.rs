@@ -1,16 +1,17 @@
 //! 具体负责映射 / 取消映射（原 `MemorySet`）
 //!
+//! 许多方法返回 [`Result`]，如果出现错误会返回 `Err(message)`。
 //! NOTE：实现支持缺页，但不支持页表缺页
 
 use crate::memory::{
     address::*,
     config::*,
     frame::{FrameTracker, FRAME_ALLOCATOR},
-    mapping::{Flags, PageRange, PageTableEntry, PageTableTracker, Segment, PageTable},
+    mapping::{Flags, PageTable, PageTableEntry, PageTableTracker, Range, Segment},
 };
-use alloc::{vec, vec::Vec};
-use riscv::register::satp;
+use alloc::{vec, vec::Vec, sync::Arc};
 use core::ops::DerefMut;
+use riscv::register::satp;
 
 enum MapPair {
     Linear {
@@ -49,7 +50,7 @@ impl Mapping {
                 // 将 new_satp 的值写到 satp 寄存器
                 asm!("csrw satp, $0" :: "r"(new_satp) :: "volatile");
                 // 刷新 TLB
-                asm!("sfence.vma");
+                asm!("sfence.vma" :::: "volatile");
             }
         }
         println!("kernel remapping done");
@@ -64,27 +65,31 @@ impl Mapping {
         })
     }
 
-    /// 创建内核重映射
-    pub fn new_kernel() -> MapResult<Mapping> {
-        let mut mapping = Mapping::new()?;
-        mapping.map_linear(
-            PageRange::new(BEGIN_PPN.to_virtual_linear()..END_PPN.to_virtual_linear()),
-            Flags::VALID | Flags::READABLE | Flags::WRITABLE | Flags::EXECUTABLE,
-        )?;
-        Ok(mapping)
-    }
-
     /// 加入一段线性映射
-    fn map_linear(&mut self, page_range: PageRange, flags: Flags) -> MapResult<()> {
+    fn map_linear(&mut self, page_range: Range<VirtualPageNumber>, flags: Flags) -> MapResult<()> {
+        println!("linear map {:x?}", page_range);
         for vpn in page_range.iter() {
-            self.map_one(vpn, vpn.to_physical_linear(), flags)?;
+            self.map_one(vpn, PhysicalPageNumber::from(vpn), flags)?;
         }
-        self.segments.push(Segment::Linear { page_range, flags });
+        self.segments.push(Segment::Linear {
+            page_range: page_range.into(),
+            flags,
+        });
         Ok(())
     }
 
     /// 为一段虚拟地址空间分配帧，并保存映射
-    pub fn map_alloc(&mut self, page_range: PageRange) -> MapResult<()> {
+    pub fn map_alloc(
+        &mut self,
+        page_range: Range<VirtualPageNumber>,
+        flags: Flags,
+    ) -> MapResult<()> {
+        println!("framed map {:x?}", page_range);
+        let mut segment = Segment::new_framed(page_range, flags);
+        for vpn in page_range.iter() {
+            segment.add_frame(Arc::new(self.map_alloc_one(vpn, flags)?));
+        }
+        self.segments.push(segment);
         Ok(())
     }
 
@@ -136,5 +141,55 @@ impl Mapping {
         } else {
             Err("virtual address is already mapped")
         }
+    }
+    
+    /// 创建内核重映射
+    pub fn new_kernel() -> MapResult<Mapping> {
+        let mut mapping = Mapping::new()?;
+        // 在 linker.ld 里面标记的各个字段的起始点，均为 4K 对齐
+        extern "C" {
+            fn text_start();
+            fn rodata_start();
+            fn data_start();
+            fn bss_start();
+            fn boot_stack_start();
+        }
+        // .text 段，r-x
+        mapping.map_linear(
+            Range::from(
+                VirtualAddress::from(text_start as usize)..VirtualAddress::from(rodata_start as usize),
+            ),
+            Flags::VALID | Flags::READABLE | Flags::EXECUTABLE,
+        )?;
+        // .rodata 段，r--
+        mapping.map_linear(
+            Range::from(
+                VirtualAddress::from(rodata_start as usize)
+                    ..VirtualAddress::from(data_start as usize),
+            ),
+            Flags::VALID | Flags::READABLE,
+        )?;
+        // .data 段，rw-
+        mapping.map_linear(
+            Range::from(
+                VirtualAddress::from(data_start as usize)..VirtualAddress::from(bss_start as usize),
+            ),
+            Flags::VALID | Flags::READABLE | Flags::WRITABLE,
+        )?;
+        // .bss 段，rw-
+        mapping.map_linear(
+            Range::from(
+                VirtualAddress::from(bss_start as usize)..VirtualAddress::from(boot_stack_start as usize),
+            ),
+            Flags::VALID | Flags::READABLE | Flags::WRITABLE,
+        )?;
+        // 剩余内存空间，rw-
+        mapping.map_linear(
+            Range::from(
+                *KERNEL_END_ADDRESS..VirtualAddress::from(MEMORY_END_ADDRESS),
+            ),
+            Flags::VALID | Flags::READABLE | Flags::WRITABLE,
+        )?;
+        Ok(mapping)
     }
 }

@@ -31,7 +31,7 @@ pub struct FrameAllocator {
 impl FrameAllocator {
     /// 创建对象，其中 \[[`BEGIN_VPN`], [`END_VPN`]) 区间内的帧在其空闲链表中
     pub fn new() -> Self {
-        let first_frame_ppn = PhysicalPageNumber::ceil(KERNEL_END_ADDRESS.to_physical_linear());
+        let first_frame_ppn = PhysicalPageNumber::ceil(PhysicalAddress::from(*KERNEL_END_ADDRESS));
         let first_frame: &mut Frame =
             unsafe { PhysicalAddress::from(first_frame_ppn).deref_kernel() };
         let allocator = FrameAllocator {
@@ -60,7 +60,7 @@ impl FrameAllocator {
         unsafe {
             if let Some(head) = self.head_mut() {
                 // 如果有元素，获取其地址，将要分配该地址对应的帧
-                let frame_address = VirtualAddress::from(head as *mut _).to_physical_linear();
+                let frame_address = PhysicalAddress::from(VirtualAddress::from(head as *mut _));
                 if head.size > 1 {
                     // 如果其剩余帧数大于 1，则仅取出一个页面
                     // 原本的帧已经被分配，需要将原本的 next 和 size 写到下一个帧中，

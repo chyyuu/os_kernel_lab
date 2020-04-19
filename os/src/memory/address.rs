@@ -23,17 +23,6 @@ pub struct PhysicalPageNumber(pub usize);
 
 // 以下是一大堆类型的相互转换、各种琐碎操作
 
-impl VirtualAddress {
-    /// 从虚拟地址取得某类型的 &mut 引用
-    pub unsafe fn deref<T>(self) -> &'static mut T {
-        assert!(self.0 > KERNEL_MAP_OFFSET);
-        &mut *(self.0 as *mut T)
-    }
-    /// 线性映射为物理地址
-    pub fn to_physical_linear(self) -> PhysicalAddress {
-        PhysicalAddress(self.0 - KERNEL_MAP_OFFSET)
-    }
-}
 /// 从指针转换为虚拟地址
 impl<T> From<*const T> for VirtualAddress {
     fn from(pointer: *const T) -> Self {
@@ -47,14 +36,41 @@ impl<T> From<*mut T> for VirtualAddress {
     }
 }
 
+/// 虚实页号之间的线性映射
+impl From<PhysicalPageNumber> for VirtualPageNumber {
+    fn from(ppn: PhysicalPageNumber) -> Self {
+        Self(ppn.0 + KERNEL_MAP_OFFSET / PAGE_SIZE)
+    }
+}
+/// 虚实页号之间的线性映射
+impl From<VirtualPageNumber> for PhysicalPageNumber {
+    fn from(vpn: VirtualPageNumber) -> Self {
+        Self(vpn.0 - KERNEL_MAP_OFFSET / PAGE_SIZE)
+    }
+}
+/// 虚实地址之间的线性映射
+impl From<PhysicalAddress> for VirtualAddress {
+    fn from(pa: PhysicalAddress) -> Self {
+        Self(pa.0 + KERNEL_MAP_OFFSET)
+    }
+}
+/// 虚实地址之间的线性映射
+impl From<VirtualAddress> for PhysicalAddress {
+    fn from(va: VirtualAddress) -> Self {
+        Self(va.0 - KERNEL_MAP_OFFSET)
+    }
+}
+impl VirtualAddress {
+    /// 从虚拟地址取得某类型的 &mut 引用
+    pub unsafe fn deref<T>(self) -> &'static mut T {
+        assert!(self.0 > KERNEL_MAP_OFFSET);
+        &mut *(self.0 as *mut T)
+    }
+}
 impl PhysicalAddress {
     /// 从物理地址经过线性映射取得 &mut 引用
-pub unsafe fn deref_kernel<T>(self) -> &'static mut T {
-        self.to_virtual_linear().deref()
-    }
-    /// 线性映射为虚拟地址
-    pub fn to_virtual_linear(self) -> VirtualAddress {
-        VirtualAddress(self.0 + KERNEL_MAP_OFFSET)
+    pub unsafe fn deref_kernel<T>(self) -> &'static mut T {
+        VirtualAddress::from(self).deref()
     }
 }
 
@@ -66,16 +82,6 @@ impl VirtualPageNumber {
             self.0.get_bits(9..18),
             self.0.get_bits(0..9),
         ]
-    }
-    /// 线性映射为物理地址
-    pub fn to_physical_linear(self) -> PhysicalPageNumber {
-        PhysicalPageNumber(self.0 - KERNEL_MAP_OFFSET / PAGE_SIZE)
-    }
-}
-impl PhysicalPageNumber {
-    /// 线性映射为虚拟地址
-    pub fn to_virtual_linear(self) -> VirtualPageNumber {
-        VirtualPageNumber(self.0 + KERNEL_MAP_OFFSET / PAGE_SIZE)
     }
 }
 

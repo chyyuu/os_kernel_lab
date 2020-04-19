@@ -30,10 +30,10 @@
 
 #[macro_use]
 mod console;
-mod panic;
-mod sbi;
 mod interrupt;
 mod memory;
+mod panic;
+mod sbi;
 
 extern crate alloc;
 
@@ -50,9 +50,18 @@ pub extern "C" fn rust_main() -> ! {
     // 初始化各种模块
     interrupt::init();
     memory::init();
-    
+
+    // 在 entry.asm 中，我们定义了两个映射，所以此时我们还可以通过物理地址对等映射来访问内存
+    // （如果没有这个映射，取决于硬件实现，可能会在进入 rust_main 之前就 page fault）
+    let a: usize = unsafe { *(0x80200000 as *const _) };
+    println!("Accessing 0x80200000: {:x}", a);
+
     let kernel_mapping = memory::mapping::Mapping::new_kernel().unwrap();
     kernel_mapping.activate();
+
+    // 到了这里就不可以再通过对等映射来访问内存了
+    // let a: usize = unsafe { *(0x80200000 as *const _) };
+    // println!("Accessing 0x80200000: {:x}", a);
 
     test_heap();
 
@@ -60,14 +69,14 @@ pub extern "C" fn rust_main() -> ! {
         asm!("ebreak"::::"volatile");
     };
 
-    loop{}
+    loop {}
 }
 
 // 从更新的 rcore_tutorial 摘过来
 // to be removed
 fn test_heap() {
-    use alloc::vec::Vec;
     use alloc::boxed::Box;
+    use alloc::vec::Vec;
     let v = Box::new(5);
     assert!(*v == 5);
     let mut vec = Vec::new();

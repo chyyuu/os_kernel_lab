@@ -51,6 +51,9 @@ impl PageTableTracker {
     }
 }
 
+// PageTableEntry 和 PageTableTracker 都可以 deref 到对应的 PageTable
+// （使用线性映射来访问相应的物理地址）
+
 impl core::ops::Deref for PageTableTracker {
     type Target = PageTable;
     fn deref(&self) -> &Self::Target {
