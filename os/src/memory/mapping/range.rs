@@ -7,14 +7,17 @@ pub struct Range<T: From<usize> + Into<usize> + Copy> {
     end: T,
 }
 
-impl<T: From<usize> + Into<usize> + Copy> Range<T> {
-    /// 创建一个区间
-    pub fn new(range: core::ops::Range<T>) -> Self {
+/// 创建一个区间
+impl<T: From<usize> + Into<usize> + Copy, U: Into<T>> From<core::ops::Range<U>> for Range<T> {
+    fn from(range: core::ops::Range<U>) -> Self {
         Self {
-            start: range.start,
-            end: range.end,
+            start: range.start.into(),
+            end: range.end.into(),
         }
     }
+}
+
+impl<T: From<usize> + Into<usize> + Copy> Range<T> {
     /// 检测两个 [`PageRange`] 是否存在重合的区间
     pub fn overlap_with(&self, other: &Range<T>) -> bool {
         self.start.into() < other.end.into() && self.end.into() > other.start.into()
@@ -23,15 +26,6 @@ impl<T: From<usize> + Into<usize> + Copy> Range<T> {
     /// 迭代区间中的所有页
     pub fn iter(&self) -> impl Iterator<Item = T> {
         (self.start.into()..self.end.into()).map(T::from)
-    }
-}
-
-impl<T: From<usize> + Into<usize> + Copy, U: Into<T>> From<core::ops::Range<U>> for Range<T> {
-    fn from(range: core::ops::Range<U>) -> Self {
-        Self {
-            start: range.start.into(),
-            end: range.end.into(),
-        }
     }
 }
 
