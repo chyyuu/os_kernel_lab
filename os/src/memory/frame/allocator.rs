@@ -14,9 +14,9 @@
 
 use super::frame::*;
 use crate::memory::{address::*, config::*};
+use alloc::{vec, vec::Vec};
 use lazy_static::*;
 use spin::Mutex;
-use core::mem::size_of;
 
 lazy_static! {
     /// 帧分配器
@@ -25,66 +25,45 @@ lazy_static! {
 
 /// 基于链表的帧分配 / 回收
 pub struct FrameAllocator {
-    /// 记录空闲帧的链表
-    free_frame_list_head: PhysicalAddress,
+    /// 记录空闲帧的列表，每一项表示地址、从该地址开始连续多少帧空闲
+    free_frame_list: Vec<(PhysicalAddress, usize)>,
 }
 
 impl FrameAllocator {
-    /// 创建对象，其中 \[[`BEGIN_VPN`], [`END_VPN`]) 区间内的帧在其空闲链表中
+    /// 创建对象，其中 \[[`BEGIN_VPN`], [`END_VPN`]) 区间内的帧在其空闲列表中
     pub fn new() -> Self {
         // 定位到第一个可用的物理帧
         let first_frame_ppn = PhysicalPageNumber::ceil(PhysicalAddress::from(*KERNEL_END_ADDRESS));
         let first_frame_address = PhysicalAddress::from(first_frame_ppn);
-        let first_frame: &mut Frame = unsafe { first_frame_address.deref_kernel() };
-        // 初始化第一个帧
-        first_frame.next = PhysicalAddress(0);
-        first_frame.size = END_PPN - first_frame_ppn;
-        // 作为链表头
         FrameAllocator {
-            free_frame_list_head: first_frame_address,
+            free_frame_list: vec![(first_frame_address, END_PPN - first_frame_ppn)],
         }
     }
 
-    /// 取链表第一个元素来分配帧
+    /// 取列表末尾元素来分配帧
     ///
-    /// - 如果第一个元素 `size > 1`，则相应修改 `size` 而保留元素
+    /// - 如果末尾元素 `size > 1`，则相应修改 `size` 而保留元素
     /// - 如果没有剩余则返回 `Err`
     pub fn alloc(&mut self) -> Result<FrameTracker, &'static str> {
-        unsafe {
-            if self.free_frame_list_head.valid() {
-                // 如果有元素，将要分配该地址对应的帧
-                let address_to_allocate = self.free_frame_list_head;
-                let head: &mut Frame = self.free_frame_list_head.deref_kernel();
-                if head.size > 1 {
-                    // 如果其剩余帧数大于 1，则仅取出一个页面
-                    // 原本的帧已经被分配，需要将原本的 next 和 size 写到下一个帧中，
-                    // 并且相应修改 size 和 self.free_frame_list_head
-                    let new_head_address: PhysicalAddress = self.free_frame_list_head + size_of::<Frame>();
-                    let new_head: &mut Frame = new_head_address.deref_kernel();
-                    new_head.next = head.next;
-                    new_head.size = head.size - 1;
-                    self.free_frame_list_head = new_head_address;
-                    Ok(FrameTracker(address_to_allocate))
-                } else {
-                    // 剩余帧数为 1，则从链表中移除
-                    self.free_frame_list_head = head.next;
-                    Ok(FrameTracker(address_to_allocate))
-                }
-            } else {
-                // 链表已空，返回 `Err`
-                Err("no available frame to allocate")
+        if let Some((address, page_count)) = self.free_frame_list.pop() {
+            // 如果有元素，将要分配该地址对应的帧
+            if page_count > 1 {
+                // 如果有连续的多个帧空余，则只取出一个，放回剩余部分
+                self.free_frame_list
+                    .push((address + PAGE_SIZE, page_count - 1));
             }
+            Ok(FrameTracker(address))
+        } else {
+            // 链表已空，返回 `Err`
+            Err("no available frame to allocate")
         }
     }
 
-    /// 将被释放的帧添加到空闲链表的头部
+    /// 将被释放的帧添加到空闲列表的尾部
     ///
     /// 这个函数会在 [`FrameTracker`] 被 drop 时自动调用，不应在其他地方调用
-    pub(super) fn dealloc(&mut self, allocated_frame: &FrameTracker) {
-        let frame: &mut Frame = unsafe { allocated_frame.address().deref_kernel() };
-        frame.next = self.free_frame_list_head;
-        frame.size = 1;
-        self.free_frame_list_head = allocated_frame.address();
+    pub(super) fn dealloc(&mut self, frame: &FrameTracker) {
+        self.free_frame_list.push((frame.address(), 1));
     }
 }
 
