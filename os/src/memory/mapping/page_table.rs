@@ -36,7 +36,7 @@ impl PageTable {
 /// 而 `PageTableTracker` 会保存在某个线程的元数据中（也就是在操作系统的堆上），指向其真正的页表。
 ///
 /// 当 `PageTableTracker` 被 drop 时，会自动 drop `FrameTracker`，进而释放帧。
-pub struct PageTableTracker(FrameTracker);
+pub struct PageTableTracker(pub FrameTracker);
 
 impl PageTableTracker {
     /// 将一个分配的帧清零，形成空的页表
@@ -61,5 +61,18 @@ impl core::ops::Deref for PageTableTracker {
 impl core::ops::DerefMut for PageTableTracker {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.0.address().deref_kernel() }
+    }
+}
+
+impl core::ops::Deref for PageTableEntry {
+    type Target = PageTable;
+    fn deref(&self) -> &Self::Target {
+        unsafe { self.address().deref_kernel() }
+    }
+}
+
+impl core::ops::DerefMut for PageTableEntry {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { self.address().deref_kernel() }
     }
 }

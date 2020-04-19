@@ -1,4 +1,4 @@
-//! 具体负责映射 / 取消映射
+//! 具体负责映射 / 取消映射（原 `MemorySet`）
 //!
 //! NOTE：实现支持缺页，但不支持页表缺页
 
@@ -6,10 +6,11 @@ use crate::memory::{
     address::*,
     config::*,
     frame::{FrameTracker, FRAME_ALLOCATOR},
-    mapping::{Flags, PageRange, PageTableEntry, PageTableTracker, Segment},
+    mapping::{Flags, PageRange, PageTableEntry, PageTableTracker, Segment, PageTable},
 };
 use alloc::{vec, vec::Vec};
 use riscv::register::satp;
+use core::ops::DerefMut;
 
 enum MapPair {
     Linear {
@@ -51,6 +52,7 @@ impl Mapping {
                 asm!("sfence.vma");
             }
         }
+        println!("kernel remapping done");
     }
 
     /// 创建一个有根节点的映射
@@ -107,12 +109,12 @@ impl Mapping {
     ) -> MapResult<()> {
         let mut new_allocated_tables = vec![];
         // 从根页表开始向下查询
-        let mut page_table: &mut PageTableTracker = self.page_tables.get_mut(0).unwrap();
+        let mut page_table: &mut PageTable = self.page_tables.get_mut(0).unwrap();
         // 先查询一、二级页表
         for vpn_slice in &vpn.levels()[..2] {
             if !page_table.entries[*vpn_slice].is_empty() {
                 // 进入下一级页表（使用偏移量来访问物理地址）
-                page_table = unsafe { page_table.entries[*vpn_slice].address().deref_kernel() };
+                page_table = page_table.entries[*vpn_slice].deref_mut();
             } else {
                 // 如果页表不存在，则需要分配一个新的页表
                 let new_table = PageTableTracker::new(FRAME_ALLOCATOR.lock().alloc()?);

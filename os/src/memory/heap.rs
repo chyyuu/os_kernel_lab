@@ -23,7 +23,6 @@ static HEAP: LockedHeap = LockedHeap::empty();
 pub fn init() {
     // 告诉分配器使用这一段预留的空间作为堆
     unsafe {
-        println!("{:x}", HEAP_SPACE.as_ptr() as usize);
         HEAP.lock().init(
             HEAP_SPACE.as_ptr() as usize, KERNEL_HEAP_SIZE
         )

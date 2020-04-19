@@ -49,7 +49,7 @@ impl<T> From<*mut T> for VirtualAddress {
 
 impl PhysicalAddress {
     /// 从物理地址经过线性映射取得 &mut 引用
-    pub unsafe fn deref_kernel<T>(self) -> &'static mut T {
+pub unsafe fn deref_kernel<T>(self) -> &'static mut T {
         self.to_virtual_linear().deref()
     }
     /// 线性映射为虚拟地址
@@ -62,9 +62,9 @@ impl VirtualPageNumber {
     /// 得到一、二、三级页号
     pub fn levels(self) -> [usize; 3] {
         [
-            self.0.get_bits(30..39),
-            self.0.get_bits(21..30),
-            self.0.get_bits(12..21),
+            self.0.get_bits(18..27),
+            self.0.get_bits(9..18),
+            self.0.get_bits(0..9),
         ]
     }
     /// 线性映射为物理地址

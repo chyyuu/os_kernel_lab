@@ -52,7 +52,6 @@ pub extern "C" fn rust_main() -> ! {
     memory::init();
     
     let kernel_mapping = memory::mapping::Mapping::new_kernel().unwrap();
-    println!("activate");
     kernel_mapping.activate();
 
     test_heap();
