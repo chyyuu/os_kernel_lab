@@ -16,6 +16,14 @@
 
 - 对于地址 literal，使用小写，使用 `_` 每隔四位进行标记，例如 `0x8000_0000` `0xffff_ffff_c000_0000`
 
+- 实现一个 trait 时，doc 是可选的，而如果有，应当写在 impl 上面，而不是具体的方法上面
+  ```rust
+  /// doc here (optional)
+  impl Default for Type {
+    /// not here
+    fn default() -> Self { ... }
+  }
+
 ### 参考
 - https://doc.rust-lang.org/1.26.2/book/first-edition/comments.html
 - https://doc.rust-lang.org/1.26.2/book/second-edition/ch14-02-publishing-to-crates-io.html

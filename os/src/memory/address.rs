@@ -1,8 +1,9 @@
 //! 定义地址类型和地址常量
-//! 
+//!
 //! 我们为虚拟地址和物理地址分别设立两种类型，利用编译器检查来防止混淆。
 
-use super::config::PAGE_SIZE;
+use super::config::{KERNEL_MAP_OFFSET, PAGE_SIZE};
+use bit_field::BitField;
 
 /// 虚拟地址
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
@@ -20,8 +21,69 @@ pub struct VirtualPageNumber(pub usize);
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
 pub struct PhysicalPageNumber(pub usize);
 
-
 // 以下是一大堆类型的相互转换、各种琐碎操作
+
+/// 从指针转换为虚拟地址
+impl<T> From<*const T> for VirtualAddress {
+    fn from(pointer: *const T) -> Self {
+        Self(pointer as usize)
+    }
+}
+/// 从指针转换为虚拟地址
+impl<T> From<*mut T> for VirtualAddress {
+    fn from(pointer: *mut T) -> Self {
+        Self(pointer as usize)
+    }
+}
+
+/// 虚实页号之间的线性映射
+impl From<PhysicalPageNumber> for VirtualPageNumber {
+    fn from(ppn: PhysicalPageNumber) -> Self {
+        Self(ppn.0 + KERNEL_MAP_OFFSET / PAGE_SIZE)
+    }
+}
+/// 虚实页号之间的线性映射
+impl From<VirtualPageNumber> for PhysicalPageNumber {
+    fn from(vpn: VirtualPageNumber) -> Self {
+        Self(vpn.0 - KERNEL_MAP_OFFSET / PAGE_SIZE)
+    }
+}
+/// 虚实地址之间的线性映射
+impl From<PhysicalAddress> for VirtualAddress {
+    fn from(pa: PhysicalAddress) -> Self {
+        Self(pa.0 + KERNEL_MAP_OFFSET)
+    }
+}
+/// 虚实地址之间的线性映射
+impl From<VirtualAddress> for PhysicalAddress {
+    fn from(va: VirtualAddress) -> Self {
+        Self(va.0 - KERNEL_MAP_OFFSET)
+    }
+}
+impl VirtualAddress {
+    /// 从虚拟地址取得某类型的 &mut 引用
+    pub unsafe fn deref<T>(self) -> &'static mut T {
+        assert!(self.0 > KERNEL_MAP_OFFSET);
+        &mut *(self.0 as *mut T)
+    }
+}
+impl PhysicalAddress {
+    /// 从物理地址经过线性映射取得 &mut 引用
+    pub unsafe fn deref_kernel<T>(self) -> &'static mut T {
+        VirtualAddress::from(self).deref()
+    }
+}
+
+impl VirtualPageNumber {
+    /// 得到一、二、三级页号
+    pub fn levels(self) -> [usize; 3] {
+        [
+            self.0.get_bits(18..27),
+            self.0.get_bits(9..18),
+            self.0.get_bits(0..9),
+        ]
+    }
+}
 
 macro_rules! implement_address_to_page_number {
     // 这里面的类型转换实现 [`From`] trait，会自动实现相反的 [`Into`] trait
@@ -34,7 +96,7 @@ macro_rules! implement_address_to_page_number {
         }
         impl From<$address_type> for $page_number_type {
             /// 从地址转换为页号，直接进行移位操作
-            /// 
+            ///
             /// 不允许转换没有对齐的地址，这种情况应当使用 `floor()` 和 `ceil()`
             fn from(address: $address_type) -> Self {
                 assert!(address.0 % PAGE_SIZE == 0);
@@ -48,35 +110,13 @@ macro_rules! implement_address_to_page_number {
             }
             /// 将地址转换为页号，向上取整
             pub const fn ceil(address: $address_type) -> Self {
-                Self(
-                    address.0 / PAGE_SIZE +
-                    (address.0 % PAGE_SIZE != 0) as usize
-                )
+                Self(address.0 / PAGE_SIZE + (address.0 % PAGE_SIZE != 0) as usize)
             }
         }
-        impl<T> From<*const T> for $address_type {
-            /// 从指针转换为地址
-            fn from(pointer: *const T) -> Self {
-                Self(pointer as usize)
-            }
-        }
-        impl<T> From<*mut T> for $address_type {
-            /// 从指针转换为地址
-            fn from(pointer: *mut T) -> Self {
-                Self(pointer as usize)
-            }
-        }
-        impl $address_type {
-            /// 从地址转换为对象
-            pub unsafe fn deref<T>(self) -> &'static mut T {
-                assert!(self.valid());
-                &mut *(self.0 as *mut T)
-            }
-        }
-    }
+    };
 }
-implement_address_to_page_number!{PhysicalAddress, PhysicalPageNumber}
-implement_address_to_page_number!{VirtualAddress, VirtualPageNumber}
+implement_address_to_page_number! {PhysicalAddress, PhysicalPageNumber}
+implement_address_to_page_number! {VirtualAddress, VirtualPageNumber}
 
 /// 为各种仅包含一个 usize 的类型实现运算操作
 macro_rules! implement_usize_operations {
@@ -84,25 +124,37 @@ macro_rules! implement_usize_operations {
         /// `+`
         impl core::ops::Add<usize> for $type_name {
             type Output = Self;
-            fn add(self, other: usize) -> Self::Output { Self(self.0 + other) }
+            fn add(self, other: usize) -> Self::Output {
+                Self(self.0 + other)
+            }
         }
         /// `+=`
         impl core::ops::AddAssign<usize> for $type_name {
-            fn add_assign(&mut self, rhs: usize) { self.0 += rhs; }
+            fn add_assign(&mut self, rhs: usize) {
+                self.0 += rhs;
+            }
         }
         /// `-`
         impl core::ops::Sub<usize> for $type_name {
             type Output = Self;
-            fn sub(self, other: usize) -> Self::Output { Self(self.0 + other) }
+            fn sub(self, other: usize) -> Self::Output {
+                Self(self.0 + other)
+            }
         }
         /// `-=`
         impl core::ops::SubAssign<usize> for $type_name {
-            fn sub_assign(&mut self, rhs: usize) { self.0 -= rhs; }
+            fn sub_assign(&mut self, rhs: usize) {
+                self.0 -= rhs;
+            }
         }
-        impl core::ops::Deref for $type_name {
-            type Target = usize;
-            fn deref(&self) -> &Self::Target {
-                &self.0
+        impl From<usize> for $type_name {
+            fn from(value: usize) -> Self {
+                Self(value)
+            }
+        }
+        impl From<$type_name> for usize {
+            fn from(value: $type_name) -> Self {
+                value.0
             }
         }
         impl $type_name {
@@ -119,7 +171,7 @@ macro_rules! implement_usize_operations {
         }
     }
 }
-implement_usize_operations!{PhysicalAddress}
-implement_usize_operations!{VirtualAddress}
-implement_usize_operations!{PhysicalPageNumber}
-implement_usize_operations!{VirtualPageNumber}
+implement_usize_operations! {PhysicalAddress}
+implement_usize_operations! {VirtualAddress}
+implement_usize_operations! {PhysicalPageNumber}
+implement_usize_operations! {VirtualPageNumber}
