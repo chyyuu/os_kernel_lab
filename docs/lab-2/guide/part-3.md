@@ -1,12 +1,12 @@
 ## 物理内存管理
 
-### 物理页帧
+### 物理页
 
-通常，我们在分配物理内存时并不是以字节为单位，而是以一**物理页帧(Frame)**，即连续的 4 KB 字节为单位分配。我们希望用物理页号（Physical Page Number，PPN）来代表一物理页，实际上代表物理地址范围在 $$[\text{PPN}\times 4\text{KB},(\text{PPN}+1)\times 4\text{KB})$$ 的一物理页。
+通常，我们在分配物理内存时并不是以字节为单位，而是以一**物理页(Frame)**，即连续的 4 KB 字节为单位分配。我们希望用物理页号（Physical Page Number，PPN）来代表一物理页，实际上代表物理地址范围在 $$[\text{PPN}\times 4\text{KB},(\text{PPN}+1)\times 4\text{KB})$$ 的一物理页。
 
 不难看出，物理页号与物理页形成一一映射。为了能够使用物理页号这种表达方式，每个物理页的开头地址必须是 4 KB 的倍数。但这也给了我们一个方便：对于一个物理地址，其除以 4096（或者说右移 12 位）的商即为这个物理地址所在的物理页号。
 
-同样的，我们还是用一个新的结构来封装一下物理页帧，一是为了和其他类型地址作区分；二是我们可以同时实现一些页帧和地址相互转换的功能。为了后面的方便，我们也把虚拟地址和虚拟页帧（概念还没有涉及，后面的指导会进一步讲解）一并实现出来，这部分代码请参考 `os/src/memory/address.rs`。
+同样的，我们还是用一个新的结构来封装一下物理页，一是为了和其他类型地址作区分；二是我们可以同时实现一些页帧和地址相互转换的功能。为了后面的方便，我们也把虚拟地址和虚拟页（概念还没有涉及，后面的指导会进一步讲解）一并实现出来，这部分代码请参考 `os/src/memory/address.rs`。
 
 同时，我们也需要在 `os/src/memory/config.rs` 中加入相关的设置：
 
@@ -28,7 +28,7 @@ pub const END_PPN: PhysicalPageNumber = PhysicalPageNumber::floor(MEMORY_END_ADD
 
 ### 分配和回收
 
-为了方便管理所有的物理页帧，我们需要实现一个分配器可以进行分配和回收的操作，我们链表来做这件事情，首先先封装一下帧的相关概念。
+为了方便管理所有的物理页，我们需要实现一个分配器可以进行分配和回收的操作，我们链表来做这件事情，首先先封装一下帧的相关概念。
 
 {% label %}os/src/memory/frame.rs{% endlabel %}
 ```rust
@@ -195,8 +195,8 @@ pub extern "C" fn rust_main() -> ! {
 
 {% label %}运行输出{% endlabel %}
 ```
-PhysicalAddress(0x80a13000) v.s. PhysicalAddress(0x80a14000)
-PhysicalAddress(0x80a13000) v.s. PhysicalAddress(0x80a14000)
+PhysicalAddress(0x80a13000) and PhysicalAddress(0x80a14000)
+PhysicalAddress(0x80a13000) and PhysicalAddress(0x80a14000)
 ```
 
 我们可以看到 `frame_0` 和 `frame_1` 会被自动析构然后回收，第二次又分配同样的地址。

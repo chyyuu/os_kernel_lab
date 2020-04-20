@@ -79,7 +79,8 @@ pub extern "C" fn rust_main() -> ! {
     interrupt::init();
     memory::init();
 
-    println!("{}", *memory::config::KERNEL_END_ADDRESS); // 注意这里的 KERNEL_END_ADDRESS 为 ref 类型，需要加 *
+    // 注意这里的 KERNEL_END_ADDRESS 为 ref 类型，需要加 *
+    println!("{}", *memory::config::KERNEL_END_ADDRESS);
 
     loop{}
 }
