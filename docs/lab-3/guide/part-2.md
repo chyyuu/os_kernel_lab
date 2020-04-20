@@ -88,7 +88,7 @@ SECTIONS
 
 首先，对于 linker script，我们把放置的基地址修改为了虚拟地址，另外还有一些修改是我们把每个数据段都对齐到了 4KB，一个 4KB 的虚拟页中不会包含两个段，这意味着这个页的属性是可以确定的。举个例子，如果不对齐的话，只读的 .rodata 和 .data 段可能放在一个页中，但是页表中需要写上诸如是否可写的属性，这时候就必须分开才可以标注属性。
 
-对应修改 `os/src/memory/config.rs` 中的 `KERNEL_END_ADDRESS` 并加入偏移量：
+对应修改 `os/src/memory/config.rs` 中的 `KERNEL_END_ADDRESS` 修改为虚拟地址并加入偏移量：
 
 {% label %}os/src/memory/config.rs{% endlabel %}
 ```rust
@@ -96,7 +96,7 @@ lazy_static! {
     /// 内核代码结束的地址，即可以用来分配的内存起始地址
     /// 
     /// 因为 Rust 语言限制，我们只能将其作为一个运行时求值的 static 变量，而不能作为 const
-    pub static ref KERNEL_END_ADDRESS: VirtualAddress = VirtualAddress(kernel_end as usize); // 修改为虚拟地址
+    pub static ref KERNEL_END_ADDRESS: VirtualAddress = VirtualAddress(kernel_end as usize); 
 }
 
 /// 内核使用线性映射的偏移量
