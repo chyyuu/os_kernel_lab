@@ -66,7 +66,3 @@ impl FrameAllocator {
         self.free_frame_list.push((frame.address(), 1));
     }
 }
-
-/// 因为页帧的分配和回收只应发生在内核线程，不会产生竞争。
-/// 所以这里尽管什么都没有实现，但是告诉编译器这个类型是线程安全的。
-unsafe impl Send for FrameAllocator {}
