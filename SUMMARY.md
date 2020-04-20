@@ -38,9 +38,9 @@
   * [小结](docs/lab-1/guide/summary.md)
 * 实验指导二
   * [摘要](docs/lab-2/guide/intro.md)
-  * [物理内存探测](docs/lab-2/guide/part-1.md)
-  * [物理内存管理](docs/lab-2/guide/part-2.md)
-  * [动态内存分配](docs/lab-2/guide/part-3.md)
+  * [动态内存分配](docs/lab-2/guide/part-1.md)
+  * [物理内存探测](docs/lab-2/guide/part-2.md)
+  * [物理内存管理](docs/lab-2/guide/part-3.md)
 * 实验指导三
   * [摘要](docs/lab-3/guide/intro.md)
 

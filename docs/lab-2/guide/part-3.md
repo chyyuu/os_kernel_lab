@@ -1,54 +1,130 @@
-## 动态内存分配
+## 物理内存管理
 
-我们之前在 C++ 语言等中使用过 `malloc` 等动态内存分配方法，与在编译期就已完成的静态内存分配相比，动态内存分配可以根据程序运行时状态修改内存申请的时机及大小，显得更为灵活，但是这是需要操作系统的支持的，同时也会带来一些开销。
+### 物理页帧
 
-我们的内核中也需要动态内存分配。典型的应用场景有：
+通常，我们在分配物理内存时并不是以字节为单位，而是以一**物理页帧(Frame)**，即连续的 4 KB 字节为单位分配。我们希望用物理页号（Physical Page Number，PPN）来代表一物理页，实际上代表物理地址范围在 $$[\text{PPN}\times 4\text{KB},(\text{PPN}+1)\times 4\text{KB})$$ 的一物理页。
 
-- `Box<T>` ，你可以理解为它和 `malloc` 有着相同的功能；
-- 引用计数 `Rc<T>`，原子引用计数 `Arc<T>`，主要用于在引用计数清零，即某对象不再被引用时，对该对象进行自动回收；
-- 一些 std 中的数据结构，如 `Vec` 和 `HashMap` 等。
+不难看出，物理页号与物理页形成一一映射。为了能够使用物理页号这种表达方式，每个物理页的开头地址必须是 4 KB 的倍数。但这也给了我们一个方便：对于一个物理地址，其除以 4096（或者说右移 12 位）的商即为这个物理地址所在的物理页号。
 
-为了在我们的内核中支持动态内存分配，在 Rust 语言中，我们需要实现 `Trait GlobalAlloc`，将这个类实例化，并使用语义项 `#[global_allocator]` 进行标记。这样的话，编译器就会知道如何进行动态内存分配。
+同样的，我们还是用一个新的结构来封装一下物理页帧，一是为了和其他类型地址作区分；二是我们可以同时实现一些页帧和地址相互转换的功能。为了后面的方便，我们也把虚拟地址和虚拟页帧（概念还没有涉及，后面的指导会进一步讲解）一并实现出来：
 
-为了实现 `Trait GlobalAlloc`，我们需要支持这么两个函数：
-
+{% label %}os/src/memory/address.rs{% endlabel %}
 ```rust
-unsafe fn alloc(&self, layout: Layout) -> *mut u8;
-unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout);
+//! 定义地址类型和地址常量
+//!
+//! 我们为虚拟地址和物理地址分别设立两种类型，利用编译器检查来防止混淆。
+
+use super::config::PAGE_SIZE;
+
+/// 虚拟地址
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+pub struct VirtualAddress(pub usize);
+
+/// 物理地址
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PhysicalAddress(pub usize);
+
+/// 虚拟页号
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+pub struct VirtualPageNumber(pub usize);
+
+/// 物理页号
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PhysicalPageNumber(pub usize);
+
+
+// 以下是一大堆类型的相互转换、各种琐碎操作
+
+macro_rules! implement_address_to_page_number {
+    // 这里面的类型转换实现 [`From`] trait，会自动实现相反的 [`Into`] trait
+    ($address_type: ty, $page_number_type: ty) => {
+        impl From<$page_number_type> for $address_type {
+            /// 从页号转换为地址
+            fn from(page_number: $page_number_type) -> Self {
+                Self(page_number.0 * PAGE_SIZE)
+            }
+        }
+        impl From<$address_type> for $page_number_type {
+            /// 从地址转换为页号，直接进行移位操作
+            ///
+            /// 不允许转换没有对齐的地址，这种情况应当使用 `floor()` 和 `ceil()`
+            fn from(address: $address_type) -> Self {
+                assert!(address.0 % PAGE_SIZE == 0);
+                Self(address.0 / PAGE_SIZE)
+            }
+        }
+        impl $page_number_type {
+            /// 将地址转换为页号，向下取整
+            pub const fn floor(address: $address_type) -> Self {
+                Self(address.0 / PAGE_SIZE)
+            }
+            /// 将地址转换为页号，向上取整
+            pub const fn ceil(address: $address_type) -> Self {
+                Self(
+                    address.0 / PAGE_SIZE +
+                    (address.0 % PAGE_SIZE != 0) as usize
+                )
+            }
+        }
+        impl<T> From<*const T> for $address_type {
+            /// 从指针转换为地址
+            fn from(pointer: *const T) -> Self {
+                Self(pointer as usize)
+            }
+        }
+        impl<T> From<*mut T> for $address_type {
+            /// 从指针转换为地址
+            fn from(pointer: *mut T) -> Self {
+                Self(pointer as usize)
+            }
+        }
+        impl $address_type {
+            /// 从地址转换为对象
+            pub unsafe fn deref<T>(self) -> &'static mut T {
+                assert!(self.valid());
+                &mut *(self.0 as *mut T)
+            }
+        }
+    }
+}
+implement_address_to_page_number!{PhysicalAddress, PhysicalPageNumber}
+implement_address_to_page_number!{VirtualAddress, VirtualPageNumber}
+
+/// 为各种仅包含一个 usize 的类型实现运算操作
+macro_rules! implement_usize_operations {
+...
+}
+
+implement_usize_operations!{PhysicalAddress}
+implement_usize_operations!{VirtualAddress}
+implement_usize_operations!{PhysicalPageNumber}
+implement_usize_operations!{VirtualPageNumber}
 ```
 
-可见我们要分配/回收一块虚拟内存。
+同时，我们也需要在 `os/src/memory/config.rs` 中加入 `PAGE_SIZE` 的设置：
 
-那么这里面的 `Layout` 又是什么呢？从文档中可以找到，它有两个字段：`size` 表示要分配的字节数，`align` 则表示分配的虚拟地址的最小对齐要求，即分配的地址要求是 `align` 的倍数。这里的 `align` 必须是 2 的幂次。
+{% label %}os/src/memory/config.rs{% endlabel %}
+```rust
+/// 页 / 帧大小，必须是 2^n
+pub const PAGE_SIZE: usize = 4096;
+```
 
-也就表示，我们的需求是分配一块连续的、大小至少为 `size` 字节的虚拟内存，且对齐要求为 `align` 。
+### 分配和回收
 
-### 连续内存分配算法
-
-假设我们已经有一整块虚拟内存用来分配，那么如何进行分配呢？
-
-我们可能会想到一些简单粗暴的方法，比如对于一个分配任务，贪心地将其分配到可行的最小地址去。这样一直分配下去的话，我们分配出去的内存都是连续的，看上去很合理的利用了内存。
-
-但是一旦涉及到回收的话，设想我们在连续分配出去的很多块内存中间突然回收掉一块，它虽然是可用的，但是由于上下两边都已经被分配出去，它就只有这么大而不能再被拓展了，这种可用的内存我们称之为**外碎片**。
-
-随着不断回收会产生越来越多的碎片，某个时刻我们可能会发现，需要分配一块较大的内存，几个碎片加起来大小是足够的，但是单个碎片是不够的。我们会想到通过**碎片整理**将几个碎片合并起来。但是这个过程的开销极大。
-
-老师在课堂上介绍了若干管理分配和碎片的算法，包括伙伴系统（Buddy System）和 SLAB 分配器等算法，我们在这里使用 Buddy System 来实现这件事情。
-
-### 支持动态内存分配
-
-为了避免重复造轮子，我们可以调用开源的 Buddy System Allocator。
+为了方便管理所有的物理页帧，我们需要实现一个分配器可以进行 `alloc` 和 `dealloc(AllocatedFrame)` 的操作，我们使用最简单的链表来做这件事情，首先先封装一下帧的相关概念。
 
 <!-- TODO 代码 -->
 
-### 动态内存分配测试
+这里我们为了节省空间，在物理帧还没有被分配的时候前 8 个字节用于链表的元信息的存储，而后面如果被分配了出去，整个 4096 字节都会被用来存储信息。
 
-现在我们来测试一下动态内存分配是否有效，分别动态分配一个整数和一个数组：
+然后，我们实现用链表这种简单的数据结构来实现分配和删除。
 
-<!-- TODO 测试 -->
+<!-- TODO 代码 -->
 
-最后，运行一下会得到如下的类似输出：
+最后，在把新写的模块加载进来，并在 main 函数中进行简单的测试：
+
+<!-- TODO 代码 -->
+
+可以看到类似这样的输出：
 
 <!-- TODO 输出 -->
-
-我们可以发现这些动态分配的变量可以使用了，而且通过查看它们的地址我们发现它们都在 .bss 段里面，这是因为提供给动态内存分配器的那块内存就在该段里面。
