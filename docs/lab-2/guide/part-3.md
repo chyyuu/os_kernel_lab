@@ -28,7 +28,7 @@ pub const END_PPN: PhysicalPageNumber = PhysicalPageNumber::floor(MEMORY_END_ADD
 
 ### 分配和回收
 
-为了方便管理所有的物理页，我们需要实现一个分配器可以进行分配和回收的操作，我们链表来做这件事情，首先先封装一下帧的相关概念。
+为了方便管理所有的物理页，我们需要实现一个分配器可以进行分配和回收的操作，我们使用类似链表的 `Vec` 来做这件事情，首先先封装一下帧的相关概念。
 
 {% label %}os/src/memory/frame.rs{% endlabel %}
 ```rust

@@ -23,7 +23,7 @@ C 语言运行时环境和 Rust 运行时环境都需要标准库支持，我们
 use core::panic::PanicInfo;
 
 /// 当 panic 发生时会调用该函数
-/// 我们暂时将他的实现为一个死循环
+/// 我们暂时将它的实现为一个死循环
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}

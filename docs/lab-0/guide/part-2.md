@@ -43,7 +43,7 @@ error: language item required, but not found: `eh_personality`
 use core::panic::PanicInfo;
 
 /// 当 panic 发生时会调用该函数
-/// 我们暂时将他的实现为一个死循环
+/// 我们暂时将它的实现为一个死循环
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
