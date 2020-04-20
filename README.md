@@ -36,3 +36,13 @@ make run
 # 根据代码注释生成文档
 cargo doc
 ```
+
+### 参考和感谢
+
+本文档和代码大量参考了：
+- [rCore_tutorial](https://rcore-os.github.io/rCore_tutorial_doc/)
+- [使用Rust编写操作系统](https://github.com/rustcc/writing-an-os-in-rust)
+
+在此对仓库的开发和维护者表示感谢，同时也感谢很多在本项目开发中一起讨论和勘误的老师和同学们。
+
+<!-- TODO LICENSE -->
