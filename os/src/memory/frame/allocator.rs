@@ -12,15 +12,20 @@
 //!
 //! 而为了方便初始化，我们再在帧中记录『连续空闲帧数』，那么最初只需要初始化一个帧即可。
 
+// TODO: 修改成分配和释放之间不会互锁
+
 use super::frame::*;
-use crate::memory::{address::*, config::*};
+use crate::memory::{MemoryResult, address::*, config::*};
 use alloc::{vec, vec::Vec};
 use lazy_static::*;
 use spin::Mutex;
 
 lazy_static! {
     /// 帧分配器
-    pub static ref FRAME_ALLOCATOR: Mutex<FrameAllocator> = Mutex::new(FrameAllocator::new());
+    pub static ref FRAME_ALLOCATOR: Mutex<FrameAllocator> = Mutex::new(FrameAllocator::new(
+        PhysicalPageNumber::ceil(PhysicalAddress::from(*KERNEL_END_ADDRESS)),
+        PhysicalPageNumber::floor(MEMORY_END_ADDRESS),
+    ));
 }
 
 /// 基于链表的帧分配 / 回收
@@ -31,12 +36,9 @@ pub struct FrameAllocator {
 
 impl FrameAllocator {
     /// 创建对象，其中 \[[`BEGIN_VPN`], [`END_VPN`]) 区间内的帧在其空闲列表中
-    pub fn new() -> Self {
-        // 定位到第一个可用的物理帧
-        let first_frame_ppn = PhysicalPageNumber::ceil(PhysicalAddress::from(*KERNEL_END_ADDRESS));
-        let first_frame_address = PhysicalAddress::from(first_frame_ppn);
+    pub fn new(begin_ppn: PhysicalPageNumber, end_ppn: PhysicalPageNumber) -> Self {
         FrameAllocator {
-            free_frame_list: vec![(first_frame_address, END_PPN - first_frame_ppn)],
+            free_frame_list: vec![(PhysicalAddress::from(begin_ppn), end_ppn - begin_ppn)],
         }
     }
 
@@ -44,7 +46,7 @@ impl FrameAllocator {
     ///
     /// - 如果末尾元素 `size > 1`，则相应修改 `size` 而保留元素
     /// - 如果没有剩余则返回 `Err`
-    pub fn alloc(&mut self) -> Result<FrameTracker, &'static str> {
+    pub fn alloc(&mut self) -> MemoryResult<FrameTracker> {
         if let Some((address, page_count)) = self.free_frame_list.pop() {
             // 如果有元素，将要分配该地址对应的帧
             if page_count > 1 {
@@ -66,7 +68,3 @@ impl FrameAllocator {
         self.free_frame_list.push((frame.address(), 1));
     }
 }
-
-/// 因为页帧的分配和回收只应发生在内核线程，不会产生竞争。
-/// 所以这里尽管什么都没有实现，但是告诉编译器这个类型是线程安全的。
-unsafe impl Send for FrameAllocator {}

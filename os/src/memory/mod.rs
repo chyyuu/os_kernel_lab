@@ -12,6 +12,16 @@ pub mod frame;
 pub mod heap;
 pub mod mapping;
 
+/// 一个缩写，模块中一些函数会使用
+pub(self) type MemoryResult<T> = Result<T, &'static str>;
+
+pub use {
+    config::*,
+    address::*,
+    frame::{FRAME_ALLOCATOR},
+    mapping::{Flags, MemorySet, Segment},
+};
+
 /// 初始化内存相关的子模块
 /// 
 /// - [`heap::init`]

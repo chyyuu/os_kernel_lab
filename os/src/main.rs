@@ -16,9 +16,9 @@
 //!   而语言要求我们同时实现一个错误回调，这里我们直接 panic
 #![feature(alloc_error_handler)]
 //! # 一些 unstable 的功能需要在 crate 层级声明后才可以使用
-//! - `#![feature(asm)]`  
+//! - `#![feature(llvm_asm)]`  
 //!   内嵌汇编
-#![feature(asm)]
+#![feature(llvm_asm)]
 //!
 //! - `#![feature(global_asm)]`  
 //!   内嵌整个汇编文件
@@ -56,8 +56,8 @@ pub extern "C" fn rust_main() -> ! {
     let a: usize = unsafe { *(0x80200000 as *const _) };
     println!("Accessing 0x80200000: {:x}", a);
 
-    let kernel_mapping = memory::mapping::Mapping::new_kernel().unwrap();
-    kernel_mapping.activate();
+    let kernel_memory = memory::mapping::MemorySet::new_kernel().unwrap();
+    kernel_memory.activate();
 
     // 到了这里就不可以再通过对等映射来访问内存了
     // let a: usize = unsafe { *(0x80200000 as *const _) };
@@ -66,7 +66,7 @@ pub extern "C" fn rust_main() -> ! {
     test_heap();
 
     unsafe {
-        asm!("ebreak"::::"volatile");
+        llvm_asm!("ebreak"::::"volatile");
     };
 
     loop {}

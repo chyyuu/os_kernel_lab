@@ -1,15 +1,15 @@
-//! 具体负责映射 / 取消映射（原 `MemorySet`）
+//! 具体负责映射 / 取消映射
 //!
 //! 许多方法返回 [`Result`]，如果出现错误会返回 `Err(message)`。
-//! NOTE：实现支持缺页，但不支持页表缺页
+//! NOTE：实现支持缺页（TODO），但不支持页表缺页
 
 use crate::memory::{
+    MemoryResult,
     address::*,
-    config::*,
-    frame::{FrameTracker, FRAME_ALLOCATOR},
-    mapping::{Flags, PageTable, PageTableEntry, PageTableTracker, Range, Segment},
+    frame::FRAME_ALLOCATOR,
+    mapping::{Flags, PageTable, PageTableEntry, PageTableTracker, Segment},
 };
-use alloc::{vec, vec::Vec, sync::Arc};
+use alloc::{vec, vec::Vec};
 use core::ops::DerefMut;
 use riscv::register::satp;
 
@@ -20,11 +20,7 @@ pub struct Mapping {
     ///
     /// `page_tables[0]` 是根节点
     page_tables: Vec<PageTableTracker>,
-    /// 所有的字段
-    segments: Vec<Segment>,
 }
-
-type MapResult<T> = Result<T, &'static str>;
 
 impl Mapping {
     /// 将当前的映射加载到 `satp` 寄存器
@@ -38,59 +34,28 @@ impl Mapping {
         if old_satp != new_satp {
             unsafe {
                 // 将 new_satp 的值写到 satp 寄存器
-                asm!("csrw satp, $0" :: "r"(new_satp) :: "volatile");
+                llvm_asm!("csrw satp, $0" :: "r"(new_satp) :: "volatile");
                 // 刷新 TLB
-                asm!("sfence.vma" :::: "volatile");
+                llvm_asm!("sfence.vma" :::: "volatile");
             }
         }
-        println!("kernel remapping done");
     }
 
     /// 创建一个有根节点的映射
-    pub fn new() -> MapResult<Mapping> {
+    pub fn new() -> MemoryResult<Mapping> {
         let mut allocator = FRAME_ALLOCATOR.lock();
         Ok(Mapping {
             page_tables: vec![PageTableTracker::new(allocator.alloc()?)],
-            segments: vec![],
         })
     }
 
-    /// 加入一段线性映射
-    fn map_linear(&mut self, page_range: Range<VirtualPageNumber>, flags: Flags) -> MapResult<()> {
-        println!("linear map {:x?}", page_range);
-        for vpn in page_range.iter() {
-            self.map_one(vpn, PhysicalPageNumber::from(vpn), flags)?;
+    /// 加入一段映射
+    pub fn map(&mut self, segment: &Segment) -> MemoryResult<()> {
+        // 遍历 segment 中所有的映射，将它们写入到页表中
+        for (vpn, ppn, flags) in segment.iter() {
+            self.map_one(vpn, ppn, flags)?;
         }
-        self.segments.push(Segment::Linear {
-            page_range: page_range.into(),
-            flags,
-        });
         Ok(())
-    }
-
-    /// 为一段虚拟地址空间分配帧，并保存映射
-    pub fn map_alloc(
-        &mut self,
-        page_range: Range<VirtualPageNumber>,
-        flags: Flags,
-    ) -> MapResult<()> {
-        println!("framed map {:x?}", page_range);
-        let mut segment = Segment::new_framed(page_range, flags);
-        for vpn in page_range.iter() {
-            segment.add_frame(Arc::new(self.map_alloc_one(vpn, flags)?));
-        }
-        self.segments.push(segment);
-        Ok(())
-    }
-
-    /// 为一个页面分配帧，并保存映射
-    fn map_alloc_one(&mut self, vpn: VirtualPageNumber, flags: Flags) -> MapResult<FrameTracker> {
-        // 分配帧
-        let frame: FrameTracker = FRAME_ALLOCATOR.lock().alloc()?;
-        let ppn = frame.page_number();
-        // 建立映射
-        self.map_one(vpn, ppn, flags)?;
-        Ok(frame)
     }
 
     /// 为给定的虚拟 / 物理页号建立映射关系
@@ -101,7 +66,7 @@ impl Mapping {
         vpn: VirtualPageNumber,
         ppn: PhysicalPageNumber,
         flags: Flags,
-    ) -> MapResult<()> {
+    ) -> MemoryResult<()> {
         let mut new_allocated_tables = vec![];
         // 从根页表开始向下查询
         let mut page_table: &mut PageTable = self.page_tables.get_mut(0).unwrap();
@@ -132,54 +97,5 @@ impl Mapping {
             Err("virtual address is already mapped")
         }
     }
-    
-    /// 创建内核重映射
-    pub fn new_kernel() -> MapResult<Mapping> {
-        let mut mapping = Mapping::new()?;
-        // 在 linker.ld 里面标记的各个字段的起始点，均为 4K 对齐
-        extern "C" {
-            fn text_start();
-            fn rodata_start();
-            fn data_start();
-            fn bss_start();
-            fn boot_stack_start();
-        }
-        // .text 段，r-x
-        mapping.map_linear(
-            Range::from(
-                VirtualAddress::from(text_start as usize)..VirtualAddress::from(rodata_start as usize),
-            ),
-            Flags::VALID | Flags::READABLE | Flags::EXECUTABLE,
-        )?;
-        // .rodata 段，r--
-        mapping.map_linear(
-            Range::from(
-                VirtualAddress::from(rodata_start as usize)
-                    ..VirtualAddress::from(data_start as usize),
-            ),
-            Flags::VALID | Flags::READABLE,
-        )?;
-        // .data 段，rw-
-        mapping.map_linear(
-            Range::from(
-                VirtualAddress::from(data_start as usize)..VirtualAddress::from(bss_start as usize),
-            ),
-            Flags::VALID | Flags::READABLE | Flags::WRITABLE,
-        )?;
-        // .bss 段，rw-
-        mapping.map_linear(
-            Range::from(
-                VirtualAddress::from(bss_start as usize)..VirtualAddress::from(boot_stack_start as usize),
-            ),
-            Flags::VALID | Flags::READABLE | Flags::WRITABLE,
-        )?;
-        // 剩余内存空间，rw-
-        mapping.map_linear(
-            Range::from(
-                *KERNEL_END_ADDRESS..VirtualAddress::from(MEMORY_END_ADDRESS),
-            ),
-            Flags::VALID | Flags::READABLE | Flags::WRITABLE,
-        )?;
-        Ok(mapping)
-    }
+
 }
