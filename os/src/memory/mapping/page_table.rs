@@ -67,15 +67,9 @@ impl core::ops::DerefMut for PageTableTracker {
     }
 }
 
-impl core::ops::Deref for PageTableEntry {
-    type Target = PageTable;
-    fn deref(&self) -> &Self::Target {
-        unsafe { self.address().deref_kernel() }
-    }
-}
-
-impl core::ops::DerefMut for PageTableEntry {
-    fn deref_mut(&mut self) -> &mut Self::Target {
+// 因为 PageTableEntry 和具体的 PageTable 之间没有生命周期关联，所以返回 'static 引用方便写代码
+impl PageTableEntry {
+    pub fn get_next_table(&self) -> &'static mut PageTable {
         unsafe { self.address().deref_kernel() }
     }
 }

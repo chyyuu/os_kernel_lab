@@ -4,10 +4,10 @@
 //! NOTE：实现支持缺页（TODO），但不支持页表缺页
 
 use crate::memory::{
-    MemoryResult,
     address::*,
-    frame::FRAME_ALLOCATOR,
-    mapping::{Flags, PageTable, PageTableEntry, PageTableTracker, Segment},
+    frame::{FrameTracker, FRAME_ALLOCATOR},
+    mapping::{Flags, MapType, PageTable, PageTableEntry, PageTableTracker, Segment},
+    MemoryResult,
 };
 use alloc::{vec, vec::Vec};
 use core::ops::DerefMut;
@@ -17,20 +17,17 @@ use riscv::register::satp;
 /// 某个线程的内存映射关系
 pub struct Mapping {
     /// 保存所有使用到的页表
-    ///
-    /// `page_tables[0]` 是根节点
     page_tables: Vec<PageTableTracker>,
+    /// 根页表的物理页号
+    root_ppn: PhysicalPageNumber,
 }
 
 impl Mapping {
     /// 将当前的映射加载到 `satp` 寄存器
     pub fn activate(&self) {
         let old_satp = satp::read().bits();
-        let new_satp = {
-            let root_table: &PageTableTracker = self.page_tables.get(0).unwrap();
-            // satp 低 27 位为页号，高 4 位为模式，8 表示 Sv39
-            root_table.page_number().0 | (8 << 60)
-        };
+        // satp 低 27 位为页号，高 4 位为模式，8 表示 Sv39
+        let new_satp = self.root_ppn.0 | (8 << 60);
         if old_satp != new_satp {
             unsafe {
                 // 将 new_satp 的值写到 satp 寄存器
@@ -43,19 +40,80 @@ impl Mapping {
 
     /// 创建一个有根节点的映射
     pub fn new() -> MemoryResult<Mapping> {
-        let mut allocator = FRAME_ALLOCATOR.lock();
+        let root_table = PageTableTracker::new(FRAME_ALLOCATOR.lock().alloc()?);
+        let root_ppn = root_table.page_number();
         Ok(Mapping {
-            page_tables: vec![PageTableTracker::new(allocator.alloc()?)],
+            page_tables: vec![root_table],
+            root_ppn,
         })
     }
 
-    /// 加入一段映射
-    pub fn map(&mut self, segment: &Segment) -> MemoryResult<()> {
-        // 遍历 segment 中所有的映射，将它们写入到页表中
-        for (vpn, ppn, flags) in segment.iter() {
-            self.map_one(vpn, ppn, flags)?;
+    /// 加入一段映射，可能会相应地分配物理页面
+    ///
+    /// 参数 `frame_limit` 为最多分配的物理页面数量。
+    ///
+    /// 返回所有新分配了帧的映射关系，数量不超过 `frame_limit`。
+    ///
+    /// 未被分配物理页面的虚拟页号暂时不会写入页表当中，它们会在发生 PageFault 后再建立页表项。
+    pub fn map(
+        &mut self,
+        segment: &Segment,
+        mut frame_limit: usize,
+    ) -> MemoryResult<Vec<(VirtualPageNumber, FrameTracker)>> {
+        match segment.map_type {
+            // 线性映射，不需要考虑分配页面，只需将所有页面依次映射
+            MapType::Linear => {
+                for vpn in segment.iter() {
+                    self.map_one(vpn, PhysicalPageNumber::from(vpn), segment.flags)?;
+                }
+                Ok(vec![])
+            }
+            // 按帧映射
+            MapType::Framed => {
+                // 记录所有成功分配的页面映射
+                let mut allocated_pairs = vec![];
+                // 遍历需要映射的页号
+                for vpn in segment.iter() {
+                    if frame_limit > 0 {
+                        frame_limit -= 1;
+                        // 如果还有配额，继续分配帧进行映射
+                        let frame: FrameTracker = FRAME_ALLOCATOR.lock().alloc()?;
+                        self.map_one(vpn, frame.page_number(), segment.flags)?;
+                        allocated_pairs.push((vpn, frame));
+                    } else {
+                        // 没有配额则停止映射
+                        break;
+                    }
+                }
+                Ok(allocated_pairs)
+            }
         }
-        Ok(())
+    }
+
+    /// 找到给定虚拟页号的三级页表项
+    ///
+    /// 如果找不到对应的页表项，则会相应创建页表
+    pub fn find_entry(&mut self, vpn: VirtualPageNumber) -> MemoryResult<&mut PageTableEntry> {
+        // 从根页表开始向下查询
+        // 这里不用 self.page_tables[0] 避免后面产生 borrow-check 冲突（我太菜了）
+        let root_table: &mut PageTable =
+            unsafe { PhysicalAddress::from(self.root_ppn).deref_kernel() };
+        let mut pte = &mut root_table.entries[vpn.levels()[0]];
+        for vpn_slice in &vpn.levels()[1..] {
+            if pte.is_empty() {
+                // 如果页表不存在，则需要分配一个新的页表
+                let new_table = PageTableTracker::new(FRAME_ALLOCATOR.lock().alloc()?);
+                let new_ppn = new_table.page_number();
+                // 将新页表的页号写入当前的页表项
+                *pte = PageTableEntry::new(new_ppn, Flags::VALID);
+                // 保存页表
+                self.page_tables.push(new_table);
+            }
+            // 进入下一级页表（使用偏移量来访问物理地址）
+            pte = &mut pte.get_next_table().entries[*vpn_slice];
+        }
+        // 此时 pte 位于第三级页表
+        Ok(pte)
     }
 
     /// 为给定的虚拟 / 物理页号建立映射关系
@@ -67,35 +125,15 @@ impl Mapping {
         ppn: PhysicalPageNumber,
         flags: Flags,
     ) -> MemoryResult<()> {
-        let mut new_allocated_tables = vec![];
-        // 从根页表开始向下查询
-        let mut page_table: &mut PageTable = self.page_tables.get_mut(0).unwrap();
-        // 先查询一、二级页表
-        for vpn_slice in &vpn.levels()[..2] {
-            if !page_table.entries[*vpn_slice].is_empty() {
-                // 进入下一级页表（使用偏移量来访问物理地址）
-                page_table = page_table.entries[*vpn_slice].deref_mut();
-            } else {
-                // 如果页表不存在，则需要分配一个新的页表
-                let new_table = PageTableTracker::new(FRAME_ALLOCATOR.lock().alloc()?);
-                let new_ppn = new_table.page_number();
-                // 将新页表的页号写入当前的页表
-                page_table.entries[*vpn_slice] = PageTableEntry::new(new_ppn, Flags::VALID);
-                // 保存页表
-                new_allocated_tables.push(new_table);
-                // 继续查询
-                page_table = new_allocated_tables.last_mut().unwrap();
-            }
-        }
-        // 此时 page_table 位于第三级页表
-        let vpn_slice = vpn.levels()[2];
-        if page_table.entries[vpn_slice].is_empty() {
-            page_table.entries[vpn_slice] = PageTableEntry::new(ppn, flags);
-            self.page_tables.extend(new_allocated_tables.into_iter());
+        // 定位到页表项
+        let entry = self.find_entry(vpn)?;
+        if entry.is_empty() {
+            // 页表项为空，则写入内容
+            *entry = PageTableEntry::new(ppn, flags);
             Ok(())
         } else {
+            // 页表项有内容，报错
             Err("virtual address is already mapped")
         }
     }
-
 }

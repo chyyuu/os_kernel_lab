@@ -56,7 +56,7 @@ pub extern "C" fn rust_main() -> ! {
     let a: usize = unsafe { *(0x80200000 as *const _) };
     println!("Accessing 0x80200000: {:x}", a);
 
-    let kernel_memory = memory::mapping::MemorySet::new_kernel().unwrap();
+    let kernel_memory = memory::mapping::MemorySet::new_kernel(0).unwrap();
     kernel_memory.activate();
 
     // 到了这里就不可以再通过对等映射来访问内存了

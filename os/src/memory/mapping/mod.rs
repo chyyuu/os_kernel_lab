@@ -15,6 +15,7 @@ mod swapper;
 pub use page_table_entry::{PageTableEntry, Flags};
 pub use page_table::{PageTable, PageTableTracker};
 pub use range::Range;
-pub use segment::Segment;
+pub use segment::{Segment, MapType};
 pub use mapping::Mapping;
 pub use memory_set::MemorySet;
+pub use swapper::Swapper;
