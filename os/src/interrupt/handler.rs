@@ -6,6 +6,7 @@ use riscv::register::{
     stvec,
     scause::{Trap, Exception, Interrupt},
 };
+use crate::process::current_thread;
 
 global_asm!(include_str!("../asm/interrupt.asm"));
 
@@ -31,11 +32,15 @@ pub fn init() {
 pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
     // 可以通过 Debug 来查看发生了什么中断
     // println!("{:x?}", trap_frame.scause.cause());
+    use Exception::*;
+    use Interrupt::*;
     match trap_frame.scause.cause() {
         // 断点中断（ebreak）
-        Trap::Exception(Exception::Breakpoint) => breakpoint(trap_frame),
+        Trap::Exception(Breakpoint) => breakpoint(trap_frame),
         // 时钟中断
-        Trap::Interrupt(Interrupt::SupervisorTimer) => supervisor_timer(trap_frame),
+        Trap::Interrupt(SupervisorTimer) => supervisor_timer(trap_frame),
+        // 缺页
+        Trap::Exception(LoadPageFault) | Trap::Exception(StorePageFault) => page_fault(trap_frame),
         // 其他情况未实现
         _ => unimplemented!("{:x?}", trap_frame),
     }
@@ -54,4 +59,10 @@ fn breakpoint(trap_frame: &mut TrapFrame) {
 /// 目前只会在 [`timer`] 模块中进行计数
 fn supervisor_timer(_: &TrapFrame) {
     timer::tick();
+}
+
+/// 处理缺页
+fn page_fault(trap_frame: &TrapFrame) {
+    println!("PageFault accessing {:x}", trap_frame.stval);
+    current_thread().lock().memory_set.resolve_page_fault(trap_frame.stval).unwrap();
 }

@@ -11,6 +11,8 @@ use crate::memory::{
     mapping::{Flags, MapType, Mapping, Range, Segment, Swapper},
     MemoryResult,
 };
+use crate::file_system::SWAP_FILE;
+use crate::process::current_tid;
 use alloc::{boxed::Box, vec, vec::Vec};
 
 /// 一个线程所有关于内存空间管理的信息
@@ -33,8 +35,10 @@ impl MemorySet {
             page_range: Range::from(vpn..vpn + 1),
             flags: Flags::VALID | Flags::READABLE | Flags::WRITABLE,
         };
-        self.swapper
-            .test_add(self.mapping.map(&segment, 1, None)?.pop().unwrap());
+        let frame_limit = self.frame_limit - self.swapper.len();
+        if let Some(pair) = self.mapping.map(&segment, frame_limit, None)?.pop() {
+            self.swapper.add_pair(pair);
+        }
         self.segments.push(segment);
         Ok(())
     }
@@ -95,19 +99,27 @@ impl MemorySet {
                 ),
                 flags: Flags::VALID | Flags::READABLE | Flags::WRITABLE,
             },
+            // 模拟硬盘空间，rw-
+            Segment {
+                map_type: MapType::Linear,
+                page_range: Range::<VirtualAddress>::from(
+                    HDD_START_ADDRESS..HDD_END_ADDRESS,
+                ).into(),
+                flags: Flags::VALID | Flags::READABLE | Flags::WRITABLE,
+            },
         ];
         let mut mapping = Mapping::new()?;
-        let mut frame_quota = frame_limit;
+        let mut frame_limit_remainder = frame_limit;
         // 准备保存所有新分配的物理页面
         let mut allocated_pairs: Box<dyn Iterator<Item = (VirtualPageNumber, FrameTracker)>> =
             Box::new(core::iter::empty());
 
         // 每个字段在页表中进行映射
         for segment in segments.iter() {
+            let new_pairs = mapping.map(segment, frame_limit_remainder, None)?;
             // 如果字段的映射涉及到分配更多物理页面，则需要相应消耗 frame_limit，
             // 同时将新分配的映射关系保存到 allocated_pairs 中
-            let new_pairs = mapping.map(segment, frame_quota, None)?;
-            frame_quota -= new_pairs.len();
+            frame_limit_remainder -= new_pairs.len();
             allocated_pairs = Box::new(allocated_pairs.chain(new_pairs.into_iter()));
         }
         // 映射完毕，初始化页面置换模块
@@ -121,8 +133,40 @@ impl MemorySet {
     }
 
     /// 替换 `satp` 以激活页表
+    ///
+    /// 如果当前页表就是自身，则不会替换，但仍然会刷新 TLB。
     pub fn activate(&self) {
-        println!("activate");
         self.mapping.activate()
+    }
+
+    /// 缺页时，换走一个页面，加入需要的页面
+    pub fn resolve_page_fault(&mut self, stval: usize) -> MemoryResult<()> {
+        // 找到页面所属 segment 的 flags
+        let vpn = VirtualPageNumber::floor(VirtualAddress::from(stval));
+        let flags = self
+            .segments
+            .iter()
+            .find(|segment| segment.contains(vpn))
+            .ok_or("cannot find segment for page fault stval")?
+            .flags;
+        // 选择被替换的页面
+        let (victim_vpn, frame) = self
+            .swapper
+            .choose_victim()
+            .ok_or("page fault while Swapper is not full")?;
+        // 保存页面到硬盘
+        let thread_id = current_tid();
+        SWAP_FILE.lock().save(thread_id, victim_vpn, frame.page_number().deref_kernel())?;
+        // 如果换入的页面之前存有数据，则取出
+        if let Some(saved_data) = SWAP_FILE.lock().take(thread_id, vpn) {
+            frame.page_number().deref_kernel().copy_from_slice(saved_data);
+        }
+        // 替换映射
+        self.mapping.swap_out(victim_vpn)?;
+        self.mapping.swap_in(vpn, frame.page_number(), flags)?;
+        self.swapper.add_pair((vpn, frame));
+        // 更新 TLB
+        self.activate();
+        Ok(())
     }
 }

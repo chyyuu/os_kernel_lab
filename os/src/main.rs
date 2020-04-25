@@ -30,13 +30,18 @@
 
 #[macro_use]
 mod console;
+mod data_structure;
+mod file_system;
 mod interrupt;
 mod memory;
 mod panic;
+mod process;
 mod sbi;
 
 extern crate alloc;
+use alloc::sync::Arc;
 use msws::*;
+use process::*;
 
 // 汇编编写的程序入口，具体见该文件
 global_asm!(include_str!("asm/entry.asm"));
@@ -52,29 +57,18 @@ pub extern "C" fn rust_main() -> ! {
     interrupt::init();
     memory::init();
 
-    let mut kernel_memory = memory::mapping::MemorySet::new_kernel(0).unwrap();
+    let kernel_memory = memory::mapping::MemorySet::new_kernel(32).unwrap();
     kernel_memory.activate();
+    unsafe {
+        PROCESSOR
+            .current_thread
+            .replace(Arc::new(spin::Mutex::new(Thread {
+                thread_id: 0,
+                memory_set: kernel_memory,
+            })));
+    }
 
-    // 测试一下分配的物理页面
-    let mut rng = Rand::new(seed(0)).unwrap();
-    let vpns: alloc::vec::Vec<_> = (0..64).map(|_| rng.rand() as usize & 0x3ffffff).collect();
-    for vpn in vpns.iter() {
-        kernel_memory.test_map_alloc((*vpn).into()).unwrap();
-    }
-    // flush tlb
-    kernel_memory.activate();
-    for vpn in vpns.iter() {
-        for offset in (0..0x1000).step_by(8) {
-            unsafe {*(((vpn << 12) + offset) as *mut usize) = offset; }
-        }
-    }
-    for vpn in vpns.iter() {
-        for offset in (0..0x1000).step_by(8) {
-            assert!(unsafe{*(((vpn << 12) + offset) as *mut usize) == offset});
-        }
-    }
-    println!("framed mapping test passed");
-
+    test_framed_paging();
     test_heap();
 
     unsafe {
@@ -82,6 +76,34 @@ pub extern "C" fn rust_main() -> ! {
     };
 
     loop {}
+}
+
+/// 测试分配的物理页面和缺页
+fn test_framed_paging() {
+    let mut rng = Rand::new(seed(0)).unwrap();
+    let vpns: alloc::vec::Vec<_> = (0..64).map(|_| rng.rand() as usize & 0x3ffffff).collect();
+    for vpn in vpns.iter() {
+        current_thread()
+            .lock()
+            .memory_set
+            .test_map_alloc((*vpn).into())
+            .unwrap();
+    }
+    // flush tlb
+    current_thread().lock().memory_set.activate();
+    for vpn in vpns.iter() {
+        for offset in (0..0x1000).step_by(8) {
+            let addr = (vpn << 12) + offset;
+            unsafe {
+                *(addr as *mut usize) = addr;
+            }
+        }
+    }
+    for (vpn, offset) in vpns.iter().cycle().zip((0..0x1000).step_by(8)) {
+        let addr = (vpn << 12) + offset;
+        assert!(unsafe { *(addr as *mut usize) == addr });
+    }
+    println!("framed mapping test passed");
 }
 
 // 从更新的 rcore_tutorial 摘过来

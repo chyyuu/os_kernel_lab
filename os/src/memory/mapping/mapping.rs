@@ -1,7 +1,9 @@
 //! 具体负责映射 / 取消映射
 //!
-//! 许多方法返回 [`Result`]，如果出现错误会返回 `Err(message)`。
-//! NOTE：实现支持缺页（TODO），但不支持页表缺页
+//! 许多方法返回 [`Result`]，如果出现错误会返回 `Err(message)`。设计目标是，此时如果终止线程，则不会产生后续问题。
+//! 但是如果错误是由操作系统代码逻辑产生的，则会直接 panic。
+//!
+//! NOTE：实现支持缺页（TODO），但页表常驻内存
 
 use crate::memory::{
     address::*,
@@ -10,7 +12,6 @@ use crate::memory::{
     MemoryResult,
 };
 use alloc::{vec, vec::Vec};
-use riscv::register::satp;
 
 #[derive(Default)]
 /// 某个线程的内存映射关系
@@ -24,16 +25,11 @@ pub struct Mapping {
 impl Mapping {
     /// 将当前的映射加载到 `satp` 寄存器
     pub fn activate(&self) {
-        let old_satp = satp::read().bits();
         // satp 低 27 位为页号，高 4 位为模式，8 表示 Sv39
         let new_satp = self.root_ppn.0 | (8 << 60);
-        if old_satp != new_satp {
-            unsafe {
-                // 将 new_satp 的值写到 satp 寄存器
-                llvm_asm!("csrw satp, $0" :: "r"(new_satp) :: "volatile");
-            }
-        }
         unsafe {
+            // 将 new_satp 的值写到 satp 寄存器
+            llvm_asm!("csrw satp, $0" :: "r"(new_satp) :: "volatile");
             // 刷新 TLB
             llvm_asm!("sfence.vma" :::: "volatile");
         }
@@ -71,7 +67,7 @@ impl Mapping {
                 println!("linear map {:x?}", segment.page_range);
                 if init_data.is_some() {
                     // 线性映射应当只用于内核，不存在初始化的情况
-                    unimplemented!("unsupported operation: lineary mapping with initializing data");
+                    unimplemented!();
                 }
                 for vpn in segment.iter() {
                     self.map_one(vpn, PhysicalPageNumber::from(vpn), segment.flags)?;
@@ -80,6 +76,9 @@ impl Mapping {
             }
             // 按帧映射
             MapType::Framed => {
+                if init_data.is_some() {
+                    unimplemented!("TODO");
+                }
                 // 记录所有成功分配的页面映射
                 let mut allocated_pairs = vec![];
                 // 遍历需要映射的页号
@@ -93,7 +92,7 @@ impl Mapping {
                         allocated_pairs.push((vpn, frame));
                     } else {
                         // 没有配额则停止映射
-                        break;
+                        println!("unmapped {:x?}", vpn);
                     }
                 }
                 Ok(allocated_pairs)
@@ -107,8 +106,7 @@ impl Mapping {
     pub fn find_entry(&mut self, vpn: VirtualPageNumber) -> MemoryResult<&mut PageTableEntry> {
         // 从根页表开始向下查询
         // 这里不用 self.page_tables[0] 避免后面产生 borrow-check 冲突（我太菜了）
-        let root_table: &mut PageTable =
-            unsafe { PhysicalAddress::from(self.root_ppn).deref_kernel() };
+        let root_table: &mut PageTable = PhysicalAddress::from(self.root_ppn).deref_kernel();
         // print!("0: {:p} ", root_table);
         let mut pte = &mut root_table.entries[vpn.levels()[0]];
         // println!("[{}] = {:x?}", vpn.levels()[0], pte);
@@ -131,8 +129,6 @@ impl Mapping {
     }
 
     /// 为给定的虚拟 / 物理页号建立映射关系
-    ///
-    /// 失败后，`Mapping` 可能不再可用
     fn map_one(
         &mut self,
         vpn: VirtualPageNumber,
@@ -141,13 +137,40 @@ impl Mapping {
     ) -> MemoryResult<()> {
         // 定位到页表项
         let entry = self.find_entry(vpn)?;
-        if entry.is_empty() {
-            // 页表项为空，则写入内容
-            *entry = PageTableEntry::new(ppn, flags);
-            Ok(())
-        } else {
-            // 页表项有内容，报错
-            Err("virtual address is already mapped")
-        }
+        assert!(entry.is_empty(), "virtual address is already mapped");
+        // 页表项为空，则写入内容
+        *entry = PageTableEntry::new(ppn, flags);
+        Ok(())
+    }
+
+    /// 将给定虚拟页号的页表项标为 Invalid
+    ///
+    /// 用于 PageFault 中换出一个页面，会同时抹去其物理页号，防止错误访问。
+    pub fn swap_out(&mut self, vpn: VirtualPageNumber) -> MemoryResult<()> {
+        let entry = self.find_entry(vpn)?;
+        assert!(
+            entry.flags().contains(Flags::VALID),
+            "page swapped out is not valid"
+        );
+        *entry = PageTableEntry::default();
+        Ok(())
+    }
+
+    /// 设置给定虚拟页号的映射
+    ///
+    /// 用于 PageFault 中换入一个页面。
+    pub fn swap_in(
+        &mut self,
+        vpn: VirtualPageNumber,
+        ppn: PhysicalPageNumber,
+        flags: Flags,
+    ) -> MemoryResult<()> {
+        let entry = self.find_entry(vpn)?;
+        assert!(
+            !entry.flags().contains(Flags::VALID),
+            "page is already valid"
+        );
+        *entry = PageTableEntry::new(ppn, flags);
+        Ok(())
     }
 }

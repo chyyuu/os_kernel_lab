@@ -3,8 +3,8 @@
 /// 表示一段连续的页面
 #[derive(Clone, Copy, Debug)]
 pub struct Range<T: From<usize> + Into<usize> + Copy> {
-    start: T,
-    end: T,
+    pub start: T,
+    pub end: T,
 }
 
 /// 创建一个区间
@@ -45,5 +45,10 @@ impl<T: From<usize> + Into<usize> + Copy> Range<T> {
     pub fn get(&self, index: usize) -> T {
         assert!(index < self.len());
         T::from(self.start.into() + index)
+    }
+
+    /// 区间是否包含指定的值
+    pub fn contains(&self, value: T) -> bool {
+        self.start.into() <= value.into() && value.into() < self.end.into()
     }
 }

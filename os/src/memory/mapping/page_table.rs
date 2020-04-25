@@ -12,7 +12,7 @@
 //! 5.  将页表项中的页号作为下一级查询目标，查询直到达到最低级的页表，最终得到页号
 
 use super::page_table_entry::PageTableEntry;
-use crate::memory::{config::PAGE_SIZE, frame::FrameTracker, address::*};
+use crate::memory::{address::*, config::PAGE_SIZE, frame::FrameTracker};
 /// 存有 512 个页表项的页表
 ///
 /// 注意我们不会使用常规的 Rust 语法来创建 `PageTable`。相反，我们会分配一个物理帧，
@@ -57,19 +57,19 @@ impl PageTableTracker {
 impl core::ops::Deref for PageTableTracker {
     type Target = PageTable;
     fn deref(&self) -> &Self::Target {
-        unsafe { self.0.address().deref_kernel() }
+        self.0.address().deref_kernel()
     }
 }
 
 impl core::ops::DerefMut for PageTableTracker {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.0.address().deref_kernel() }
+        self.0.address().deref_kernel()
     }
 }
 
 // 因为 PageTableEntry 和具体的 PageTable 之间没有生命周期关联，所以返回 'static 引用方便写代码
 impl PageTableEntry {
     pub fn get_next_table(&self) -> &'static mut PageTable {
-        unsafe { self.address().deref_kernel() }
+        self.address().deref_kernel()
     }
 }
