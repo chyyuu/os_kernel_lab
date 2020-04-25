@@ -1,4 +1,4 @@
-//! 处理器，进程管理的最高结构
+//! 处理器，进程管理的最高结构 [`PROCESSOR`](Processor)
 
 use super::*;
 use alloc::sync::Arc;

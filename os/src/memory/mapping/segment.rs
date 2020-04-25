@@ -1,12 +1,9 @@
-//! [`PageRange`] 的映射记录
+//! 映射类型 [`MapType`] 和映射片段 [`Segment`]
 
 use crate::memory::{
     address::*,
-    frame::{FrameTracker, FRAME_ALLOCATOR},
     mapping::{Flags, Range},
-    MemoryResult,
 };
-use alloc::{sync::Arc, vec::Vec};
 
 /// 映射的类型
 #[derive(Debug)]

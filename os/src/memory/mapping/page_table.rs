@@ -1,4 +1,4 @@
-//! 管理每个线程的内存映射
+//! 单一页表页面（4K） [`PageTable`]，以及相应封装 [`FrameTracker`] 的 [`PageTableTracker`]
 //!
 //! 每个页表中包含 512 条页表项
 //!

@@ -1,7 +1,7 @@
 //! 物理帧的分配与回收
 
 mod allocator;
-mod frame;
+mod frame_tracker;
 
 pub use allocator::FRAME_ALLOCATOR;
-pub use frame::FrameTracker;
+pub use frame_tracker::FrameTracker;

@@ -80,8 +80,10 @@ pub extern "C" fn rust_main() -> ! {
 
 /// 测试分配的物理页面和缺页
 fn test_framed_paging() {
+    // 随机生成即将使用的一堆页号
     let mut rng = Rand::new(seed(0)).unwrap();
     let vpns: alloc::vec::Vec<_> = (0..64).map(|_| rng.rand() as usize & 0x3ffffff).collect();
+    // 创建页面
     for vpn in vpns.iter() {
         current_thread()
             .lock()
@@ -89,8 +91,9 @@ fn test_framed_paging() {
             .test_map_alloc((*vpn).into())
             .unwrap();
     }
-    // flush tlb
+    // 更新 TLB
     current_thread().lock().memory_set.activate();
+    // 写入页面
     for vpn in vpns.iter() {
         for offset in (0..0x1000).step_by(8) {
             let addr = (vpn << 12) + offset;
@@ -99,6 +102,7 @@ fn test_framed_paging() {
             }
         }
     }
+    // 乱序（也不是很乱）读取并验证
     for (vpn, offset) in vpns.iter().cycle().zip((0..0x1000).step_by(8)) {
         let addr = (vpn << 12) + offset;
         assert!(unsafe { *(addr as *mut usize) == addr });
@@ -106,8 +110,7 @@ fn test_framed_paging() {
     println!("framed mapping test passed");
 }
 
-// 从更新的 rcore_tutorial 摘过来
-// to be removed
+/// 简单测试动态内存分配，没什么用
 fn test_heap() {
     use alloc::boxed::Box;
     use alloc::vec::Vec;

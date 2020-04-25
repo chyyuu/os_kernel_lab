@@ -1,13 +1,10 @@
-//! 内存替换
-//!
-//! TODO
+//! 管理页面置换 [`Swapper`]
 
 use crate::memory::{
     address::*,
-    config::*,
-    frame::{FrameTracker, FRAME_ALLOCATOR},
+    frame::FrameTracker,
 };
-use alloc::{collections::LinkedList, vec::Vec};
+use alloc::collections::LinkedList;
 
 /// 映射关系的缩写
 type Pair = (VirtualPageNumber, FrameTracker);

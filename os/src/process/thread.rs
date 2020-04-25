@@ -1,4 +1,4 @@
-//! 线程
+//! 线程的所有控制信息 [`Thread`]
 
 use super::*;
 use crate::memory::{MemorySet};

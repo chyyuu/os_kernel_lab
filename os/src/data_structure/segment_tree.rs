@@ -1,13 +1,16 @@
+//! 提供线段树实现的分配器 [`SegmentTree`]
+
 use super::Allocator;
 use alloc::{vec, vec::Vec};
 use bit_field::BitArray;
 
+/// 使用线段树实现分配器
 pub struct SegmentTree {
+    /// 树本身
     tree: Vec<u8>,
 }
 
 impl Allocator for SegmentTree {
-    /// 根据空间的大小，生成初始化的线段树
     fn new(capacity: usize) -> Self {
         assert!(capacity >= 8);
         // 完全二叉树的树叶数量
@@ -28,7 +31,6 @@ impl Allocator for SegmentTree {
         Self { tree }
     }
 
-    /// 从线段树中找到一个空的节点，并将其标记为占用
     fn alloc(&mut self) -> Option<usize> {
         if self.tree.get_bit(1) {
             None
@@ -52,7 +54,6 @@ impl Allocator for SegmentTree {
         }
     }
 
-    /// 在线段树中释放一个节点
     fn dealloc(&mut self, index: usize) {
         let node = index + self.tree.len() / 2;
         assert!(self.tree.get_bit(node));
