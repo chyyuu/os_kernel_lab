@@ -63,7 +63,6 @@ impl From<VirtualAddress> for PhysicalAddress {
 impl VirtualAddress {
     /// 从虚拟地址取得某类型的 &mut 引用
     pub unsafe fn deref<T>(self) -> &'static mut T {
-        assert!(self.0 > KERNEL_MAP_OFFSET);
         &mut *(self.0 as *mut T)
     }
 }

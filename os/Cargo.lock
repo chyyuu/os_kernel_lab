@@ -54,6 +54,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "msws"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "os"
 version = "0.1.0"
 dependencies = [
@@ -61,6 +66,7 @@ dependencies = [
  "bitflags 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "buddy_system_allocator 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "msws 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "riscv 0.5.0 (git+https://github.com/rcore-os/riscv)",
  "spin 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -152,6 +158,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum cfg-if 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)" = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 "checksum lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 "checksum log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)" = "14b6052be84e6b71ab17edffc2eeabf5c2c3ae1fdb464aae35ac50c67a44e1f7"
+"checksum msws 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6da8c59ecf564d4872b33f722213460049f89da6d4c38f5babd780d0b59dcded"
 "checksum proc-macro2 1.0.10 (registry+https://github.com/rust-lang/crates.io-index)" = "df246d292ff63439fea9bc8c0a270bed0e390d5ebd4db4ba15aba81111b5abe3"
 "checksum quote 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "2bdc6c187c65bca4260c9011c9e3132efe4909da44726bad24cf7572ae338d7f"
 "checksum riscv 0.5.0 (git+https://github.com/rcore-os/riscv)" = "<none>"

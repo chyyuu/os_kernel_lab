@@ -51,6 +51,7 @@ impl core::fmt::Debug for PageTableEntry {
     fn fmt(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter
             .debug_struct("PageTableEntry")
+            .field("value", &self.0)
             .field("page_number", &self.page_number())
             .field("flags", &self.flags())
             .finish()

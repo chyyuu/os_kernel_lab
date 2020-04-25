@@ -27,4 +27,8 @@ impl Swapper {
         println!("size: {}", s.active_pairs.len());
         s
     }
+
+    pub fn test_add(&mut self, pair: (VirtualPageNumber, FrameTracker)) {
+        self.active_pairs.push_back(pair)
+    }
 }

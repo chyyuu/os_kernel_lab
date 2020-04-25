@@ -36,6 +36,7 @@ mod panic;
 mod sbi;
 
 extern crate alloc;
+use msws::*;
 
 // 汇编编写的程序入口，具体见该文件
 global_asm!(include_str!("asm/entry.asm"));
@@ -51,17 +52,28 @@ pub extern "C" fn rust_main() -> ! {
     interrupt::init();
     memory::init();
 
-    // 在 entry.asm 中，我们定义了两个映射，所以此时我们还可以通过物理地址对等映射来访问内存
-    // （如果没有这个映射，取决于硬件实现，可能会在进入 rust_main 之前就 page fault）
-    let a: usize = unsafe { *(0x80200000 as *const _) };
-    println!("Accessing 0x80200000: {:x}", a);
-
-    let kernel_memory = memory::mapping::MemorySet::new_kernel(0).unwrap();
+    let mut kernel_memory = memory::mapping::MemorySet::new_kernel(0).unwrap();
     kernel_memory.activate();
 
-    // 到了这里就不可以再通过对等映射来访问内存了
-    // let a: usize = unsafe { *(0x80200000 as *const _) };
-    // println!("Accessing 0x80200000: {:x}", a);
+    // 测试一下分配的物理页面
+    let mut rng = Rand::new(seed(0)).unwrap();
+    let vpns: alloc::vec::Vec<_> = (0..64).map(|_| rng.rand() as usize & 0x3ffffff).collect();
+    for vpn in vpns.iter() {
+        kernel_memory.test_map_alloc((*vpn).into()).unwrap();
+    }
+    // flush tlb
+    kernel_memory.activate();
+    for vpn in vpns.iter() {
+        for offset in (0..0x1000).step_by(8) {
+            unsafe {*(((vpn << 12) + offset) as *mut usize) = offset; }
+        }
+    }
+    for vpn in vpns.iter() {
+        for offset in (0..0x1000).step_by(8) {
+            assert!(unsafe{*(((vpn << 12) + offset) as *mut usize) == offset});
+        }
+    }
+    println!("framed mapping test passed");
 
     test_heap();
 

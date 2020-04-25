@@ -7,11 +7,11 @@
 use crate::memory::{
     address::*,
     config::*,
+    frame::FrameTracker,
     mapping::{Flags, MapType, Mapping, Range, Segment, Swapper},
     MemoryResult,
-    frame::FrameTracker,
 };
-use alloc::{vec, vec::Vec, boxed::Box};
+use alloc::{boxed::Box, vec, vec::Vec};
 
 /// 一个线程所有关于内存空间管理的信息
 pub struct MemorySet {
@@ -26,6 +26,19 @@ pub struct MemorySet {
 }
 
 impl MemorySet {
+    /// 简单测试代码，为虚拟地址分配一个页
+    pub fn test_map_alloc(&mut self, vpn: VirtualPageNumber) -> MemoryResult<()> {
+        let segment = Segment {
+            map_type: MapType::Framed,
+            page_range: Range::from(vpn..vpn + 1),
+            flags: Flags::VALID | Flags::READABLE | Flags::WRITABLE,
+        };
+        self.swapper
+            .test_add(self.mapping.map(&segment, 1, None)?.pop().unwrap());
+        self.segments.push(segment);
+        Ok(())
+    }
+
     /// 创建内核重映射
     pub fn new_kernel(frame_limit: usize) -> MemoryResult<MemorySet> {
         // 在 linker.ld 里面标记的各个字段的起始点，均为 4K 对齐
@@ -69,10 +82,9 @@ impl MemorySet {
             // .bss 段，rw-
             Segment {
                 map_type: MapType::Linear,
-                page_range: Range::<VirtualAddress>::from(
-                    (bss_start as usize)..(boot_stack_start as usize),
-                )
-                .into(),
+                page_range: Range::from(
+                    VirtualAddress::from(bss_start as usize)..*KERNEL_END_ADDRESS,
+                ),
                 flags: Flags::VALID | Flags::READABLE | Flags::WRITABLE,
             },
             // 剩余内存空间，rw-
@@ -87,25 +99,30 @@ impl MemorySet {
         let mut mapping = Mapping::new()?;
         let mut frame_quota = frame_limit;
         // 准备保存所有新分配的物理页面
-        let mut allocated_pairs: Box<dyn Iterator<Item = (VirtualPageNumber, FrameTracker)>> = Box::new(core::iter::empty());
+        let mut allocated_pairs: Box<dyn Iterator<Item = (VirtualPageNumber, FrameTracker)>> =
+            Box::new(core::iter::empty());
 
         // 每个字段在页表中进行映射
         for segment in segments.iter() {
             // 如果字段的映射涉及到分配更多物理页面，则需要相应消耗 frame_limit，
             // 同时将新分配的映射关系保存到 allocated_pairs 中
-            let new_pairs = mapping.map(segment, frame_quota)?;
+            let new_pairs = mapping.map(segment, frame_quota, None)?;
             frame_quota -= new_pairs.len();
             allocated_pairs = Box::new(allocated_pairs.chain(new_pairs.into_iter()));
         }
         // 映射完毕，初始化页面置换模块
         let swapper = Swapper::new(frame_limit, allocated_pairs);
         Ok(MemorySet {
-            frame_limit, mapping, swapper, segments
+            frame_limit,
+            mapping,
+            swapper,
+            segments,
         })
     }
 
     /// 替换 `satp` 以激活页表
     pub fn activate(&self) {
+        println!("activate");
         self.mapping.activate()
     }
 }

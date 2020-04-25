@@ -6,11 +6,10 @@
 use crate::memory::{
     address::*,
     frame::{FrameTracker, FRAME_ALLOCATOR},
-    mapping::{Flags, MapType, PageTable, PageTableEntry, PageTableTracker, Segment},
+    mapping::{Flags, MapType, PageTable, PageTableEntry, PageTableTracker, Range, Segment},
     MemoryResult,
 };
 use alloc::{vec, vec::Vec};
-use core::ops::DerefMut;
 use riscv::register::satp;
 
 #[derive(Default)]
@@ -32,9 +31,11 @@ impl Mapping {
             unsafe {
                 // 将 new_satp 的值写到 satp 寄存器
                 llvm_asm!("csrw satp, $0" :: "r"(new_satp) :: "volatile");
-                // 刷新 TLB
-                llvm_asm!("sfence.vma" :::: "volatile");
             }
+        }
+        unsafe {
+            // 刷新 TLB
+            llvm_asm!("sfence.vma" :::: "volatile");
         }
     }
 
@@ -50,7 +51,10 @@ impl Mapping {
 
     /// 加入一段映射，可能会相应地分配物理页面
     ///
-    /// 参数 `frame_limit` 为最多分配的物理页面数量。
+    /// - `frame_limit`
+    ///     最多分配的物理页面数量。
+    /// - `init_data`
+    ///     复制一段内存区域来初始化新的内存区域，其长度必须等于 `segment` 的大小。
     ///
     /// 返回所有新分配了帧的映射关系，数量不超过 `frame_limit`。
     ///
@@ -59,10 +63,16 @@ impl Mapping {
         &mut self,
         segment: &Segment,
         mut frame_limit: usize,
+        init_data: Option<Range<VirtualPageNumber>>,
     ) -> MemoryResult<Vec<(VirtualPageNumber, FrameTracker)>> {
         match segment.map_type {
             // 线性映射，不需要考虑分配页面，只需将所有页面依次映射
             MapType::Linear => {
+                println!("linear map {:x?}", segment.page_range);
+                if init_data.is_some() {
+                    // 线性映射应当只用于内核，不存在初始化的情况
+                    unimplemented!("unsupported operation: lineary mapping with initializing data");
+                }
                 for vpn in segment.iter() {
                     self.map_one(vpn, PhysicalPageNumber::from(vpn), segment.flags)?;
                 }
@@ -78,6 +88,7 @@ impl Mapping {
                         frame_limit -= 1;
                         // 如果还有配额，继续分配帧进行映射
                         let frame: FrameTracker = FRAME_ALLOCATOR.lock().alloc()?;
+                        println!("map {:x?} -> {:x?}", vpn, frame.page_number());
                         self.map_one(vpn, frame.page_number(), segment.flags)?;
                         allocated_pairs.push((vpn, frame));
                     } else {
@@ -98,7 +109,9 @@ impl Mapping {
         // 这里不用 self.page_tables[0] 避免后面产生 borrow-check 冲突（我太菜了）
         let root_table: &mut PageTable =
             unsafe { PhysicalAddress::from(self.root_ppn).deref_kernel() };
+        // print!("0: {:p} ", root_table);
         let mut pte = &mut root_table.entries[vpn.levels()[0]];
+        // println!("[{}] = {:x?}", vpn.levels()[0], pte);
         for vpn_slice in &vpn.levels()[1..] {
             if pte.is_empty() {
                 // 如果页表不存在，则需要分配一个新的页表
@@ -106,6 +119,7 @@ impl Mapping {
                 let new_ppn = new_table.page_number();
                 // 将新页表的页号写入当前的页表项
                 *pte = PageTableEntry::new(new_ppn, Flags::VALID);
+                // println!("write {:x?}", pte);
                 // 保存页表
                 self.page_tables.push(new_table);
             }

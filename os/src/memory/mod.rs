@@ -26,5 +26,6 @@ pub use {
 /// 
 /// - [`heap::init`]
 pub fn init() {
+    println!("kernel end address: {:x?}", *KERNEL_END_ADDRESS);
     heap::init();
 }

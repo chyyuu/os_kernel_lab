@@ -65,6 +65,7 @@ impl FrameAllocator {
     ///
     /// 这个函数会在 [`FrameTracker`] 被 drop 时自动调用，不应在其他地方调用
     pub(super) fn dealloc(&mut self, frame: &FrameTracker) {
+        println!("DROP");
         self.free_frame_list.push((frame.address(), 1));
     }
 }
