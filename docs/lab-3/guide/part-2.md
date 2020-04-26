@@ -170,12 +170,12 @@ bootstacktop:
     .section .data
     .align 12
 boot_page_table:
-    # 0x8000_0000 -> 0x8000_0000
-    # 0xffff_ffff_8000_0000 -> 0x8000_0000
     .quad 0
     .quad 0
+    # 第 2 项：0x8000_0000 -> 0x8000_0000，0xcf 表示 VRWXAD 均为 1
     .quad (0x80000 << 10) | 0xcf
     .zero 507 * 8
+    # 第 510 项：0xffff_ffff_8000_0000 -> 0x8000_0000，0xcf 表示 VRWXAD 均为 1
     .quad (0x80000 << 10) | 0xcf
     .quad 0
 ```
