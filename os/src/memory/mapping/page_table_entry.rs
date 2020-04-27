@@ -1,4 +1,4 @@
-//! 页表项
+//! 页表项 [`PageTableEntry`]
 //!
 //! # RISC-V 64 中的页表项结构
 //! 每个页表项长度为 64 位，每个页面大小是 4KB，即每个页面能存下 2^9=512 个页表项。  
@@ -51,6 +51,7 @@ impl core::fmt::Debug for PageTableEntry {
     fn fmt(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter
             .debug_struct("PageTableEntry")
+            .field("value", &self.0)
             .field("page_number", &self.page_number())
             .field("flags", &self.flags())
             .finish()

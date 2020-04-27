@@ -1,3 +1,5 @@
+//! 保存现场所用的 struct [`TrapFrame`]
+
 use riscv::register::{sstatus::Sstatus, scause::Scause};
 use core::fmt;
 use core::mem::zeroed;

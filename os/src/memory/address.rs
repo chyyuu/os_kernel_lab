@@ -6,19 +6,19 @@ use super::config::{KERNEL_MAP_OFFSET, PAGE_SIZE};
 use bit_field::BitField;
 
 /// 虚拟地址
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct VirtualAddress(pub usize);
 
 /// 物理地址
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct PhysicalAddress(pub usize);
 
 /// 虚拟页号
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct VirtualPageNumber(pub usize);
 
 /// 物理页号
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct PhysicalPageNumber(pub usize);
 
 // 以下是一大堆类型的相互转换、各种琐碎操作
@@ -62,15 +62,26 @@ impl From<VirtualAddress> for PhysicalAddress {
 }
 impl VirtualAddress {
     /// 从虚拟地址取得某类型的 &mut 引用
-    pub unsafe fn deref<T>(self) -> &'static mut T {
-        assert!(self.0 > KERNEL_MAP_OFFSET);
-        &mut *(self.0 as *mut T)
+    pub fn deref<T>(self) -> &'static mut T {
+        unsafe { &mut *(self.0 as *mut T) }
     }
 }
 impl PhysicalAddress {
     /// 从物理地址经过线性映射取得 &mut 引用
-    pub unsafe fn deref_kernel<T>(self) -> &'static mut T {
+    pub fn deref_kernel<T>(self) -> &'static mut T {
         VirtualAddress::from(self).deref()
+    }
+}
+impl VirtualPageNumber {
+    /// 从虚拟地址取得页面
+    pub fn deref(self) -> &'static mut [u8; PAGE_SIZE] {
+        VirtualAddress::from(self).deref()
+    }
+}
+impl PhysicalPageNumber {
+    /// 从物理地址经过线性映射取得页面
+    pub fn deref_kernel(self) -> &'static mut [u8; PAGE_SIZE] {
+        PhysicalAddress::from(self).deref_kernel()
     }
 }
 

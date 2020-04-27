@@ -16,5 +16,5 @@ node_modules
 ### rCore
 # Rust 编译文件
 os/target
-# GDB 调试文件
+# GDB 临时文件
 .gdb_history

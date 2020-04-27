@@ -1,6 +1,4 @@
 //! 中断模块
-//! 
-//! 
 
 mod handler;
 mod trap_frame;

@@ -1,49 +1,34 @@
-//! [`PageRange`] 的映射记录
+//! 映射类型 [`MapType`] 和映射片段 [`Segment`]
 
 use crate::memory::{
     address::*,
-    frame::FrameTracker,
     mapping::{Flags, Range},
 };
-use alloc::{sync::Arc, vec, vec::Vec};
 
-/// 一个映射片段（对应旧 tutorial 的 `MemoryArea`）
-///
-/// 保存了映射区域、所映射的物理帧。（不包括用于页表的帧）
-pub(super) enum Segment {
-    Linear {
-        /// 所映射的虚拟地址
-        page_range: Range<VirtualPageNumber>,
-        /// 权限标志
-        flags: Flags,
-    },
-    Framed {
-        /// 所映射的虚拟地址
-        page_range: Range<VirtualPageNumber>,
-        /// 相对应虚拟地址的物理帧
-        ///
-        /// 因为同一个帧可以被多个线程映射，所以使用 [`Arc`]。
-        frames: Vec<Arc<FrameTracker>>,
-        /// 权限标志
-        flags: Flags,
-    },
+/// 映射的类型
+#[derive(Debug)]
+pub enum MapType {
+    /// 线性映射，操作系统使用
+    Linear,
+    /// 按帧分配映射，可能涉及页面置换
+    Framed,
 }
 
-impl Segment {
-    /// 创建一个按帧映射的空白片段
-    pub(super) fn new_framed(page_range: Range<VirtualPageNumber>, flags: Flags) -> Self {
-        Self::Framed {
-            page_range,
-            frames: vec![],
-            flags,
-        }
-    }
-    /// 记录一个被分配的帧
-    pub(super) fn add_frame(&mut self, frame: Arc<FrameTracker>) {
-        if let Self::Framed { frames, .. } = self {
-            frames.push(frame);
-        } else {
-            unreachable!()
-        }
+/// 一个映射片段（对应旧 tutorial 的 `MemoryArea`）
+#[derive(Debug)]
+pub struct Segment {
+    /// 映射类型
+    pub map_type: MapType,
+    /// 所映射的虚拟地址
+    pub page_range: Range<VirtualPageNumber>,
+    /// 权限标志
+    pub flags: Flags,
+}
+
+/// 方便访问 `page_range` 域中的方法
+impl core::ops::Deref for Segment {
+    type Target = Range<VirtualPageNumber>;
+    fn deref(&self) -> &Self::Target {
+        &self.page_range
     }
 }
