@@ -36,7 +36,7 @@ impl MemorySet {
             flags: Flags::VALID | Flags::READABLE | Flags::WRITABLE,
         };
         let frame_limit = self.frame_limit - self.swapper.len();
-        if let Some(pair) = self.mapping.map(&segment, frame_limit, None)?.pop() {
+        if let Some(pair) = self.mapping.map(&segment, frame_limit)?.pop() {
             self.swapper.add_pair(pair);
         }
         self.segments.push(segment);
@@ -116,7 +116,7 @@ impl MemorySet {
 
         // 每个字段在页表中进行映射
         for segment in segments.iter() {
-            let new_pairs = mapping.map(segment, frame_limit_remainder, None)?;
+            let new_pairs = mapping.map(segment, frame_limit_remainder)?;
             // 如果字段的映射涉及到分配更多物理页面，则需要相应消耗 frame_limit，
             // 同时将新分配的映射关系保存到 allocated_pairs 中
             frame_limit_remainder -= new_pairs.len();
@@ -141,13 +141,17 @@ impl MemorySet {
 
     /// 缺页时，换走一个页面，加入需要的页面
     pub fn resolve_page_fault(&mut self, stval: usize) -> MemoryResult<()> {
-        // 找到页面所属 segment 的 flags
         let vpn = VirtualPageNumber::floor(VirtualAddress::from(stval));
+        // 确认目标页面为 Invalid，否则可能是权限导致的异常，操作系统不会解决这种异常
+        if self.mapping.find_entry(vpn)?.flags().contains(Flags::VALID) {
+            return Err("page fault: illegal access");
+        }
+        // 找到页面所属 segment 的 flags
         let flags = self
             .segments
             .iter()
             .find(|segment| segment.contains(vpn))
-            .ok_or("cannot find segment for page fault stval")?
+            .ok_or("cannot find segment for page fault stval (perhaps illegal access)")?
             .flags;
         // 选择被替换的页面
         let (victim_vpn, frame) = self
