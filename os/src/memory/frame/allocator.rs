@@ -2,8 +2,6 @@
 //!
 //! 返回的 [`FrameTracker`] 类型代表一个帧，它在被 drop 时会自动将空间补回分配器中。
 
-// TODO: 修改成分配和释放之间不会互锁
-
 use super::*;
 use crate::data_structure::*;
 use crate::memory::*;

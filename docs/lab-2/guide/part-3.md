@@ -19,20 +19,15 @@ pub const PAGE_SIZE: usize = 4096;
 pub const MEMORY_START_ADDRESS: PhysicalAddress = PhysicalAddress(0x8000_0000);
 /// 可以访问的内存区域结束地址
 pub const MEMORY_END_ADDRESS: PhysicalAddress = PhysicalAddress(0x8800_0000);
-
-/// 可用的首个物理页号
-pub const BEGIN_PPN: PhysicalPageNumber = PhysicalPageNumber::ceil(MEMORY_START_ADDRESS);
-/// 可用的最后物理页号 + 1
-pub const END_PPN: PhysicalPageNumber = PhysicalPageNumber::floor(MEMORY_END_ADDRESS);
 ```
 
 ### 分配和回收
 
-为了方便管理所有的物理页，我们需要实现一个分配器可以进行分配和回收的操作，我们使用类似链表的 `Vec` 来做这件事情，首先先封装一下帧的相关概念。
+为了方便管理所有的物理页，我们需要实现一个分配器可以进行分配和回收的操作，在这之前，我们需要先把物理页的概念进行封装。注意到，物理页在实际上其实是连续的一片内存区域，这里我们只是把区域的其实物理地址封装到了一个 `FrameTracker` 里面。
 
-{% label %}os/src/memory/frame.rs{% endlabel %}
+{% label %}os/src/memory/frame_tracker.rs{% endlabel %}
 ```rust
-//! 物理帧的类
+//! 提供物理帧的『`Box`』 [`FrameTracker`]
 
 use crate::memory::{
     address::*,
@@ -56,7 +51,7 @@ use crate::memory::{
 ///
 /// 使用 `Tracker` 其实就很像使用一个 smart pointer。如果需要引用计数，
 /// 就在外面再套一层 [`Arc`](alloc::sync::Arc) 就好
-pub struct FrameTracker(pub(super) PhysicalAddress);
+pub struct FrameTracker(PhysicalAddress);
 
 impl FrameTracker {
     /// 帧的物理地址
@@ -69,7 +64,13 @@ impl FrameTracker {
     }
 }
 
-/// 帧在释放时会放回 [`frame_allocator`] 的空闲链表中
+impl<T: Into<PhysicalPageNumber>> From<T> for FrameTracker {
+    fn from(v: T) -> Self {
+        Self(v.into().into())
+    }
+}
+
+/// 帧在释放时会放回 [`static@FRAME_ALLOCATOR`] 的空闲链表中
 impl Drop for FrameTracker {
     fn drop(&mut self) {
         FRAME_ALLOCATOR.lock().dealloc(self);
@@ -79,83 +80,86 @@ impl Drop for FrameTracker {
 
 这里，我们实现了 `FrameTracker` 这个结构，而区分于实际在内存中的 4KB 大小的 "Frame"，我们设计的初衷是分配器分配给我们 `FrameTracker` 作为一个帧的标识，而随着不再需要这个物理帧，我们需要回收，我们利用 Rust 的 drop 机制在析构的时候自动实现回收。
 
-最后给出我们实现分配的算法：
+最后，我们封装一个物理页分配器，为了符合更 Rust 规范的设计，这个分配器将不涉及任何的具体算法，具体的算法将用一个名为 `Allocator` 的 Rust trait 封装起来,而我们的 `FrameAllocator` 会依赖于具体的 trait 实现例化。
 
 {% label %}os/src/memory/frame/allocator.rs{% endlabel %}
 ```rust
-//! 使用链表管理帧
+//! 提供帧分配器 [`FRAME_ALLOCATOR`](FrameAllocator)
 //!
 //! 返回的 [`FrameTracker`] 类型代表一个帧，它在被 drop 时会自动将空间补回分配器中。
-//!
-//! # 为何 [`FrameAllocator`] 只有一个 usize 大小？
-//! 这是一个只有在开发操作系统时可以完成的操作：随意访问地址和读写内存。
-//! 我们实现的是内存按帧分配的流程，此时我们就可以使用那些还未被分配的帧来记录数据。
-//!
-//! 因此 [`FrameAllocator`] 记录一个指针指向某一个空闲的帧，
-//! 而每个空闲的帧指向再下一个空闲的帧，直到最后一个指向 0 即可。
-//! 注意所有地址使用的是虚拟地址（使用线性映射）。
-//!
-//! 而为了方便初始化，我们再在帧中记录『连续空闲帧数』，那么最初只需要初始化一个帧即可。
 
-use super::frame::*;
-use crate::memory::{address::*, config::*};
-use alloc::{vec, vec::Vec};
+use super::*;
+use crate::data_structure::*;
+use crate::memory::*;
 use lazy_static::*;
 use spin::Mutex;
 
 lazy_static! {
     /// 帧分配器
-    pub static ref FRAME_ALLOCATOR: Mutex<FrameAllocator> = Mutex::new(FrameAllocator::new());
+    pub static ref FRAME_ALLOCATOR: Mutex<FrameAllocator<SegmentTreeAllocator>> = Mutex::new(FrameAllocator::new(Range::from(
+            PhysicalPageNumber::ceil(PhysicalAddress::from(*KERNEL_END_ADDRESS))..PhysicalPageNumber::floor(MEMORY_END_ADDRESS),
+        )
+
+    ));
 }
 
-/// 基于链表的帧分配 / 回收
-pub struct FrameAllocator {
-    /// 记录空闲帧的列表，每一项表示地址、从该地址开始连续多少帧空闲
-    free_frame_list: Vec<(PhysicalAddress, usize)>,
+/// 基于线段树的帧分配 / 回收
+pub struct FrameAllocator<T: Allocator> {
+    /// 可用区间的起始
+    start_ppn: PhysicalPageNumber,
+    /// 分配器
+    allocator: T,
 }
 
-impl FrameAllocator {
-    /// 创建对象，其中 \[[`BEGIN_VPN`], [`END_VPN`]) 区间内的帧在其空闲列表中
-    pub fn new() -> Self {
-        // 定位到第一个可用的物理帧
-        let first_frame_ppn = PhysicalPageNumber::ceil(*KERNEL_END_ADDRESS);
-        let first_frame_address = PhysicalAddress::from(first_frame_ppn);
+impl<T: Allocator> FrameAllocator<T> {
+    /// 创建对象
+    pub fn new(range: impl Into<Range<PhysicalPageNumber>> + Copy) -> Self {
         FrameAllocator {
-            free_frame_list: vec![(first_frame_address, END_PPN - first_frame_ppn)],
+            start_ppn: range.into().start,
+            allocator: T::new(range.into().len()),
         }
     }
 
-    /// 取列表末尾元素来分配帧
-    ///
-    /// - 如果末尾元素 `size > 1`，则相应修改 `size` 而保留元素
-    /// - 如果没有剩余则返回 `Err`
-    pub fn alloc(&mut self) -> Result<FrameTracker, &'static str> {
-        if let Some((address, page_count)) = self.free_frame_list.pop() {
-            // 如果有元素，将要分配该地址对应的帧
-            if page_count > 1 {
-                // 如果有连续的多个帧空余，则只取出一个，放回剩余部分
-                self.free_frame_list
-                    .push((address + PAGE_SIZE, page_count - 1));
-            }
-            Ok(FrameTracker(address))
-        } else {
-            // 链表已空，返回 `Err`
-            Err("no available frame to allocate")
-        }
+    /// 分配帧，如果没有剩余则返回 `Err`
+    pub fn alloc(&mut self) -> MemoryResult<FrameTracker> {
+        self.allocator
+            .alloc()
+            .ok_or("no available frame to allocate")
+            .map(|offset| FrameTracker::from(self.start_ppn + offset))
     }
 
     /// 将被释放的帧添加到空闲列表的尾部
     ///
     /// 这个函数会在 [`FrameTracker`] 被 drop 时自动调用，不应在其他地方调用
     pub(super) fn dealloc(&mut self, frame: &FrameTracker) {
-        self.free_frame_list.push((frame.address(), 1));
+        self.allocator.dealloc(frame.page_number() - self.start_ppn);
     }
+}
+
+```
+
+这个分配器会以一个 `PhysicalPageNumber` 的 `Range` 初始化，然后把起始地址记录下来，把整个区间的长度告诉具体的分配器算法，当分配的时候就从算法中取得一个可用的位置作为 `offset`，再加上起始地址返回回去。
+
+有关具体的算法，我们封装了一个分配器需要的 Rust trait：
+
+{% label %}os/src/data_structure/mod.rs{% endlabel %}
+```rust
+/// 分配器：固定容量，每次分配 / 回收一个元素
+pub trait Allocator {
+    /// 给定容量，创建分配器
+    fn new(capacity: usize) -> Self;
+    /// 分配一个元素，无法分配则返回 `None`
+    fn alloc(&mut self) -> Option<usize>;
+    /// 回收一个元素
+    fn dealloc(&mut self, index: usize);
 }
 ```
 
-这个分配器会把连续的物理页放在一起，每次申请的时候直接把最后一个拿出来分配过去，回收的时候直接把回收回来的帧 push 在末尾。
+并在 `os/src/data_structure/` 中分别实现了链表和线段树算法，具体内容可以参考代码。
 
-我们注意到，我们使用了 `lazy_static!` 和 `Mutex` 来包装分配器。需要注意到，对于 `static mut` 类型的修改操作是 unsafe 的。我们之后会提到线程的概念，对于静态数据，所有的线程都能访问。当一个线程正在访问这段数据的时候，如果另一个线程也来访问，就可能会产生冲突，并带来难以预测的结果。
+我们注意到，我们使用了 `lazy_static!` 和 `Mutex` 来包装分配器。需要知道，对于 `static mut` 类型的修改操作是 unsafe 的。我们之后会提到线程的概念，对于静态数据，所有的线程都能访问。当一个线程正在访问这段数据的时候，如果另一个线程也来访问，就可能会产生冲突，并带来难以预测的结果。
+
+<!-- TODO 是不是能把锁去掉？ -->
 
 所以我们的方法是使用 `spin::Mutex<T>` 给这段数据加一把锁，一个线程试图通过 `lock()` 打开锁来获取内部数据的可变引用，如果钥匙被别的线程所占用，那么这个线程就会一直卡在这里；直到那个占用了钥匙的线程对内部数据的访问结束，锁被释放，将钥匙交还出来，被卡住的那个线程拿到了钥匙，就可打开锁获取内部引用，访问内部数据。
 
@@ -195,8 +199,8 @@ pub extern "C" fn rust_main() -> ! {
 
 {% label %}运行输出{% endlabel %}
 ```
-PhysicalAddress(0x80a13000) and PhysicalAddress(0x80a14000)
-PhysicalAddress(0x80a13000) and PhysicalAddress(0x80a14000)
+PhysicalAddress(0x80a14000) and PhysicalAddress(0x80a15000)
+PhysicalAddress(0x80a14000) and PhysicalAddress(0x80a15000)
 ```
 
 我们可以看到 `frame_0` 和 `frame_1` 会被自动析构然后回收，第二次又分配同样的地址。

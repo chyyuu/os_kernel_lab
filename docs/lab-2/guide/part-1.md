@@ -37,7 +37,7 @@ unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout);
 
 ### 支持动态内存分配
 
-为了避免重复造轮子，我们可以直接开一个静态的 8M 数组作为堆的空间，然后调用开源的 Buddy System Allocator。
+为了避免重复造轮子，我们可以直接开一个静态的 8M 数组作为堆的空间，然后调用 @jiege 开发的 Buddy System Allocator。
 
 {% label %}os/src/memory/config.rs{% endlabel %}
 ```rust
@@ -103,22 +103,24 @@ pub extern "C" fn rust_main() -> ! {
     memory::init();
 
     // 动态内存分配测试
+    use alloc::boxed::Box;
     use alloc::vec::Vec;
-
+    let v = Box::new(5);
+    assert_eq!(*v, 5);
     let mut vec = Vec::new();
-    for i in 0..100 {
+    for i in 0..10000 {
         vec.push(i);
     }
-    for i in 0..100 {
-        assert_eq!(i, vec[i]);
+    for i in 0..10000 {
+        assert_eq!(vec[i], i);
     }
-    println!("Dynamic allocating test passed");
+    println!("heap test passed");
 
     loop{}
 }
 ```
 
-最后，运行一下会看到 `Dynamic allocating test passed` 类似的输出。有了这个工具之后，后面我们就可以使用一系列诸如 `Vec` 等基于动态分配实现的库中的结构了。
+最后，运行一下会看到 `heap test passed` 类似的输出。有了这个工具之后，后面我们就可以使用一系列诸如 `Vec` 等基于动态分配实现的库中的结构了。
 
 ### 思考
 
