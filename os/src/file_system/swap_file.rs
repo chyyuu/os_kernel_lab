@@ -1,7 +1,7 @@
 //! 用于页面交换，保存内存数据的文件 [`SWAP_FILE`](SwapFile)
 
 use super::*;
-use crate::data_structure::{Allocator, SegmentTree};
+use crate::data_structure::{Allocator, SegmentTreeAllocator};
 use crate::process::ThreadID;
 use hashbrown::HashMap;
 use lazy_static::*;
@@ -9,7 +9,7 @@ use spin::Mutex;
 
 lazy_static! {
     /// 用于页面交换，保存内存数据的文件
-    pub static ref SWAP_FILE: Mutex<SwapFile<SegmentTree>> = Mutex::new(SwapFile::new(
+    pub static ref SWAP_FILE: Mutex<SwapFile<SegmentTreeAllocator>> = Mutex::new(SwapFile::new(
         Range::from(HDD_START_ADDRESS..HDD_END_ADDRESS)
     ));
 }

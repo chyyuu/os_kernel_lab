@@ -8,7 +8,7 @@
 use crate::memory::{
     address::*,
     frame::{FrameTracker, FRAME_ALLOCATOR},
-    mapping::{Flags, MapType, PageTable, PageTableEntry, PageTableTracker, Range, Segment},
+    mapping::{Flags, PageTable, PageTableEntry, PageTableTracker, Segment},
     MemoryResult,
 };
 use alloc::{vec, vec::Vec};
@@ -48,7 +48,7 @@ impl Mapping {
     /// 加入一段映射，可能会相应地分配物理页面
     ///
     /// - `frame_limit`
-    ///     最多分配的物理页面数量。
+    ///     此次 `map()` 调用中，最多分配的物理页面数量。
     /// - `init_data`
     ///     复制一段内存区域来初始化新的内存区域，其长度必须等于 `segment` 的大小。
     ///
@@ -59,44 +59,33 @@ impl Mapping {
         &mut self,
         segment: &Segment,
         mut frame_limit: usize,
-        init_data: Option<Range<VirtualPageNumber>>,
     ) -> MemoryResult<Vec<(VirtualPageNumber, FrameTracker)>> {
-        match segment.map_type {
-            // 线性映射，不需要考虑分配页面，只需将所有页面依次映射
-            MapType::Linear => {
-                println!("linear map {:x?}", segment.page_range);
-                if init_data.is_some() {
-                    // 线性映射应当只用于内核，不存在初始化的情况
-                    unimplemented!();
-                }
-                for vpn in segment.iter() {
-                    self.map_one(vpn, PhysicalPageNumber::from(vpn), segment.flags)?;
-                }
-                Ok(vec![])
+        // segment 可能可以内部做好映射
+        if let Some(ppn_iter) = segment.iter_mapped() {
+            // segment 可以提供映射，那么直接用它得到 vpn 和 ppn 的迭代器
+            println!("map {:x?}", segment.page_range);
+            for (vpn, ppn) in segment.iter().zip(ppn_iter) {
+                self.map_one(vpn, ppn, segment.flags)?;
             }
-            // 按帧映射
-            MapType::Framed => {
-                if init_data.is_some() {
-                    unimplemented!("TODO");
+            Ok(vec![])
+        } else {
+            // 需要再分配帧进行映射
+            // 记录所有成功分配的页面映射
+            let mut allocated_pairs = vec![];
+            for vpn in segment.iter() {
+                if frame_limit > 0 {
+                    frame_limit -= 1;
+                    // 如果还有配额，继续分配帧进行映射
+                    let frame: FrameTracker = FRAME_ALLOCATOR.lock().alloc()?;
+                    println!("map {:x?} -> {:x?}", vpn, frame.page_number());
+                    self.map_one(vpn, frame.page_number(), segment.flags)?;
+                    allocated_pairs.push((vpn, frame));
+                } else {
+                    // 没有配额则不映射
+                    println!("unmapped {:x?}", vpn);
                 }
-                // 记录所有成功分配的页面映射
-                let mut allocated_pairs = vec![];
-                // 遍历需要映射的页号
-                for vpn in segment.iter() {
-                    if frame_limit > 0 {
-                        frame_limit -= 1;
-                        // 如果还有配额，继续分配帧进行映射
-                        let frame: FrameTracker = FRAME_ALLOCATOR.lock().alloc()?;
-                        println!("map {:x?} -> {:x?}", vpn, frame.page_number());
-                        self.map_one(vpn, frame.page_number(), segment.flags)?;
-                        allocated_pairs.push((vpn, frame));
-                    } else {
-                        // 没有配额则停止映射
-                        println!("unmapped {:x?}", vpn);
-                    }
-                }
-                Ok(allocated_pairs)
             }
+            Ok(allocated_pairs)
         }
     }
 

@@ -25,6 +25,18 @@ pub struct Segment {
     pub flags: Flags,
 }
 
+impl Segment {
+    /// 遍历对应的物理地址（如果可能）
+    pub fn iter_mapped(&self) -> Option<impl Iterator<Item = PhysicalPageNumber>> {
+        match self.map_type {
+            // 线性映射可以直接将虚拟地址转换
+            MapType::Linear => Some(self.iter().map(PhysicalPageNumber::from)),
+            // 按帧映射无法直接获得物理地址，需要分配
+            MapType::Framed => None,
+        }
+    }
+}
+
 /// 方便访问 `page_range` 域中的方法
 impl core::ops::Deref for Segment {
     type Target = Range<VirtualPageNumber>;

@@ -5,12 +5,12 @@ use alloc::{vec, vec::Vec};
 use bit_field::BitArray;
 
 /// 使用线段树实现分配器
-pub struct SegmentTree {
+pub struct SegmentTreeAllocator {
     /// 树本身
     tree: Vec<u8>,
 }
 
-impl Allocator for SegmentTree {
+impl Allocator for SegmentTreeAllocator {
     fn new(capacity: usize) -> Self {
         assert!(capacity >= 8);
         // 完全二叉树的树叶数量
@@ -61,7 +61,7 @@ impl Allocator for SegmentTree {
     }
 }
 
-impl SegmentTree {
+impl SegmentTreeAllocator {
     /// 更新线段树中一个树叶，然后递归更新其祖先
     fn update_node(&mut self, mut index: usize, value: bool) {
         self.tree.set_bit(index, value);
