@@ -4,9 +4,7 @@
 
 更具体的，我们现在想将内核代码放在虚拟地址空间中以 0xffffffff80200000 开头的一段高地址空间中。这意味我们原来放在 0x80200000 的全部内核结构被平移到了 0xffffffff80200000 的地址上，这意味着我们把虚拟地址减去偏移量 0xffffffff00000000 就得到了原来的物理地址。当然，这种线性平移并不是唯一的映射方式，但是至少现在，内核的全部数据所在的虚拟空间和物理空间是这样的线性映射。
 
-首先，和上一章类似，我们先对虚拟地址和虚拟页号这两个类进行了封装，同时也支持了一些诸如 `VirtualAddress::from(Physical)` 的转换 trait（即一些加减偏移量等操作），这部分实现更偏向于 Rust 语法，这里不再赘述实现方法，想去了解实现时可以参考 `os/src/memory/address.rs`。
-
-后面，我们把原来的 linker script 和之前在物理内存管理上的一些参数修改一下。
+随后，我们把原来的 linker script 和之前在物理内存管理上的一些参数修改一下。
 
 {% label %}os/src/linker/linker.ld{% endlabel %}
 ```clike
@@ -71,17 +69,9 @@ SECTIONS
         *(.bss .bss.*)
     }
 
+    /* 结束地址 */
     /* 加入对齐 */
     . = ALIGN(4K);
-    boot_stack_start = .;
-
-    /* stack 字段 */
-    .stack : {
-        /* 把 bss.stack 字段所申请的空间放在这里作为启动时的栈空间 */
-        *(.bss.stack)
-    }
-
-    /* 结束地址 */
     kernel_end = .;
 }
 ```
@@ -103,24 +93,9 @@ lazy_static! {
 pub const KERNEL_MAP_OFFSET: usize = 0xffff_ffff_0000_0000;
 ```
 
-之后是 `FrameAllocator` 确定第一个可用的物理页的位置也需要修改：
-```rust
-impl FrameAllocator {
-    /// 创建对象，其中 \[[`BEGIN_VPN`], [`END_VPN`]) 区间内的帧在其空闲列表中
-    pub fn new() -> Self {
-        // 定位到第一个可用的物理帧
-        // 因为 KERNEL_END_ADDRESS 现在成了虚拟地址，所以需要先转换为物理地址再向上取整为第一个可用的物理页
-        let first_frame_ppn = PhysicalPageNumber::ceil(PhysicalAddress::from(*KERNEL_END_ADDRESS));
-        let first_frame_address = PhysicalAddress::from(first_frame_ppn);
-        FrameAllocator {
-            free_frame_list: vec![(first_frame_address, END_PPN - first_frame_ppn)],
-        }
-    }
-    ...
-}
-```
+和上一章类似，我们也对虚拟地址和虚拟页号这两个类进行了封装，同时也支持了一些诸如 `VirtualAddress::from(PhysicalAddress)` 的转换 trait（即一些加减偏移量等操作），这部分实现更偏向于 Rust 语法，这里不再赘述实现方法，想去了解实现时可以参考 `os/src/memory/address.rs`。
 
-最后一步，我们需要告诉 RISC-V CPU 我们做了这些修改，也就是需要完成一个从物理地址访存模式到虚拟访存模式的转换，同时这也意味着，我们要写一个简单的页表，完成这个线性映射：
+最后一步，我们需要告诉 RISC-V CPU 我们做了这些修改，也就是需要在启动时、在进入 `rust_main` 之前我们要完成一个从物理地址访存模式到虚拟访存模式的转换，同时这也意味着，我们要写一个简单的页表，完成这个线性映射：
 
 {% label %}os/src/asm/entry.asm{% endlabel %}
 ```assembly
@@ -149,8 +124,8 @@ _start:
     sfence.vma
 
     # 加载栈地址
-    lui sp, %hi(bootstacktop)
-    addi sp, sp, %lo(bootstacktop)
+    lui sp, %hi(boot_stack_top)
+    addi sp, sp, %lo(boot_stack_top)
     # 跳转至 rust_main
     lui t0, %hi(rust_main)
     addi t0, t0, %lo(rust_main)
@@ -159,11 +134,11 @@ _start:
     # 回忆：bss 段是 ELF 文件中只记录长度，而全部初始化为 0 的一段内存空间
     # 这里声明字段 .bss.stack 作为操作系统启动时的栈
     .section .bss.stack
-    .global bootstack
-bootstack:
+    .global boot_stack
+boot_stack:
     .space 4096 * 4
-    .global bootstacktop
-bootstacktop:
+    .global boot_stack_top
+boot_stack_top:
     # 栈结尾
 
     # 初始内核映射所用的页表
@@ -183,8 +158,8 @@ boot_page_table:
 回顾一下，当 OpenSBI 启动完成之后，我们面对的是一个怎样的局面：
 - 物理内存状态中 OpenSBI 代码放在 [0x80000000,0x80200000) 中，内核代码放在以 0x80200000 开头的一块连续物理内存中；
 - CPU 状态：处于 S Mode ，寄存器 `satp` 的 `MODE` 字段被设置为 Bare 模式，即无论取指还是访存我们通过物理地址直接访问物理内存。PC 即为 0x80200000 指向内核的第一条指令；
-- 栈指针寄存器 `sp` 还没有初始化，还没有指向 `bootstacktop`；
-- 代码中 `bootstacktop` 等符号的地址都是虚拟地址（高地址）。
+- 栈指针寄存器 `sp` 还没有初始化，还没有指向 `boot_stack_top`；
+- 代码中 `boot_stack_top` 等符号的地址都是虚拟地址（高地址）。
 
 而我们需要做的就是，把 CPU 的访问模式改为 Sv39，这里需要做的就是把一个页表的物理页号和 Sv39 模式写入 `satp` 寄存器，然后刷新 TLB。
 
@@ -204,4 +179,4 @@ boot_page_table:
 > 这个尴尬的映射会对后面产生错误的影响吗？不会，因为在后面，我们将使用 Rust 而不是汇编把新的页表加载到 `satp` 里面，这个页表只是启动时的一个简单页表，或者我们可以叫它“内核初始映射”，后面我们会加入更细致的映射，把不同的段根据属性放在不同的页面里面。
 {% endreveal %}
 
-刷新之后，我们加载完栈底值，就可以跳转到 Rust 编写的函数中了。至此，我可以在主函数中做些简单的输出，我们重新编译（cargo 不会感知 linker script 的变化，可能需要 `cargo clean`）并运行，正确的结果应该是我们可以看到这些输出，虽然这和上一个章节的结果看上去没什么两样，但是现在内核的运行已经在虚拟地址空间了。
+刷新之后，我们加载完栈地址，就可以跳转到 Rust 编写的函数中了。至此，我可以在主函数中做些简单的输出，我们重新编译（cargo 不会感知 linker script 的变化，可能需要 `cargo clean`）并运行，正确的结果应该是我们可以看到这些输出，虽然这和上一个章节的结果看上去没什么两样，但是现在内核的运行已经在虚拟地址空间了。

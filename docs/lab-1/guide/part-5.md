@@ -83,7 +83,7 @@ pub extern "C" fn rust_main() -> ! {
     interrupt::init();
 
     unsafe {
-        asm!("ebreak"::::"volatile");
+        llvm_asm!("ebreak"::::"volatile");
     };
 
     unreachable!();

@@ -23,8 +23,8 @@ _start:
     sfence.vma
 
     # 加载栈地址
-    lui sp, %hi(bootstacktop)
-    addi sp, sp, %lo(bootstacktop)
+    lui sp, %hi(boot_stack_top)
+    addi sp, sp, %lo(boot_stack_top)
     # 跳转至 rust_main
     lui t0, %hi(rust_main)
     addi t0, t0, %lo(rust_main)
@@ -33,11 +33,11 @@ _start:
     # 回忆：bss 段是 ELF 文件中只记录长度，而全部初始化为 0 的一段内存空间
     # 这里声明字段 .bss.stack 作为操作系统启动时的栈
     .section .bss.stack
-    .global bootstack
-bootstack:
+    .global boot_stack
+boot_stack:
     .space 4096 * 4
-    .global bootstacktop
-bootstacktop:
+    .global boot_stack_top
+boot_stack_top:
     # 栈结尾
 
     # 初始内核映射所用的页表

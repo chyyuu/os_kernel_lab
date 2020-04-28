@@ -55,15 +55,6 @@ SECTIONS
         *(.bss .bss.*)
     }
 
-    . = ALIGN(4K);
-    boot_stack_start = .;
-
-    /* stack 字段 */
-    .stack : {
-        /* 把 bss.stack 字段所申请的空间放在这里作为启动时的栈空间 */
-        *(.bss.stack)
-    }
-
     /* 结束地址 */
     . = ALIGN(4K);
     kernel_end = .;

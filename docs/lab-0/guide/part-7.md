@@ -48,21 +48,21 @@ OpenSBI 所做的一件事情就是把 CPU 从 M Mode 切换到 S Mode，接着�
     .globl _start
 # 目前 _start 的功能：将预留的栈空间写入 $sp，然后跳转至 rust_main
 _start:
-    la sp, bootstacktop
+    la sp, boot_stack_top
     call rust_main
 
     # 回忆：bss 段是 ELF 文件中只记录长度，而全部初始化为 0 的一段内存空间
     # 这里声明字段 .bss.stack 作为操作系统启动时的栈
     .section .bss.stack
-    .global bootstack
-bootstack:
+    .global boot_stack
+boot_stack:
     .space 4096 * 4
-    .global bootstacktop
-bootstacktop:
+    .global boot_stack_top
+boot_stack_top:
     # 栈结尾
 ```
 
-可以看到之前未被定义的 .bss.stack 段出现了，我们只是在这里分配了一块 $$4096\times{4}\text{\ Bytes}=16 \text{\ KBytes}$$ 的内存作为启动时内核的栈。之前的 .text.entry 也出现了，也就是我们将 `_start` 函数放在了 .text 段的开头。
+可以看到我们在 .bss 中加入了 .stack 段，并在这里分配了一块 $$4096\times{4}\text{\ Bytes}=16 \text{\ KBytes}$$ 的内存作为启动时内核的栈。之前的 .text.entry 也出现了，也就是我们将 `_start` 函数放在了 .text 段的开头。
 
 我们看看 `_start` 里面做了什么：
 

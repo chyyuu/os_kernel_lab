@@ -51,7 +51,6 @@ impl MemorySet {
             fn rodata_start();
             fn data_start();
             fn bss_start();
-            fn boot_stack_start();
         }
 
         // 建立字段
