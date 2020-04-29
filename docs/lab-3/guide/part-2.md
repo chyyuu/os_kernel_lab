@@ -66,7 +66,7 @@ SECTIONS
     /* .bss 字段 */
     .bss : {
         /* 要链接的文件的 .bss 字段集中放在这里 */
-        *(.bss .bss.*)
+        *(.sbss .bss .bss.*)
     }
 
     /* 结束地址 */

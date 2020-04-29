@@ -10,13 +10,14 @@
 //! - `#![deny(missing_docs)]`  
 //!   任何没有注释的地方都会产生警告：这个属性用来压榨写实验指导的学长，同学可以删掉了
 #![warn(missing_docs)]
+//! # 一些 unstable 的功能需要在 crate 层级声明后才可以使用
 //!
-//! - `#![feature(alloc_error_handler)]`  
+//! - `#![feature(alloc_error_handler)]`
 //!   我们使用了一个全局动态内存分配器，以实现原本标准库中的堆内存分配。
 //!   而语言要求我们同时实现一个错误回调，这里我们直接 panic
 #![feature(alloc_error_handler)]
-//! # 一些 unstable 的功能需要在 crate 层级声明后才可以使用
-//! - `#![feature(llvm_asm)]`  
+//!
+//! - `#![feature(llvm_asm)]`
 //!   内嵌汇编
 #![feature(llvm_asm)]
 //!
@@ -31,17 +32,12 @@
 #[macro_use]
 mod console;
 mod data_structure;
-mod file_system;
 mod interrupt;
 mod memory;
 mod panic;
-mod process;
 mod sbi;
 
 extern crate alloc;
-use alloc::sync::Arc;
-use msws::*;
-use process::*;
 
 // 汇编编写的程序入口，具体见该文件
 global_asm!(include_str!("asm/entry.asm"));
@@ -51,77 +47,14 @@ global_asm!(include_str!("asm/entry.asm"));
 /// 在 `_start` 为我们进行了一系列准备之后，这是第一个被调用的 Rust 函数
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
-    println!("Hello rCore-Tutorial!");
-
     // 初始化各种模块
     interrupt::init();
     memory::init();
 
-    let kernel_memory = memory::mapping::MemorySet::new_kernel(32).unwrap();
-    kernel_memory.activate();
-    unsafe {
-        PROCESSOR
-            .current_thread
-            .replace(Arc::new(spin::Mutex::new(Thread {
-                thread_id: 0,
-                memory_set: kernel_memory,
-            })));
-    }
+    let remap = memory::mapping::MemorySet::new_kernel().unwrap();
+    remap.activate();
 
-    test_framed_paging();
-    test_heap();
-
-    unsafe {
-        llvm_asm!("ebreak"::::"volatile");
-    };
+    println!("kernel remapped");
 
     loop {}
-}
-
-/// 测试分配的物理页面和缺页
-fn test_framed_paging() {
-    // 随机生成即将使用的一堆页号
-    let mut rng = Rand::new(seed(0)).unwrap();
-    let vpns: alloc::vec::Vec<_> = (0..64).map(|_| rng.rand() as usize & 0x3ffffff).collect();
-    // 创建页面
-    for vpn in vpns.iter() {
-        current_thread()
-            .lock()
-            .memory_set
-            .test_map_alloc((*vpn).into())
-            .unwrap();
-    }
-    // 更新 TLB
-    current_thread().lock().memory_set.activate();
-    // 写入页面
-    for vpn in vpns.iter() {
-        for offset in (0..0x1000).step_by(8) {
-            let addr = (vpn << 12) + offset;
-            unsafe {
-                *(addr as *mut usize) = addr;
-            }
-        }
-    }
-    // 乱序（也不是很乱）读取并验证
-    for (vpn, offset) in vpns.iter().cycle().zip((0..0x1000).step_by(8)) {
-        let addr = (vpn << 12) + offset;
-        assert!(unsafe { *(addr as *mut usize) == addr });
-    }
-    println!("framed mapping test passed");
-}
-
-/// 简单测试动态内存分配，没什么用
-fn test_heap() {
-    use alloc::boxed::Box;
-    use alloc::vec::Vec;
-    let v = Box::new(5);
-    assert!(*v == 5);
-    let mut vec = Vec::new();
-    for i in 0..10000 {
-        vec.push(i);
-    }
-    for i in 0..10000 {
-        assert!(vec[i] == i);
-    }
-    println!("heap test passed");
 }

@@ -1,16 +1,13 @@
 //! 映射类型 [`MapType`] 和映射片段 [`Segment`]
 
-use crate::memory::{
-    address::*,
-    mapping::{Flags, Range},
-};
+use crate::memory::{address::*, mapping::Flags, range::Range};
 
 /// 映射的类型
 #[derive(Debug)]
 pub enum MapType {
     /// 线性映射，操作系统使用
     Linear,
-    /// 按帧分配映射，可能涉及页面置换
+    /// 按帧分配映射
     Framed,
 }
 

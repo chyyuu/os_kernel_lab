@@ -4,9 +4,9 @@ use super::Allocator;
 use alloc::{vec, vec::Vec};
 
 /// 使用列表实现分配器
-/// 
+///
 /// 在列表末尾进行加入 / 删除。
-/// 
+///
 /// 每个元素 tuple `(start, end)` 表示 [start, end) 区间为可用。
 pub struct LinkedListAllocator {
     list: Vec<(usize, usize)>,
@@ -15,7 +15,7 @@ pub struct LinkedListAllocator {
 impl Allocator for LinkedListAllocator {
     fn new(capacity: usize) -> Self {
         Self {
-            list: vec![(0, capacity)]
+            list: vec![(0, capacity)],
         }
     }
 

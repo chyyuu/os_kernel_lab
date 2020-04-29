@@ -1,4 +1,4 @@
-//! 提供线段树实现的分配器 [`SegmentTree`]
+//! 提供线段树实现的分配器 [`SegmentTreeAllocator`]
 
 use super::Allocator;
 use alloc::{vec, vec::Vec};

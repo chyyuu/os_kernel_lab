@@ -13,7 +13,6 @@ lazy_static! {
     pub static ref FRAME_ALLOCATOR: Mutex<FrameAllocator<SegmentTreeAllocator>> = Mutex::new(FrameAllocator::new(Range::from(
             PhysicalPageNumber::ceil(PhysicalAddress::from(*KERNEL_END_ADDRESS))..PhysicalPageNumber::floor(MEMORY_END_ADDRESS),
         )
-
     ));
 }
 
@@ -26,7 +25,7 @@ pub struct FrameAllocator<T: Allocator> {
 }
 
 impl<T: Allocator> FrameAllocator<T> {
-    /// 创建对象，其中 \[`begin_ppn`, `end_ppn`) 区间内的帧在其空闲列表中
+    /// 创建对象
     pub fn new(range: impl Into<Range<PhysicalPageNumber>> + Copy) -> Self {
         FrameAllocator {
             start_ppn: range.into().start,
@@ -46,7 +45,6 @@ impl<T: Allocator> FrameAllocator<T> {
     ///
     /// 这个函数会在 [`FrameTracker`] 被 drop 时自动调用，不应在其他地方调用
     pub(super) fn dealloc(&mut self, frame: &FrameTracker) {
-        println!("DROP");
         self.allocator.dealloc(frame.page_number() - self.start_ppn);
     }
 }

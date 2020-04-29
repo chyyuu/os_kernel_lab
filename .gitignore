@@ -13,6 +13,10 @@ public
 # npm 依赖文件
 node_modules
 
+### Cargo
+# Cargo 包设置（自动生成）
+Cargo.lock
+
 ### rCore
 # Rust 编译文件
 os/target

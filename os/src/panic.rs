@@ -1,7 +1,7 @@
 //! 代替 std 库，实现 panic 和 abort 的功能
 
-use core::panic::PanicInfo;
 use crate::sbi::shutdown;
+use core::panic::PanicInfo;
 
 /// 打印 panic 的信息并 [`shutdown`]
 ///
@@ -18,7 +18,7 @@ fn panic_handler(info: &PanicInfo) -> ! {
 }
 
 /// 终止程序
-/// 
+///
 /// 调用 [`panic_handler`]
 #[no_mangle]
 extern "C" fn abort() -> ! {

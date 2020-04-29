@@ -8,6 +8,9 @@ OBJCOPY     := rust-objcopy --binary-architecture=riscv64
 
 .PHONY: doc kernel build clean qemu run env
 
+# 默认 build 为输出二进制文件
+build: $(BIN_FILE)
+
 # 通过 Rust 文件中的注释生成文档
 doc:
 	@cargo doc --document-private-items
@@ -23,9 +26,6 @@ $(BIN_FILE): kernel
 # 查看反汇编结果
 asm:
 	@$(OBJDUMP) -d $(KERNEL_FILE) | less
-
-# 默认 build 为输出二进制文件
-build: $(BIN_FILE) 
 
 # 清理编译出的文件
 clean:

@@ -191,7 +191,7 @@ macro_rules! implement_usize_operations {
                 write!(f, "{}(0x{:x})", stringify!($type_name), self.0)
             }
         }
-    }
+    };
 }
 implement_usize_operations! {PhysicalAddress}
 implement_usize_operations! {VirtualAddress}
