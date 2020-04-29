@@ -92,7 +92,6 @@ impl Mapping {
                 let new_ppn = new_table.page_number();
                 // 将新页表的页号写入当前的页表项
                 *pte = PageTableEntry::new(new_ppn, Flags::VALID);
-                // println!("write {:x?}", pte);
                 // 保存页表
                 self.page_tables.push(new_table);
             }

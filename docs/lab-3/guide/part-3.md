@@ -27,28 +27,10 @@ impl VirtualPageNumber {
 
 ### 页表项
 
-后面，我们来实现页表项，其实就是对一个 `usize`（8 字节）的封装：
+后面，我们来实现页表项，其实就是对一个 `usize`（8 字节）的封装，同时我们可以用刚刚加入的 bit 级别操作的 crate 对其实现一些取出特定段的方便后续实现的函数：
 
 {% label %}os/src/memory/mapping/page_table_entry.rs{% endlabel %}
 ```rust
-//! 页表项
-//!
-//! # RISC-V 64 中的页表项结构
-//! 每个页表项长度为 64 位，每个页面大小是 4KB，即每个页面能存下 2^9=512 个页表项。
-//! 每一个页表存放 512 个页表项，说明每一级页表使用 9 位来标记 VPN。
-//!
-//! # RISC-V 64 两种页表组织方式：Sv39 和 Sv48
-//! 64 位能够表示的空间大小太大了，因此现有的 64 位硬件实际上都不会支持 64 位的地址空间。
-//!
-//! RISC-V 64 现有两种地址长度：39 位和 48 位，其中 Sv39 的虚拟地址就包括三级页表和页内偏移。
-//! `3 * 9 + 12 = 39`
-//!
-//! 我们使用 Sv39，Sv48 同理，只是它具有四级页表。
-
-use crate::memory::address::*;
-use bit_field::BitField;
-use bitflags::*;
-
 /// Sv39 结构的页表项
 #[derive(Copy, Clone, Default)]
 pub struct PageTableEntry(usize);
@@ -84,6 +66,7 @@ impl core::fmt::Debug for PageTableEntry {
     fn fmt(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter
             .debug_struct("PageTableEntry")
+            .field("value", &self.0)
             .field("page_number", &self.page_number())
             .field("flags", &self.flags())
             .finish()
@@ -120,24 +103,9 @@ bitflags! {
 
 {% label %}os/src/memory/mapping/page_table.rs{% endlabel %}
 ```rust
-//! 管理每个线程的内存映射
-//!
-//! 每个页表中包含 512 条页表项
-//!
-//! # 页表工作方式
-//! 1.  首先从 `satp` 中获取页表根节点的页号，找到根页表
-//! 2.  对于虚拟地址中每一级 VPN（9 位），在对应的页表中找到对应的页表项
-//! 3.  如果对应项 Valid 位为 0，则发生 Page Fault
-//! 4.  如果对应项 Readable / Writable 位为 1，则表示这是一个叶子节点。
-//!     页表项中的值便是虚拟地址对应的物理页号
-//!     如果此时还没有达到最低级的页表，说明这是一个大页
-//! 5.  将页表项中的页号作为下一级查询目标，查询直到达到最低级的页表，最终得到页号
-
-use super::page_table_entry::PageTableEntry;
-use crate::memory::{config::PAGE_SIZE, frame::FrameTracker, address::*};
 /// 存有 512 个页表项的页表
 ///
-/// 注意我们不会使用常规的 Rust 语法来创建 `PageTable`。相反，我们会分配一个物理帧，
+/// 注意我们不会使用常规的 Rust 语法来创建 `PageTable`。相反，我们会分配一个物理页，
 /// 其对应了一段物理内存，然后直接把其当做页表进行读写。我们会在操作系统中用一个『指针』
 /// [`PageTableTracker`] 来记录这个页表。
 #[repr(C)]
@@ -159,7 +127,7 @@ impl PageTable {
 ```rust
 /// 类似于 [`FrameTracker`]，用于记录某一个内存中页表
 ///
-/// 注意到，『真正的页表』会放在我们分配出来的物理帧当中，而不应放在操作系统的运行栈或堆中。
+/// 注意到，『真正的页表』会放在我们分配出来的物理页当中，而不应放在操作系统的运行栈或堆中。
 /// 而 `PageTableTracker` 会保存在某个线程的元数据中（也就是在操作系统的堆上），指向其真正的页表。
 ///
 /// 当 `PageTableTracker` 被 drop 时，会自动 drop `FrameTracker`，进而释放帧。
@@ -177,7 +145,12 @@ impl PageTableTracker {
         self.0.page_number()
     }
 }
+```
 
+最后，可以利用一些解引用的 Rust 特性方便后面的工作：
+
+{% label %}os/src/memory/mapping/page_table.rs{% endlabel %}
+```rust
 // PageTableEntry 和 PageTableTracker 都可以 deref 到对应的 PageTable
 // （使用线性映射来访问相应的物理地址）
 

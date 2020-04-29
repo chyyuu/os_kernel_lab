@@ -27,19 +27,19 @@ pub const MEMORY_END_ADDRESS: PhysicalAddress = PhysicalAddress(0x8800_0000);
 
 {% label %}os/src/memory/frame_tracker.rs{% endlabel %}
 ```rust
-//! 提供物理帧的『`Box`』 [`FrameTracker`]
+//! 提供物理页的『`Box`』 [`FrameTracker`]
 
 use crate::memory::{
     address::*,
     frame::allocator::FRAME_ALLOCATOR,
 };
 
-/// 分配出的物理帧
+/// 分配出的物理页
 ///
 /// # `Tracker` 是什么？
 /// 太长不看
 /// > 可以理解为 [`Box`](alloc::boxed::Box)，而区别在于，其空间不是分配在堆上，
-/// > 而是直接在内存中划一片（一个物理帧）。
+/// > 而是直接在内存中划一片（一个物理页）。
 ///
 /// 在我们实现操作系统的过程中，会经常遇到『指定一块内存区域作为某种用处』的情况。
 /// 此时，我们说这块内存可以用，但是因为它不在堆栈上，Rust 编译器并不知道它是什么，所以
@@ -78,7 +78,7 @@ impl Drop for FrameTracker {
 }
 ```
 
-这里，我们实现了 `FrameTracker` 这个结构，而区分于实际在内存中的 4KB 大小的 "Frame"，我们设计的初衷是分配器分配给我们 `FrameTracker` 作为一个帧的标识，而随着不再需要这个物理帧，我们需要回收，我们利用 Rust 的 drop 机制在析构的时候自动实现回收。
+这里，我们实现了 `FrameTracker` 这个结构，而区分于实际在内存中的 4KB 大小的 "Frame"，我们设计的初衷是分配器分配给我们 `FrameTracker` 作为一个帧的标识，而随着不再需要这个物理页，我们需要回收，我们利用 Rust 的 drop 机制在析构的时候自动实现回收。
 
 最后，我们封装一个物理页分配器，为了符合更 Rust 规范的设计，这个分配器将不涉及任何的具体算法，具体的算法将用一个名为 `Allocator` 的 Rust trait 封装起来,而我们的 `FrameAllocator` 会依赖于具体的 trait 实现例化。
 
