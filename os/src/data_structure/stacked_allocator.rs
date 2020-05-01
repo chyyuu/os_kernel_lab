@@ -1,18 +1,17 @@
-//! 提供列表实现的分配器 [`LinkedListAllocator`]
+//! 提供栈结构实现的分配器 [`StackedAllocator`]
 
 use super::Allocator;
 use alloc::{vec, vec::Vec};
 
-/// 使用列表实现分配器
+/// 使用栈结构实现分配器
 ///
-/// 在列表末尾进行加入 / 删除。
-///
+/// 在 `Vec` 末尾进行加入 / 删除。
 /// 每个元素 tuple `(start, end)` 表示 [start, end) 区间为可用。
-pub struct LinkedListAllocator {
+pub struct StackedAllocator {
     list: Vec<(usize, usize)>,
 }
 
-impl Allocator for LinkedListAllocator {
+impl Allocator for StackedAllocator {
     fn new(capacity: usize) -> Self {
         Self {
             list: vec![(0, capacity)],
