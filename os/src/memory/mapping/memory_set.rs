@@ -17,6 +17,8 @@ pub struct MemorySet {
     pub mapping: Mapping,
     /// 每个字段
     pub segments: Vec<Segment>,
+    /// 所有分配的物理页面映射信息
+    pub allocated_pairs: Vec<(VirtualPageNumber, FrameTracker)>,
 }
 
 impl MemorySet {
@@ -87,7 +89,11 @@ impl MemorySet {
             // 同时将新分配的映射关系保存到 allocated_pairs 中
             allocated_pairs = Box::new(allocated_pairs.chain(new_pairs.into_iter()));
         }
-        Ok(MemorySet { mapping, segments })
+        Ok(MemorySet {
+            mapping,
+            segments,
+            allocated_pairs: allocated_pairs.collect(),
+        })
     }
 
     /// 替换 `satp` 以激活页表
