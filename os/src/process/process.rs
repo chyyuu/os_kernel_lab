@@ -1,9 +1,6 @@
 //! 进程 [`Process`]
 
 use super::*;
-use crate::memory::*;
-use alloc::{sync::Arc, vec, vec::Vec};
-use spin::RwLock;
 
 /// 进程的信息
 pub struct Process {

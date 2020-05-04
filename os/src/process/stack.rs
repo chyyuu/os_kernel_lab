@@ -1,7 +1,6 @@
 //! 每个线程的栈 [`Stack`] 以及内核栈 [`KernelStack`]
 
 use super::*;
-use crate::memory::*;
 use core::mem::size_of;
 use lazy_static::*;
 
@@ -58,7 +57,7 @@ impl Stack {
 /// - 为什么内核线程要这么做？
 ///   用户线程发生中断时就会进入内核态，而内核态可能发生中断的嵌套。此时，
 ///   内核栈已经在中断处理流程中被使用，所以应当继续使用 `sp` 作为栈顶地址
-/// 
+///
 /// ### 用户线程 [`TrapFrame`] 的存放
 /// > 1. 线程初始化时，一个 `TrapFrame` 放置在内核栈顶，`sp` 指向 `TrapFrame` 的位置
 /// >   （即栈顶 - `size_of::<TrapFrame>()`）
@@ -66,10 +65,10 @@ impl Stack {
 /// >   会将 `TrapFrame` 出栈（即 `sp += size_of::<TrapFrame>()`），
 /// >   然后保存 `sp` 至 `sscratch`（此时 `sscratch` 即为内核栈顶）
 /// > 3. 发生中断时，将 `sscratch` 和 `sp` 互换，入栈一个 `TrapFrame` 并保存数据
-/// 
+///
 /// 容易发现，用户线程的 `TrapFrame` 一定保存在内核栈顶。因此，当线程需要运行时，
 /// 从 [`Thread`] 中取出 `TrapFrame` 然后置于内核栈顶即可
-/// 
+///
 /// ### 内核线程 [`TrapFrame`] 的存放
 /// > 1. 线程初始化时，一个 `TrapFrame` 放置在内核栈顶，`sp` 指向 `TrapFrame` 的位置
 /// >   （即栈顶 - `size_of::<TrapFrame>()`）

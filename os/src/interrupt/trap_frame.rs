@@ -3,6 +3,7 @@
 use core::fmt;
 use core::mem::zeroed;
 use riscv::register::sstatus::Sstatus;
+use crate::memory::*;
 
 /// 发生中断时，保存的寄存器
 ///
@@ -47,5 +48,12 @@ impl fmt::Debug for TrapFrame {
             .field("sstatus", &self.sstatus)
             .field("sepc", &self.sepc)
             .finish()
+    }
+}
+
+impl TrapFrame {
+    /// 获取 `sp`
+    pub fn sp(&self) -> VirtualAddress {
+        VirtualAddress::from(self.x[2])
     }
 }

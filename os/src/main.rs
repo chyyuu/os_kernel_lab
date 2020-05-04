@@ -59,15 +59,19 @@ pub extern "C" fn rust_main() -> ! {
     memory::init();
 
     let process = Process::new_kernel().unwrap();
-    let thread =
-        Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
+    
+    let thread = Thread::new(process.clone(), sample_process as usize, Some(&[12345usize])).unwrap();
+    PROCESSOR.schedule_thread(thread);
+    let thread = Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
+    PROCESSOR.schedule_thread(thread);
 
-    thread.run();
+    PROCESSOR.run();
 }
 
 fn sample_process(arg: usize) {
     println!("sample_process called with argument {}", arg);
     interrupt::init();
     for _ in 0..3000000 {}
-    panic!("back from timer interrupt");
+    println!("i'm back");
+    loop {}
 }

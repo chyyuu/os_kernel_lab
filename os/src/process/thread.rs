@@ -1,10 +1,8 @@
 //! 线程 [`Thread`]
 
 use super::*;
-use crate::memory::*;
-use alloc::sync::Arc;
 use riscv::register::sstatus::{self, SPP::*};
-use spin::{Mutex, RwLock};
+use core::mem::size_of;
 
 /// 线程的信息
 pub struct Thread {
@@ -21,24 +19,23 @@ pub struct Thread {
 impl Thread {
     /// 执行一个线程
     ///
-    /// 激活对应进程的页表，然后从线程的 TrapFrame 中恢复现场开始执行
-    ///
-    /// 注意到，程序的控制流会进入目标线程，而不会返回。
-    /// 需要等到下一次中断，线程才会被暂停，控制流再回到 `handle_interrupt`。
-    pub fn run(&self) -> ! {
+    /// 激活对应进程的页表，并返回其 TrapFrame
+    pub fn run(&self) -> *mut TrapFrame {
         // 激活页表
         self.process.read().memory_set.activate();
-        // 取出 trap_frame 并放到内核栈顶
-        let trap_frame = self.trap_frame.lock().take().unwrap();
-        let sp = KERNEL_STACK.push_trap_frame(trap_frame);
-        unsafe {
-            // 修改 sp
-            llvm_asm!("mv sp, $0" :: "r"(sp) :: "volatile");
-            // 进入 interrupt.asm 中的恢复中断流程
-            llvm_asm!("j __restore" :::: "volatile");
+        // 取出 TrapFrame
+        let parked_frame = self.trap_frame.lock().take().unwrap();
+        
+        if self.process.read().is_user {
+            // 用户线程则将 TrapFrame 放至内核栈顶
+            KERNEL_STACK.push_trap_frame(parked_frame) as *mut TrapFrame
+        } else {
+            // 内核线程则将 TrapFrame 放至 sp 下
+            let address = parked_frame.sp() - size_of::<TrapFrame>();
+            let trap_frame = address.deref();
+            *trap_frame = parked_frame;
+            trap_frame
         }
-        // 程序不会返回到这里
-        unreachable!()
     }
 
     /// 发生时钟中断后暂停线程，保存状态
