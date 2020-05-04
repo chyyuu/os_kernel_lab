@@ -1,4 +1,5 @@
-//! 保存一个线程的上下文信息 [`Context`]
+//! 这个不要了！没有用！zcore 也没用这个玩意！
+//! context 实际上是内核中自己的 coroutine，没啥必要，增加理解难度
 
 use crate::memory::*;
 use crate::interrupt::TrapFrame;

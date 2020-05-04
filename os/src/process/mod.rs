@@ -2,11 +2,13 @@
 
 mod config;
 mod process;
-mod thread;
+mod processor;
 mod stack;
+mod thread;
 
 pub(self) use crate::interrupt::*;
 pub use config::*;
 pub use process::Process;
-pub use thread::Thread;
 pub use stack::{Stack, KERNEL_STACK};
+pub use thread::Thread;
+pub use processor::PROCESSOR;

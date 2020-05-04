@@ -2,10 +2,9 @@
 
 use super::*;
 use crate::memory::*;
-use alloc::{boxed::Box, sync::Arc};
-use core::cell::UnsafeCell;
+use alloc::sync::Arc;
 use riscv::register::sstatus::{self, SPP::*};
-use spin::RwLock;
+use spin::{Mutex, RwLock};
 
 /// 线程的信息
 pub struct Thread {
@@ -14,7 +13,7 @@ pub struct Thread {
     /// 线程执行上下文
     ///
     /// 当且仅当线程被暂停执行时，`trap_frame` 为 `Some`
-    pub trap_frame: UnsafeCell<Option<TrapFrame>>,
+    pub trap_frame: Mutex<Option<TrapFrame>>,
     /// 所属的进程
     pub process: Arc<RwLock<Process>>,
 }
@@ -25,20 +24,33 @@ impl Thread {
     /// 激活对应进程的页表，然后从线程的 TrapFrame 中恢复现场开始执行
     ///
     /// 注意到，程序的控制流会进入目标线程，而不会返回。
-    /// 事实上，需要等到下一次时钟中断，线程才会被暂停，控制流再回到 `handle_interrupt`。
+    /// 需要等到下一次中断，线程才会被暂停，控制流再回到 `handle_interrupt`。
     pub fn run(&self) -> ! {
+        // 激活页表
         self.process.read().memory_set.activate();
+        // 取出 trap_frame 并放到内核栈顶
+        let trap_frame = self.trap_frame.lock().take().unwrap();
+        let sp = KERNEL_STACK.push_trap_frame(trap_frame);
         unsafe {
-            // 取出 trap_frame 并放到内核栈顶
-            let trap_frame = (*self.trap_frame.get()).take().unwrap();
-            let sp = KERNEL_STACK.push_trap_frame(trap_frame);
+            // 修改 sp
             llvm_asm!("mv sp, $0" :: "r"(sp) :: "volatile");
+            // 进入 interrupt.asm 中的恢复中断流程
             llvm_asm!("j __restore" :::: "volatile");
         }
+        // 程序不会返回到这里
         unreachable!()
     }
 
-    /// 添加一个线程
+    /// 发生时钟中断后暂停线程，保存状态
+    pub fn park(&self, trap_frame: TrapFrame) {
+        // 检查目前线程内的 trap_frame 应当为 None
+        let mut slot = self.trap_frame.lock();
+        assert!(slot.is_none());
+        // 将 TrapFrame 保存到线程中
+        slot.replace(trap_frame);
+    }
+
+    /// 创建一个线程
     pub fn new(
         process: Arc<RwLock<Process>>,
         entry_point: usize,
@@ -50,7 +62,8 @@ impl Thread {
             stack_range.start += STACK_SIZE;
             stack_range.end += STACK_SIZE;
         }
-        let stack = Stack::from(stack_range);
+        // 构建栈，从进程中继承特权信息
+        let stack = Stack::new(stack_range, process.read().is_user);
         // 映射这段空间
         process
             .write()
@@ -77,18 +90,20 @@ impl Thread {
                 } else {
                     sstatus.set_spp(Supervisor);
                 }
-                // todo 解释一下
+                // 这样设置 SPIE 和 SIE 位，使得替换 sstatus 后关闭中断，
+                // 而在 sret 到用户线程时开启中断。详见 SPIE 和 SIE 的定义
                 sstatus.set_spie(true);
                 sstatus.set_sie(false);
                 sstatus
             },
+            // sret 后进入 entry_point
             sepc: entry_point,
         };
 
-        // 构建线程
+        // 打包成线程
         let thread = Arc::new(Thread {
             stack,
-            trap_frame: UnsafeCell::new(Some(trap_frame)),
+            trap_frame: Mutex::new(Some(trap_frame)),
             process: process.clone(),
         });
         process.write().push_thread(thread.clone());

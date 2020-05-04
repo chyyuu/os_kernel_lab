@@ -40,8 +40,8 @@ mod data_structure;
 mod interrupt;
 mod memory;
 mod panic;
-mod sbi;
 mod process;
+mod sbi;
 
 use process::*;
 
@@ -59,14 +59,15 @@ pub extern "C" fn rust_main() -> ! {
     memory::init();
 
     let process = Process::new_kernel().unwrap();
-    let thread = Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
+    let thread =
+        Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
+
     thread.run();
 }
 
-fn sample_process(arg: usize) -> ! {
+fn sample_process(arg: usize) {
     println!("sample_process called with argument {}", arg);
     interrupt::init();
-    for _ in 0..1000000 {}
-    println!("WOW");
-    loop {}
+    for _ in 0..3000000 {}
+    panic!("back from timer interrupt");
 }

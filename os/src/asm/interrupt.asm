@@ -89,7 +89,7 @@ __restore:
     csrw    sepc, t1
     # 根据即将恢复的线程属于用户还是内核，恢复 sscratch
     # 检查 sstatus 上的 SPP 标记
-    andi    t0, s0, 1 << 8
+    andi    t0, t0, 1 << 8
     bnez    t0, _to_kernel
 _to_user:
     # 将要进入用户态，需要将内核栈地址写入 sscratch

@@ -27,7 +27,6 @@ pub fn init() {
 /// 具体的中断类型需要根据 TrapFram::scause 来推断，然后分别处理
 #[no_mangle]
 pub fn handle_interrupt(trap_frame: &mut TrapFrame, scause: Scause, stval: usize) {
-    println!("{:x?}", trap_frame);
     match scause.cause() {
         // 断点中断（ebreak）
         Trap::Exception(Exception::Breakpoint) => breakpoint(trap_frame),
