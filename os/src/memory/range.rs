@@ -1,7 +1,7 @@
 //! 表示一个页面区间 [`Range`]，提供迭代器功能
 
 /// 表示一段连续的页面
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Range<T: From<usize> + Into<usize> + Copy> {
     pub start: T,
     pub end: T,

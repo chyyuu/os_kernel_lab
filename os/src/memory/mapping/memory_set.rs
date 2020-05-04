@@ -41,7 +41,7 @@ impl MemorySet {
                     (text_start as usize)..(rodata_start as usize),
                 )
                 .into(),
-                flags: Flags::VALID | Flags::READABLE | Flags::EXECUTABLE,
+                flags: Flags::READABLE | Flags::EXECUTABLE,
             },
             // .rodata 段，r--
             Segment {
@@ -50,7 +50,7 @@ impl MemorySet {
                     (rodata_start as usize)..(data_start as usize),
                 )
                 .into(),
-                flags: Flags::VALID | Flags::READABLE,
+                flags: Flags::READABLE,
             },
             // .data 段，rw-
             Segment {
@@ -59,7 +59,7 @@ impl MemorySet {
                     (data_start as usize)..(bss_start as usize),
                 )
                 .into(),
-                flags: Flags::VALID | Flags::READABLE | Flags::WRITABLE,
+                flags: Flags::READABLE | Flags::WRITABLE,
             },
             // .bss 段，rw-
             Segment {
@@ -67,7 +67,7 @@ impl MemorySet {
                 page_range: Range::from(
                     VirtualAddress::from(bss_start as usize)..*KERNEL_END_ADDRESS,
                 ),
-                flags: Flags::VALID | Flags::READABLE | Flags::WRITABLE,
+                flags: Flags::READABLE | Flags::WRITABLE,
             },
             // 剩余内存空间，rw-
             Segment {
@@ -75,7 +75,7 @@ impl MemorySet {
                 page_range: Range::from(
                     *KERNEL_END_ADDRESS..VirtualAddress::from(MEMORY_END_ADDRESS),
                 ),
-                flags: Flags::VALID | Flags::READABLE | Flags::WRITABLE,
+                flags: Flags::READABLE | Flags::WRITABLE,
             },
         ];
         let mut mapping = Mapping::new()?;
@@ -101,5 +101,43 @@ impl MemorySet {
     /// 如果当前页表就是自身，则不会替换，但仍然会刷新 TLB。
     pub fn activate(&self) {
         self.mapping.activate()
+    }
+
+    /// 添加一个 [`Segment`] 的内存映射
+    pub fn add_segment(&mut self, segment: Segment) -> MemoryResult<()> {
+        // 检测 segment 没有重合
+        assert!(!self.overlap_with(*segment));
+        // 映射并将新分配的页面保存下来
+        self.allocated_pairs.extend(self.mapping.map(&segment)?);
+        self.segments.push(segment);
+        Ok(())
+    }
+
+    /// 移除一个 [`Segment`] 的内存映射
+    ///
+    /// `segment` 必须已经映射
+    pub fn remove_segment(&mut self, segment: &Segment) -> MemoryResult<()> {
+        // 找到对应的 segment
+        let segment_index = self
+            .segments
+            .iter()
+            .position(|s| s == segment)
+            .expect("segment to remove cannot be found");
+        self.segments.remove(segment_index);
+        // 移除映射
+        self.mapping.unmap(segment);
+        // 释放页面（仅保留不属于 segment 的 vpn 和 frame）
+        self.allocated_pairs.retain(|(vpn, _frame)| !segment.contains(*vpn));
+        Ok(())
+    }
+
+    /// 检测一段内存区域和已有的是否存在重叠区域
+    pub fn overlap_with(&self, range: Range<VirtualPageNumber>) -> bool {
+        for seg in self.segments.iter() {
+            if range.overlap_with(seg) {
+                return true;
+            }
+        }
+        false
     }
 }

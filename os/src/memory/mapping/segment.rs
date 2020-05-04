@@ -3,7 +3,7 @@
 use crate::memory::{address::*, mapping::Flags, range::Range};
 
 /// 映射的类型
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum MapType {
     /// 线性映射，操作系统使用
     Linear,
@@ -12,7 +12,7 @@ pub enum MapType {
 }
 
 /// 一个映射片段（对应旧 tutorial 的 `MemoryArea`）
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Segment {
     /// 映射类型
     pub map_type: MapType,

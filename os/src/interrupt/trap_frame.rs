@@ -2,27 +2,25 @@
 
 use core::fmt;
 use core::mem::zeroed;
-use riscv::register::{scause::Scause, sstatus::Sstatus};
+use riscv::register::sstatus::Sstatus;
 
 /// 发生中断时，保存的寄存器
 ///
 /// 包括所有通用寄存器，以及：
 /// - `sstatus`：各种状态位
 /// - `sepc`：产生中断的地址
-/// - `scause`：中断原因
-/// - `stval`：中断的附加信息
 ///
 /// ### `#[repr(C)]` 属性
 /// 要求 struct 按照 C 语言的规则进行内存分布，否则 Rust 可能按照其他规则进行内存排布
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct TrapFrame {
-    /// 32 个通用寄存器
+    /// 通用寄存器
     pub x: [usize; 32],
+    /// 保存诸多状态位的特权态寄存器
     pub sstatus: Sstatus,
+    /// 保存中断地址的特权态寄存器
     pub sepc: usize,
-    pub scause: Scause,
-    pub stval: usize,
 }
 
 /// 创建一个用 0 初始化的 TrapFrame
@@ -48,8 +46,6 @@ impl fmt::Debug for TrapFrame {
             .field("registers", &self.x)
             .field("sstatus", &self.sstatus)
             .field("sepc", &self.sepc)
-            .field("scause", &self.scause.cause())
-            .field("stval", &self.stval)
             .finish()
     }
 }

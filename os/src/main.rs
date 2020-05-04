@@ -28,6 +28,11 @@
 //! - `#![feature(panic_info_message)]`  
 //!   panic! 时，获取其中的信息并打印
 #![feature(panic_info_message)]
+//!
+//! - `#![feature(naked_functions)]`
+//!   允许使用 naked 函数，即编译器不在函数前后添加出入栈操作。
+//!   这允许我们在函数中间内联汇编使用 `ret` 提前结束，而不会导致栈出现异常
+#![feature(naked_functions)]
 
 #[macro_use]
 mod console;
@@ -36,6 +41,9 @@ mod interrupt;
 mod memory;
 mod panic;
 mod sbi;
+mod process;
+
+use process::*;
 
 extern crate alloc;
 
@@ -48,13 +56,17 @@ global_asm!(include_str!("asm/entry.asm"));
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
     // 初始化各种模块
-    interrupt::init();
     memory::init();
 
-    let remap = memory::mapping::MemorySet::new_kernel().unwrap();
-    remap.activate();
+    let process = Process::new_kernel().unwrap();
+    let thread = Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
+    thread.run();
+}
 
-    println!("kernel remapped");
-
+fn sample_process(arg: usize) -> ! {
+    println!("sample_process called with argument {}", arg);
+    interrupt::init();
+    for _ in 0..1000000 {}
+    println!("WOW");
     loop {}
 }

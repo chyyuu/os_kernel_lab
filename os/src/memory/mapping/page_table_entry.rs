@@ -29,6 +29,10 @@ impl PageTableEntry {
                 .set_bits(10..54, page_number.into()),
         )
     }
+    /// 清除
+    pub fn clear(&mut self) {
+        self.0 = 0;
+    }
     /// 获取页号
     pub fn page_number(&self) -> PhysicalPageNumber {
         PhysicalPageNumber::from(self.0.get_bits(10..54))
