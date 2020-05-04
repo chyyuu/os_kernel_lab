@@ -50,5 +50,5 @@ fn breakpoint(trap_frame: &mut TrapFrame) -> *mut TrapFrame {
 /// 处理时钟中断
 fn supervisor_timer(trap_frame: &mut TrapFrame) -> *mut TrapFrame {
     timer::tick();
-    PROCESSOR.tick(trap_frame)
+    PROCESSOR.get().tick(trap_frame)
 }

@@ -59,13 +59,13 @@ pub extern "C" fn rust_main() -> ! {
     memory::init();
 
     let process = Process::new_kernel().unwrap();
-    
-    let thread = Thread::new(process.clone(), sample_process as usize, Some(&[12345usize])).unwrap();
-    PROCESSOR.schedule_thread(thread);
-    let thread = Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
-    PROCESSOR.schedule_thread(thread);
 
-    PROCESSOR.run();
+    let thread = Thread::new(process.clone(), sample_process as usize, Some(&[12345usize])).unwrap();
+    PROCESSOR.get().schedule_thread(thread);
+    let thread = Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
+    PROCESSOR.get().schedule_thread(thread);
+
+    PROCESSOR.get().run();
 }
 
 fn sample_process(arg: usize) {
