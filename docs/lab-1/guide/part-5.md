@@ -8,7 +8,7 @@
 
 {% label %}os/src/interrupt/handler.rs{% endlabel %}
 ```rust
-use super::trap_frame::TrapFrame;
+use super::context::Context;
 use riscv::register::stvec;
 
 global_asm!(include_str!("../asm/interrupt.asm"));
@@ -36,11 +36,11 @@ pub fn init() {
 ```rust
 /// 中断的处理入口
 /// 
-/// `interrupt.asm` 首先保存寄存器至 TrapFrame，其作为参数传入此函数  
-/// 具体的中断类型需要根据 TrapFram::scause 来推断，然后分别处理
+/// `interrupt.asm` 首先保存寄存器至 Context，其作为参数和 scause 以及 stval 一并传入此函数
+/// 具体的中断类型需要根据 scause 来推断，然后分别处理
 #[no_mangle]
-pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
-    panic!("Interrupted: {:?}", trap_frame.scause.cause());
+pub fn handle_interrupt(context: &mut Context, scause: Scause, stval: usize) {
+    panic!("Interrupted: {:?}", scause.cause());
 }
 ```
 
@@ -55,7 +55,7 @@ pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
 //! 
 
 mod handler;
-mod trap_frame;
+mod context;
 
 /// 初始化中断相关的子模块
 /// 

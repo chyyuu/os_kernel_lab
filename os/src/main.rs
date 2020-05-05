@@ -56,21 +56,29 @@ global_asm!(include_str!("asm/entry.asm"));
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
     memory::init();
+    interrupt::init();
 
     let process = Process::new_kernel().unwrap();
 
-    let thread = Thread::new(process.clone(), sample_process as usize, Some(&[12345usize])).unwrap();
+    let thread = Thread::new(
+        process.clone(),
+        sample_process as usize,
+        Some(&[12345usize]),
+    )
+    .unwrap();
     PROCESSOR.get().schedule_thread(thread);
     let thread = Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
     PROCESSOR.get().schedule_thread(thread);
 
-    interrupt::init();
     PROCESSOR.get().run();
 }
 
 fn sample_process(arg: usize) {
     println!("sample_process called with argument {}", arg);
-    for _ in 0..3000000 {}
-    println!("i'm back");
+    let mut sum = 0;
+    for i in 0..10000 {
+        sum += i;
+    }
+    println!("i'm back with {}", sum);
     loop {}
 }

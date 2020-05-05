@@ -11,7 +11,7 @@
 因为汇编代码较长，这里我们新建一个 `os/src/asm/interrupt.asm` 文件来编写这段操作：
 
 `os/src/asm/interrupt.asm`
-```assembly
+```asm
 # 宏：将寄存器存到栈上
 .macro SAVE reg, offset
     sd  \reg, \offset*8(sp)
@@ -22,13 +22,16 @@
     ld  \reg, \offset*8(sp)
 .endm
 
-# 宏：保存所有寄存器到 TrapFrame
-.macro SAVE_ALL
-    # 在栈上开辟 TrapFrame 所需的空间
-    addi    sp, sp, -36*8
+    .section .text
+    .globl __interrupt
+# 进入中断
+# 保存 Context 并且进入 rust 中的中断处理函数 interrupt::handler::handle_interrupt()
+__interrupt:
+    # 在栈上开辟 Context 所需的空间
+    addi    sp, sp, -34*8
     # 保存通用寄存器，除了 x0（固定为 0）
     SAVE    x1, 1
-    addi    x1, sp, 36*8
+    addi    x1, sp, 34*8
     # 将原来的 sp（sp 又名 x2）写入 2 位置
     SAVE    x1, 2
     SAVE    x3, 3
@@ -64,16 +67,19 @@
     # 取出 CSR 并保存
     csrr    s1, sstatus
     csrr    s2, sepc
-    csrr    s3, scause
-    csrr    s4, stval
     SAVE    s1, 32
     SAVE    s2, 33
-    SAVE    s3, 34
-    SAVE    s4, 35
-.endm
 
-# 宏：恢复 TrapFrame 中所有寄存器
-.macro LOAD_ALL
+    # Context, scause 和 stval 作为参数传入
+    mv a0, sp
+    csrr a1, scause
+    csrr a2, stval
+    jal 
+
+    .globl __restore
+# 离开中断
+# 从 Context 中恢复所有寄存器，并跳转至 Context 中 sepc 的位置
+__restore:
     # 恢复 CSR
     LOAD    s1, 32
     LOAD    s2, 33
@@ -115,37 +121,7 @@
 
     # 恢复 sp（又名 x2）这里最后恢复是为了上面可以正常使用 LOAD 宏
     LOAD    x2, 2
-.endm
-
-
-    .section .text
-    .globl __interrupt
-# 进入中断
-# 保存 TrapFrame 并且进入 rust 中的中断处理函数 interrupt::handler::handle_interrupt()
-__interrupt:
-    SAVE_ALL
-    # TrapFrame 作为参数 a0 传入
-    mv a0, sp
-    jal handle_interrupt
-
-    .globl __restore
-# 离开中断
-# 从 TrapFrame 中恢复所有寄存器，并跳转至 TrapFrame 中 sepc 的位置
-__restore:
-    LOAD_ALL
     sret
 ```
 
-### 思考
-
-为什么保存时保存了四个 CSR 寄存器，而恢复时只恢复了 `sstatus` 和 `sepc` 这两个？
-
-{% reveal %}
-> 保存寄存器有两种情况：
-> - 一种是通用寄存器和 `sstatus`：保存到 `TrapFrame`，使用寄存器进行中断处理流程，从  `TrapFrame` 中恢复  
-> 这样即便中间再发生中断，也不会影响处理流程；
-> - 一种是其他 CSR 寄存器：被硬件自动设置，保存到 `TrapFrame`，从 `TrapFrame` 中读取进行中断处理  
-> 这样即便中间再发生中断，原本中断的处理流程读取的是已保存的 `TrapFrame`，也不会受到影响。
-> 
-> 而 `sepc` 则比较特殊，它实际上会被操作系统进行修改，从 `TrapFrame` 中恢复时后，会立即在 `sret` 中使用，替代当前的 `pc`，使得程序执行流回到中断前的程序中。
-{% endreveal %}
+这样的话我们就完成了对当前执行现场保存，我们把 `Context` 以及 `scause` 和 `stval` 作为参数传入了 `handle_interrupt` 函数中，这是一个 Rust 编写的函数，后面我们将会实现它。

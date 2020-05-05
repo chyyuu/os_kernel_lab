@@ -1,8 +1,8 @@
 //! 线程 [`Thread`]
 
 use super::*;
-use riscv::register::sstatus::{self, SPP::*};
 use core::mem::size_of;
+use riscv::register::sstatus::{self, SPP::*};
 
 /// 线程的信息
 pub struct Thread {
@@ -10,8 +10,8 @@ pub struct Thread {
     pub stack: Stack,
     /// 线程执行上下文
     ///
-    /// 当且仅当线程被暂停执行时，`trap_frame` 为 `Some`
-    pub trap_frame: Mutex<Option<TrapFrame>>,
+    /// 当且仅当线程被暂停执行时，`context` 为 `Some`
+    pub context: Mutex<Option<Context>>,
     /// 所属的进程
     pub process: Arc<RwLock<Process>>,
 }
@@ -19,32 +19,32 @@ pub struct Thread {
 impl Thread {
     /// 执行一个线程
     ///
-    /// 激活对应进程的页表，并返回其 TrapFrame
-    pub fn run(&self) -> *mut TrapFrame {
+    /// 激活对应进程的页表，并返回其 Context
+    pub fn run(&self) -> *mut Context {
         // 激活页表
         self.process.read().memory_set.activate();
-        // 取出 TrapFrame
-        let parked_frame = self.trap_frame.lock().take().unwrap();
-        
+        // 取出 Context
+        let parked_frame = self.context.lock().take().unwrap();
+
         if self.process.read().is_user {
-            // 用户线程则将 TrapFrame 放至内核栈顶
-            KERNEL_STACK.push_trap_frame(parked_frame) as *mut TrapFrame
+            // 用户线程则将 Context 放至内核栈顶
+            KERNEL_STACK.push_context(parked_frame) as *mut Context
         } else {
-            // 内核线程则将 TrapFrame 放至 sp 下
-            let address = parked_frame.sp() - size_of::<TrapFrame>();
-            let trap_frame = address.deref();
-            *trap_frame = parked_frame;
-            trap_frame
+            // 内核线程则将 Context 放至 sp 下
+            let address = parked_frame.sp() - size_of::<Context>();
+            let context = address.deref();
+            *context = parked_frame;
+            context
         }
     }
 
     /// 发生时钟中断后暂停线程，保存状态
-    pub fn park(&self, trap_frame: TrapFrame) {
-        // 检查目前线程内的 trap_frame 应当为 None
-        let mut slot = self.trap_frame.lock();
+    pub fn park(&self, context: Context) {
+        // 检查目前线程内的 context 应当为 None
+        let mut slot = self.context.lock();
         assert!(slot.is_none());
-        // 将 TrapFrame 保存到线程中
-        slot.replace(trap_frame);
+        // 将 Context 保存到线程中
+        slot.replace(context);
     }
 
     /// 创建一个线程
@@ -67,8 +67,8 @@ impl Thread {
             .memory_set
             .add_segment(stack.get_segment())?;
 
-        // 构建线程的 TrapFrame
-        let trap_frame = TrapFrame {
+        // 构建线程的 Context
+        let context = Context {
             x: {
                 let mut x = [0usize; 32];
                 // 栈顶为新创建的栈顶
@@ -100,7 +100,7 @@ impl Thread {
         // 打包成线程
         let thread = Arc::new(Thread {
             stack,
-            trap_frame: Mutex::new(Some(trap_frame)),
+            context: Mutex::new(Some(context)),
             process: process.clone(),
         });
         process.write().push_thread(thread.clone());

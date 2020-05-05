@@ -11,10 +11,10 @@
     .section .text
     .globl __interrupt
 # 进入中断
-# 保存 TrapFrame 并且进入 rust 中的中断处理函数 interrupt::handler::handle_interrupt()
+# 保存 Context 并且进入 rust 中的中断处理函数 interrupt::handler::handle_interrupt()
 __interrupt:
-    # 涉及到用户线程时，保存 TrapFrame 就必须使用内核栈
-    # 否则如果用户线程的栈发生缺页异常，将无法保存 TrapFrame
+    # 涉及到用户线程时，保存 Context 就必须使用内核栈
+    # 否则如果用户线程的栈发生缺页异常，将无法保存 Context
     # 因此，我们使用 sscratch 寄存器：
     # 处于用户线程时，保存内核栈地址；处于内核线程时，保存 0
 
@@ -25,7 +25,7 @@ _from_kernel:
     csrr    sp, sscratch
 _from_user:
     # 此时 sscratch：原先的 sp；sp：内核栈地址
-    # 在内核栈开辟 TrapFrame 的空间
+    # 在内核栈开辟 Context 的空间
     addi    sp, sp, -36*8
     
     # 保存通用寄存器，除了 x0（固定为 0）
@@ -70,7 +70,7 @@ _from_user:
     SAVE    t0, 32
     SAVE    t1, 33
     # 调用 handle_interrupt，传入参数
-    # trap_frame: &mut TrapFrame
+    # context: &mut Context
     mv      a0, sp
     # scause: Scause
     csrr    a1, scause
@@ -80,7 +80,7 @@ _from_user:
 
     .globl __restore
 # 离开中断
-# 从 TrapFrame 中恢复所有寄存器，并跳转至 TrapFrame 中 sepc 的位置
+# 从 Context 中恢复所有寄存器，并跳转至 Context 中 sepc 的位置
 __restore:
     # 从 a0 中读取 sp
     mv      sp, a0

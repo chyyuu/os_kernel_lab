@@ -2,11 +2,11 @@
 //!
 //!
 
+mod context;
 mod handler;
 mod timer;
-mod trap_frame;
 
-pub use trap_frame::TrapFrame;
+pub use context::Context;
 
 /// 初始化中断相关的子模块
 ///

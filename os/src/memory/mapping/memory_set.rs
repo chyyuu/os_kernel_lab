@@ -127,7 +127,8 @@ impl MemorySet {
         // 移除映射
         self.mapping.unmap(segment);
         // 释放页面（仅保留不属于 segment 的 vpn 和 frame）
-        self.allocated_pairs.retain(|(vpn, _frame)| !segment.contains(*vpn));
+        self.allocated_pairs
+            .retain(|(vpn, _frame)| !segment.contains(*vpn));
         Ok(())
     }
 

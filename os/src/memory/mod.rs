@@ -20,7 +20,7 @@ pub use {
     address::*,
     config::*,
     frame::FRAME_ALLOCATOR,
-    mapping::{Flags, MemorySet, Segment, MapType},
+    mapping::{Flags, MapType, MemorySet, Segment},
     range::Range,
 };
 

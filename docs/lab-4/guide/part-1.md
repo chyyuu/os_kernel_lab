@@ -14,7 +14,7 @@
 
 想想一个线程何以区别于其他线程。由于线程是负责“执行”，因此我们要通过线程当前的执行状态（也称线程上下文）来描述线程的当前执行情况（也称执行现场），其中包括：CPU 各个寄存器的状态（如程序计数器 `pc` 、栈指针 `sp` 和其他用于计算等等的通用寄存器）；线程自己的运行栈的内容。
 
-而思考一下，CPU 的各个寄存器的状态在哪里出现过呢？记不记得，当我们实现中断的时候，有一个结构叫做 `TrapFrame`，而恰好的是，其中的结构正好是我们需要表示线程的 CPU 状态的结构，这是因为「处理中断再返回」这个过程本身已经和「切换线程」这个概念有些神似了。
+而思考一下，CPU 的各个寄存器的状态在哪里出现过呢？记不记得，当我们实现中断的时候，有一个结构叫做 `Context`，而恰好的是，其中的结构正好是我们需要表示线程的 CPU 状态的结构，这是因为「处理中断再返回」这个过程本身已经和「切换线程」这个概念有些神似了。
 
 另外，我们也同时将实现进程，这里也会同时记录下每个线程属于哪个进程：
 
@@ -26,8 +26,8 @@ pub struct Thread {
     pub stack: Stack,
     /// 线程执行上下文
     ///
-    /// 当且仅当线程被暂停执行时，`trap_frame` 为 `Some`
-    pub trap_frame: Mutex<Option<TrapFrame>>,
+    /// 当且仅当线程被暂停执行时，`context` 为 `Some`
+    pub context: Mutex<Option<Context>>,
     /// 所属的进程
     pub process: Arc<RwLock<Process>>,
 }
@@ -76,14 +76,14 @@ impl Stack {
 
 但是，仅仅一个线程一个运行栈就够了吗？答案是否定的，如果线程在运行时发生了栈溢出，访问到了外面的地址产生了异常怎么办呢？这个时候，中断的处理也是需要栈的，但是现在原来的栈根本用不了了，而且更进一步的是，如果是用户线程出现了中断或异常，也不可能把内核态的东西放在用户栈上执行。所以，我们需要一个内核栈，同时需要注意到并不需要每个用户线程都来一个内核栈，我们只需要全部用户线程共用一个内核栈，在发生中断的时候用它来进行处理就好了。而如何告诉 CPU 在中断时换成内核栈呢？这时候就有了 `sscratch` 寄存器，在我们的设计中，当用户态中断时，`sscratch` 的值会代替 `sp`；而当内核态中断时，`sscratch` 的值为 0，不会代替 `sp`，这也意味着内核线程一旦发生了致命的错误，将无法通过中断异常的机制来恢复。
 
-在下面的代码中，我们写了大量的注释，其中部分内容涉及了后面的设计，你可以结合后文再过来理解这个问题，这一个章节因为 RISC-V 的设计本身就比较复杂，需要前后反复联系多看几次。
+在下面的代码中，我们写了大量的注释，其中部分内容涉及了后面的设计（`push_context`），你可以结合后文再过来理解这个问题，这一个章节因为 RISC-V 的设计本身就比较复杂，需要前后反复联系多看几次。
 
 {% label %}os/src/process/stack.rs{% endlabel %}
 ```rust
 /// 内核栈
 ///
 /// 用户态的线程出现中断时，因为用户栈无法保证可用性，中断处理流程必须在内核栈上进行。
-/// 所以我们创建一个公用的内核栈，即当发生中断时，会将 TrapFrame 写到内核栈顶。
+/// 所以我们创建一个公用的内核栈，即当发生中断时，会将 Context 写到内核栈顶。
 ///
 /// ### 用户线程和内核线程的区别
 /// 注意到，在修改后的 `interrupt.asm` 中，添加了一些关于 `sscratch` 的判断。
@@ -102,24 +102,24 @@ impl Stack {
 ///   用户线程发生中断时就会进入内核态，而内核态可能发生中断的嵌套。此时，
 ///   内核栈已经在中断处理流程中被使用，所以应当继续使用 `sp` 作为栈顶地址
 ///
-/// ### 用户线程 [`TrapFrame`] 的存放
-/// > 1. 线程初始化时，一个 `TrapFrame` 放置在内核栈顶，`sp` 指向 `TrapFrame` 的位置
-/// >   （即栈顶 - `size_of::<TrapFrame>()`）
-/// > 2. 切换到线程，执行 `__restore` 时，将 `TrapFrame` 的数据恢复到寄存器中后，
-/// >   会将 `TrapFrame` 出栈（即 `sp += size_of::<TrapFrame>()`），
+/// ### 用户线程 [`Context`] 的存放
+/// > 1. 线程初始化时，一个 `Context` 放置在内核栈顶，`sp` 指向 `Context` 的位置
+/// >   （即栈顶 - `size_of::<Context>()`）
+/// > 2. 切换到线程，执行 `__restore` 时，将 `Context` 的数据恢复到寄存器中后，
+/// >   会将 `Context` 出栈（即 `sp += size_of::<Context>()`），
 /// >   然后保存 `sp` 至 `sscratch`（此时 `sscratch` 即为内核栈顶）
-/// > 3. 发生中断时，将 `sscratch` 和 `sp` 互换，入栈一个 `TrapFrame` 并保存数据
+/// > 3. 发生中断时，将 `sscratch` 和 `sp` 互换，入栈一个 `Context` 并保存数据
 ///
-/// 容易发现，用户线程的 `TrapFrame` 一定保存在内核栈顶。因此，当线程需要运行时，
-/// 从 [`Thread`] 中取出 `TrapFrame` 然后置于内核栈顶即可
+/// 容易发现，用户线程的 `Context` 一定保存在内核栈顶。因此，当线程需要运行时，
+/// 从 [`Thread`] 中取出 `Context` 然后置于内核栈顶即可
 ///
-/// ### 内核线程 [`TrapFrame`] 的存放
-/// > 1. 线程初始化时，一个 `TrapFrame` 放置在内核栈顶，`sp` 指向 `TrapFrame` 的位置
-/// >   （即栈顶 - `size_of::<TrapFrame>()`）
-/// > 2. 切换到线程，执行 `__restore` 时，将 `TrapFrame` 的数据恢复到寄存器中后，
+/// ### 内核线程 [`Context`] 的存放
+/// > 1. 线程初始化时，一个 `Context` 放置在内核栈顶，`sp` 指向 `Context` 的位置
+/// >   （即栈顶 - `size_of::<Context>()`）
+/// > 2. 切换到线程，执行 `__restore` 时，将 `Context` 的数据恢复到寄存器中后，
 /// >   内核栈便不再被内核线程所使用
-/// > 3. 发生中断时，直接在 `sp` 上入栈一个 `TrapFrame`
-/// > 4. 从中断恢复时，内核线程已经从 `TrapFrame` 中恢复了 `sp`，相当于自动释放了 `TrapFrame`
+/// > 3. 发生中断时，直接在 `sp` 上入栈一个 `Context`
+/// > 4. 从中断恢复时，内核线程已经从 `Context` 中恢复了 `sp`，相当于自动释放了 `Context`
 /// >   和中断处理流程所涉及的栈空间
 #[repr(align(16))]
 #[repr(C)]
@@ -131,11 +131,11 @@ lazy_static! {
 }
 
 impl KernelStack {
-    /// 在栈顶加入 TrapFrame 并且返回 sp
-    pub fn push_trap_frame(&self, trap_frame: TrapFrame) -> usize {
-        let push_address = &self as *const _ as usize + STACK_SIZE - size_of::<TrapFrame>();
+    /// 在栈顶加入 Context 并且返回 sp
+    pub fn push_context(&self, context: Context) -> usize {
+        let push_address = &self as *const _ as usize + STACK_SIZE - size_of::<Context>();
         unsafe {
-            *(push_address as *mut TrapFrame) = trap_frame;
+            *(push_address as *mut Context) = context;
         }
         push_address
     }

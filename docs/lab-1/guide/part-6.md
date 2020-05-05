@@ -94,7 +94,7 @@ pub fn tick() {
 {% label %}os/src/interrupt/handler.rs{% endlabel %}
 ```rust
 use super::timer;
-use super::trap_frame::TrapFrame;
+use super::context::Context;
 use riscv::register::{
     stvec,
     scause::{Trap, Exception, Interrupt},
@@ -103,34 +103,34 @@ use riscv::register::{
 
 /// 中断的处理入口
 /// 
-/// `interrupt.asm` 首先保存寄存器至 TrapFrame，其作为参数传入此函数  
-/// 具体的中断类型需要根据 TrapFram::scause 来推断，然后分别处理
+/// `interrupt.asm` 首先保存寄存器至 Context，其作为参数和 scause 以及 stval 一并传入此函数
+/// 具体的中断类型需要根据 scause 来推断，然后分别处理
 #[no_mangle]
-pub fn handle_interrupt(trap_frame: &mut TrapFrame) {
+pub fn handle_interrupt(context: &mut Context, scause: Scause, stval: usize) {
     // 可以通过 Debug 来查看发生了什么中断
-    // println!("{:x?}", trap_frame.scause.cause());
-    match trap_frame.scause.cause() {
+    // println!("{:x?}", context.scause.cause());
+    match scause.cause() {
         // 断点中断（ebreak）
-        Trap::Exception(Exception::Breakpoint) => breakpoint(trap_frame),
+        Trap::Exception(Exception::Breakpoint) => breakpoint(context),
         // 时钟中断
-        Trap::Interrupt(Interrupt::SupervisorTimer) => supervisor_timer(trap_frame),
+        Trap::Interrupt(Interrupt::SupervisorTimer) => supervisor_timer(context),
         // 其他情况未实现
-        trap => unimplemented!("{:?}", trap),
+        _ => unimplemented!("{:?}: {:x?}, stval: 0x{:x}", scause.cause(), context, stval),
     }
 }
 
 /// 处理 ebreak 断点
 /// 
 /// 继续执行，其中 `sepc` 增加 2 字节，以跳过当前这条 `ebreak` 指令
-fn breakpoint(trap_frame: &mut TrapFrame) {
-    println!("Breakpoint at 0x{:x}", trap_frame.sepc);
-    trap_frame.sepc += 2;
+fn breakpoint(context: &mut Context) {
+    println!("Breakpoint at 0x{:x}", context.sepc);
+    context.sepc += 2;
 }
 
 /// 处理时钟中断
 /// 
 /// 目前只会在 [`timer`] 模块中进行计数
-fn supervisor_timer(_: &TrapFrame) {
+fn supervisor_timer(_: &Context) {
     timer::tick();
 }
 ```

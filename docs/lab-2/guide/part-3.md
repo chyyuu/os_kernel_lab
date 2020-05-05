@@ -234,6 +234,7 @@ pub extern "C" fn rust_main() -> ! {
 
 {% reveal %}
 > 这里的 `frame_tracker` 变量会在 `match` 语法里面析构。但是析构的时候，外层的 `lock()` 函数还没有释放锁，这样写会导致死锁。
+>
 {% endreveal %}
 
 <!-- TODO 改成无锁的（因为也只是内核访问） -->

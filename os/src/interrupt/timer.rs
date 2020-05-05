@@ -1,7 +1,7 @@
 //! 预约和处理时钟中断
 
 use crate::sbi::set_timer;
-use riscv::register::{sie, sstatus, time};
+use riscv::register::{sie, time};
 
 /// 触发时钟中断计数
 pub static mut TICKS: usize = 0;
