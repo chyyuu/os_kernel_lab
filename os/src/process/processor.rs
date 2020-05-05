@@ -33,7 +33,7 @@ impl Processor {
         // 从 current_thread 中取出 TrapFrame
         let thread = self.current_thread.as_ref().unwrap().clone();
         let trap_frame = thread.run();
-        // 因为这个线程不会回来回收，所以手动 drop 掉线程的一个 Arc
+        // 因为这个线程（指的不是 thread，是运行 run 函数的线程）不会回来回收，所以手动 drop 掉 thread 的一个 Arc
         drop(thread);
         // 从此将没有回头
         unsafe {

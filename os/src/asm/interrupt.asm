@@ -18,6 +18,7 @@ __interrupt:
     # 因此，我们使用 sscratch 寄存器：
     # 处于用户线程时，保存内核栈地址；处于内核线程时，保存 0
 
+    # csrrw rd, csr, rs1：csr 的值写入 rd；同时 rs1 的值写入 csr
     csrrw   sp, sscratch, sp
     bnez    sp, _from_user
 _from_kernel:

@@ -79,7 +79,7 @@ impl Stack {
 /// >   和中断处理流程所涉及的栈空间
 #[repr(align(16))]
 #[repr(C)]
-pub struct KernelStack([u8; STACK_SIZE]);
+pub struct KernelStack([u8; KERNEL_STACK_SIZE]);
 
 lazy_static! {
     /// 公用的内核栈

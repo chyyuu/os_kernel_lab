@@ -49,6 +49,13 @@
   * [实现页表](docs/lab-3/guide/part-3.md)
   * [实现内核重映射](docs/lab-3/guide/part-4.md)
   * [小结](docs/lab-3/guide/summary.md)
+* 实验指导四
+  * [摘要](docs/lab-4/guide/intro.md)
+  * [线程和进程](docs/lab-4/guide/part-1.md)
+  * [线程切换](docs/lab-4/guide/part-2.md)
+  * [抽象的处理器](docs/lab-4/guide/part-3.md)
+  * [简单的测试](docs/lab-4/guide/part-4.md)
+  * [小结](docs/lab-4/guide/summary.md)
 
 ## 实验题目
 * [实验题目一](docs/lab-1/exercise/intro.md)

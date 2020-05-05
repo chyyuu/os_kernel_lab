@@ -4,7 +4,7 @@ use super::*;
 
 /// 进程的信息
 pub struct Process {
-    /// 属于用户态
+    /// 是否属于用户态
     pub is_user: bool,
     /// 进程中的线程公用页表 / 内存映射
     pub memory_set: MemorySet,

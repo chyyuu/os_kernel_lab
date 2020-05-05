@@ -55,7 +55,6 @@ global_asm!(include_str!("asm/entry.asm"));
 /// 在 `_start` 为我们进行了一系列准备之后，这是第一个被调用的 Rust 函数
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
-    // 初始化各种模块
     memory::init();
 
     let process = Process::new_kernel().unwrap();
@@ -65,12 +64,12 @@ pub extern "C" fn rust_main() -> ! {
     let thread = Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
     PROCESSOR.get().schedule_thread(thread);
 
+    interrupt::init();
     PROCESSOR.get().run();
 }
 
 fn sample_process(arg: usize) {
     println!("sample_process called with argument {}", arg);
-    interrupt::init();
     for _ in 0..3000000 {}
     println!("i'm back");
     loop {}
