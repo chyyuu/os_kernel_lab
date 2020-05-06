@@ -1,12 +1,7 @@
-//! 一些可能用到，而又不好找库的数据结构
+//! 负责分配 / 回收的数据结构
 
 mod segment_tree_allocator;
 mod stacked_allocator;
-mod unsafe_wrapper;
-
-pub use segment_tree_allocator::SegmentTreeAllocator;
-pub use stacked_allocator::StackedAllocator;
-pub use unsafe_wrapper::{StaticUnsafeWrapper, UnsafeWrapper};
 
 /// 分配器：固定容量，每次分配 / 回收一个元素
 pub trait Allocator {
@@ -17,3 +12,9 @@ pub trait Allocator {
     /// 回收一个元素
     fn dealloc(&mut self, index: usize);
 }
+
+pub use segment_tree_allocator::SegmentTreeAllocator;
+pub use stacked_allocator::StackedAllocator;
+
+/// 默认使用的分配器
+pub type AllocatorImpl = StackedAllocator;

@@ -33,8 +33,8 @@ pub fn handle_interrupt(context: &mut Context, scause: Scause, stval: usize) -> 
         Trap::Exception(Exception::Breakpoint) => breakpoint(context),
         // 时钟中断
         Trap::Interrupt(Interrupt::SupervisorTimer) => supervisor_timer(context),
-        // 其他情况未实现
-        _ => unimplemented!("{:?}: {:x?}, stval: 0x{:x}", scause.cause(), context, stval),
+        // 其他情况，终止当前线程
+        _ => fault(context, scause, stval),
     }
 }
 
@@ -51,4 +51,11 @@ fn breakpoint(context: &mut Context) -> *mut Context {
 fn supervisor_timer(context: &mut Context) -> *mut Context {
     timer::tick();
     PROCESSOR.get().tick(context)
+}
+
+/// 出现未能解决的异常，终止当前线程
+fn fault(_context: &mut Context, scause: Scause, _stval: usize) -> ! {
+    println!("{:?} terminated with {:?}", PROCESSOR.get().current_thread(), scause.cause());
+    PROCESSOR.get().kill_current_thread();
+    PROCESSOR.get().run();
 }

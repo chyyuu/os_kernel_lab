@@ -3,7 +3,6 @@
 mod config;
 mod process;
 mod processor;
-mod scheduler;
 mod stack;
 mod thread;
 
@@ -15,6 +14,5 @@ pub(self) use spin::{Mutex, RwLock};
 pub use config::*;
 pub use process::Process;
 pub use processor::PROCESSOR;
-pub use scheduler::Scheduler;
 pub use stack::{Stack, KERNEL_STACK};
 pub use thread::Thread;
