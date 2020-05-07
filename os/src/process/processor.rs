@@ -14,7 +14,7 @@ lazy_static! {
 pub struct Processor {
     /// 当前正在执行的线程
     current_thread: Option<Arc<Thread>>,
-    /// 线程调度器，其中不包括正在执行的线程
+    /// 线程调度器，记录所有线程
     scheduler: SchedulerImpl<Arc<Thread>>,
 }
 
@@ -38,7 +38,7 @@ impl Processor {
         // 从 current_thread 中取出 Context
         let thread = self.current_thread();
         let context = thread.run();
-        // 因为这个线程（指的不是 thread，是运行 run 函数的线程）不会回来回收，所以手动 drop 掉 thread 的一个 Arc
+        // 这个函数不会执行到结尾，所以手动 drop 掉 thread 的一个 Arc
         drop(thread);
         // 从此将没有回头
         unsafe {
@@ -64,7 +64,7 @@ impl Processor {
                 next_context
             }
         } else {
-            panic!("no more thread to run");
+            panic!("all threads terminated, shutting down");
         }
     }
 
@@ -87,7 +87,7 @@ impl Processor {
         if let Some(next_thread) = self.scheduler.get_next() {
             self.current_thread.replace(next_thread);
         } else {
-            panic!("no more thread to run");
+            panic!("all threads terminated, shutting down");
         }
     }
 }
