@@ -36,7 +36,6 @@
 
 #[macro_use]
 mod console;
-mod data_structure;
 mod interrupt;
 mod memory;
 mod panic;
@@ -66,9 +65,9 @@ pub extern "C" fn rust_main() -> ! {
         Some(&[12345usize]),
     )
     .unwrap();
-    PROCESSOR.get().schedule_thread(thread);
+    PROCESSOR.get().add_thread(thread);
     let thread = Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
-    PROCESSOR.get().schedule_thread(thread);
+    PROCESSOR.get().add_thread(thread);
 
     PROCESSOR.get().run();
 }
@@ -80,5 +79,4 @@ fn sample_process(arg: usize) {
         sum += i;
     }
     println!("i'm back with {}", sum);
-    loop {}
 }

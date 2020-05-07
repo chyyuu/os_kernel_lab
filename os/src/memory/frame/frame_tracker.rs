@@ -41,7 +41,6 @@ impl<T: Into<PhysicalPageNumber>> From<T> for FrameTracker {
 /// 帧在释放时会放回 [`static@FRAME_ALLOCATOR`] 的空闲链表中
 impl Drop for FrameTracker {
     fn drop(&mut self) {
-        println!("DROP");
         FRAME_ALLOCATOR.lock().dealloc(self);
     }
 }

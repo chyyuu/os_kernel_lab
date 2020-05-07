@@ -8,8 +8,6 @@ pub struct Process {
     pub is_user: bool,
     /// 进程中的线程公用页表 / 内存映射
     pub memory_set: MemorySet,
-    /// 所有线程
-    pub threads: Vec<Arc<Thread>>, // 目前没用到
 }
 
 impl Process {
@@ -18,12 +16,6 @@ impl Process {
         Ok(Arc::new(RwLock::new(Self {
             is_user: false,
             memory_set: MemorySet::new_kernel()?,
-            threads: vec![],
         })))
-    }
-
-    /// 添加一个线程
-    pub fn push_thread(&mut self, thread: Arc<Thread>) {
-        self.threads.push(thread);
     }
 }

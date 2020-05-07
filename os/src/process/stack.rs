@@ -5,6 +5,7 @@ use core::mem::size_of;
 use lazy_static::*;
 
 /// 栈是一片内存区域，其空间分配在 `Mapping` 中完成
+#[derive(Debug)]
 pub struct Stack {
     range: Range<VirtualAddress>,
     is_user: bool,

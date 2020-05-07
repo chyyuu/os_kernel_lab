@@ -4,8 +4,15 @@ use super::*;
 use core::mem::size_of;
 use riscv::register::sstatus::{self, SPP::*};
 
+/// 线程 ID 使用 `isize`，可以用负数表示错误
+pub type ThreadID = isize;
+
+static mut THREAD_COUNTER: ThreadID = 0;
+
 /// 线程的信息
 pub struct Thread {
+    /// 线程 ID
+    pub id: ThreadID,
     /// 线程的栈
     pub stack: Stack,
     /// 线程执行上下文
@@ -99,11 +106,33 @@ impl Thread {
 
         // 打包成线程
         let thread = Arc::new(Thread {
+            id: unsafe {
+                THREAD_COUNTER += 1;
+                THREAD_COUNTER
+            },
             stack,
             context: Mutex::new(Some(context)),
             process: process.clone(),
         });
-        process.write().push_thread(thread.clone());
         Ok(thread)
+    }
+}
+
+impl Eq for Thread {}
+
+impl PartialEq for Thread {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl core::fmt::Debug for Thread {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+        formatter
+            .debug_struct("Thread")
+            .field("thread_id", &self.id)
+            .field("stack", &self.stack)
+            .field("context", &self.context)
+            .finish()
     }
 }
