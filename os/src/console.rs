@@ -24,10 +24,14 @@ struct Stdout;
 impl Write for Stdout {
     /// 打印一个字符串
     ///
-    /// 对于每一个字符调用 [`console_putchar`]
+    /// [`console_putchar`] sbi 调用每次接受一个 `usize`，但实际上会把它作为 `u8` 来打印字符。
+    /// 因此，如果字符串中存在非 ASCII 字符，需要在 utf-8 编码下，对于每一个 `u8` 调用一次 [`console_putchar`]
     fn write_str(&mut self, s: &str) -> fmt::Result {
+        let mut buffer = [0u8; 4];
         for c in s.chars() {
-            console_putchar(c as usize);
+            for code_point in c.encode_utf8(&mut buffer).as_bytes().iter() {
+                console_putchar(*code_point as usize);
+            }
         }
         Ok(())
     }

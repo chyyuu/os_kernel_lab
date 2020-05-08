@@ -3,7 +3,7 @@
 mod config;
 mod process;
 mod processor;
-mod stack;
+mod kernel_stack;
 mod thread;
 
 use crate::interrupt::*;
@@ -14,5 +14,5 @@ use spin::{Mutex, RwLock};
 pub use config::*;
 pub use process::Process;
 pub use processor::PROCESSOR;
-pub use stack::{Stack, KERNEL_STACK};
+pub use kernel_stack::KERNEL_STACK;
 pub use thread::Thread;

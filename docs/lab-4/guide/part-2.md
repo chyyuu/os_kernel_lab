@@ -1,6 +1,6 @@
 ## 线程切换
 
-### Context
+### 线程如何切换
 
 在中断的章节，我们就用 `Context` 的概念来帮助一个流程被中断或异常打断处理完再恢复回去的过程，而在这里，我们将用这个概念完成线程的切换。回顾一下，`Context` 是长这样的：
 
@@ -18,35 +18,24 @@ pub struct Context {
 }
 ```
 
-于是，为了完成线程的切换，我们需要做的就是把当前的执行状态存在上面的 `x` 和 `sstatus` 中，然后为了以后可以切换回去，就把返回之后继续要执行的地址放在 `sepc` 中，然后通过原来的中断恢复返回机制实现跳转和切换。
+在 `interrupt.asm` 中，线程首先保存状态，然后调用 `handle_interrupt`，最后再恢复状态。在我们处理 `ebreak` 的时候，`handle_interrupt` 会修改 `Context` 中的 `sepc`，使得线程在恢复时跳过当前的 `ebreak` 指令。**那么，如果 `handle_interrupt` 将 `Context` 替换成另一个线程所保存的 `Context`，这就是线程切换。**
 
 ### 修改中断处理
 
-在之前的 rCore 设计中采用了 idle 线程来管理线程的调度，但是仔细思考一下，调度或者说切换线程一定会发生在某个中断到来的时候，这意味着之前的设计多少还是有些冗余的成分。而在这里，我们将彻底取消 idle 线程的概念，在中断处理时，要恢复回去的时候，直接把要切换的线程切换掉。
+在线程切换时（即时钟中断时），操作系统需要将上一个线程的 `Context` 保存起来，然后将下一个线程的 `Context` 取出并用它来恢复所有寄存器。因此，我们修改一下 `handle_interrupt`，让其返回一个 `Context` 的指针。
 
-于是，我们需要修改之前的设计，让 `handle_interrupt` 返回一个具体的 `Context`，让之前的 `__restore` 机制读取这个返回值直接返回到对应的线程上下文中。
+*注 1：为什么不直接 in-place 修改 `Context` 呢？这是因为 `handle_interrupt` 返回的 `Context` 指针除了存储上下文以外，还提供了内核栈的地址。这个会在后面详细阐述。*
+*注 2：在 Rust 中，引用和指针只是编译器的理解不同，其本质都是一个存储对象地址的寄存器。这里返回值使用指针，是因为其指向的位置十分特殊，其生命周期在这里没有意义。*
 
 {% label %}os/src/interrupt/handler.rs{% endlabel %}
 ```rust
 /// 中断的处理入口
-///
-/// `interrupt.asm` 首先保存寄存器至 Context，其作为参数传入此函数
-/// 具体的中断类型需要根据 Context::scause 来推断，然后分别处理
 #[no_mangle]
-pub fn handle_interrupt(context: &mut Context, scause: Scause, stval: usize) -> *mut Context{
-    match scause.cause() {
-        // 断点中断（ebreak）
-        Trap::Exception(Exception::Breakpoint) => breakpoint(context),
-        // 时钟中断
-        Trap::Interrupt(Interrupt::SupervisorTimer) => supervisor_timer(context),
-        // 其他情况未实现
-        _ => unimplemented!("{:?}: {:x?}, stval: 0x{:x}", scause.cause(), context, stval),
-    }
+pub fn handle_interrupt(context: &mut Context, scause: Scause, stval: usize) -> *mut Context {
+    /* ... */
 }
 
 /// 处理 ebreak 断点
-///
-/// 继续执行，其中 `sepc` 增加 2 字节，以跳过当前这条 `ebreak` 指令
 fn breakpoint(context: &mut Context) -> *mut Context {
     println!("Breakpoint at 0x{:x}", context.sepc);
     context.sepc += 2;
@@ -319,7 +308,7 @@ pub fn new(
 }
 ```
 
-这里的创建包括属于哪个进程，还有线程的开始执行点（一个函数的地址），已经执行函数的参数。第一个进行的是，我们首先找到一段进程没用的空间来作为新线程的栈空间，然后构造切换到线程的 `Context`，包括入口的参数（这里没有考虑复杂的情况，现在只是支持小等于 8 个 4 字节参数），还有 `sstatus` 寄存器，其中包括 `spp`（`sret` 后的模式）、`spie` 和 `sie` 寄存器。其中后两者的意思是在发生中断时 `sie` 会被置零（屏蔽中断），而 `spie` 会被赋值为 `sie` 的值，在 `sret` 的时候 `sie` 的值再恢复为 `spie` 的值，我们把 `spie` 预设为 1 也就意味着返回之后可以接受中断，同时 `sie` 为 0 意味着在那段恢复的逻辑（`__restore` 等）中操作 `sstatus` 寄存器不会发生中断以免发生意料之外的错误。更加具体的细节请参见 RISC-V 特权级手册。
+这里的创建包括属于哪个进程，还有线程的开始执行点（一个函数的地址），已经执行函数的参数。第一个进行的是，我们首先找到一段进程没用的空间来作为新线程的栈空间，然后构造切换到线程的 `Context`，包括入口的参数（这里没有考虑复杂的情况，现在只是支持小等于 8 个 8 字节参数），还有 `sstatus` 寄存器，其中包括 `spp`（`sret` 后的模式）、`spie` 和 `sie` 寄存器。其中后两者的意思是在发生中断时 `sie` 会被置零（屏蔽中断），而 `spie` 会被赋值为 `sie` 的值，在 `sret` 的时候 `sie` 的值再恢复为 `spie` 的值，我们把 `spie` 预设为 1 也就意味着返回之后可以接受中断，同时 `sie` 为 0 意味着在那段恢复的逻辑（`__restore` 等）中操作 `sstatus` 寄存器不会发生中断以免发生意料之外的错误。更加具体的细节请参见 RISC-V 特权级手册。
 
 下面还有两个比较简单的函数，这里一并给出：
 

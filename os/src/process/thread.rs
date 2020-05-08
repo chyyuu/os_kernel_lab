@@ -2,7 +2,6 @@
 
 use super::*;
 use core::mem::size_of;
-use riscv::register::sstatus::{self, SPP::*};
 
 /// 线程 ID 使用 `isize`，可以用负数表示错误
 pub type ThreadID = isize;
@@ -14,7 +13,7 @@ pub struct Thread {
     /// 线程 ID
     pub id: ThreadID,
     /// 线程的栈
-    pub stack: Stack,
+    pub stack: Range<VirtualAddress>,
     /// 线程执行上下文
     ///
     /// 当且仅当线程被暂停执行时，`context` 为 `Some`
@@ -24,7 +23,7 @@ pub struct Thread {
 }
 
 impl Thread {
-    /// 执行一个线程
+    /// 准备执行一个线程
     ///
     /// 激活对应进程的页表，并返回其 Context
     pub fn run(&self) -> *mut Context {
@@ -38,9 +37,8 @@ impl Thread {
             KERNEL_STACK.push_context(parked_frame) as *mut Context
         } else {
             // 内核线程则将 Context 放至 sp 下
-            let address = parked_frame.sp() - size_of::<Context>();
-            let context = address.deref();
-            *context = parked_frame;
+            let context = (parked_frame.sp() - size_of::<Context>()) as *mut Context;
+            unsafe { *context = parked_frame };
             context
         }
     }
@@ -60,49 +58,18 @@ impl Thread {
         entry_point: usize,
         arguments: Option<&[usize]>,
     ) -> MemoryResult<Arc<Thread>> {
-        // 从地址空间中找一段空间存放栈
-        let mut stack_range = Range::<VirtualAddress>::from(0..STACK_SIZE);
-        while process.read().memory_set.overlap_with(stack_range.into()) {
-            stack_range.start += STACK_SIZE;
-            stack_range.end += STACK_SIZE;
-        }
-        // 构建栈，从进程中继承特权信息
-        let stack = Stack::new(stack_range, process.read().is_user);
-        // 映射这段空间
-        process
+        // 让所属进程分配并映射一段空间，作为线程的栈
+        let stack = process
             .write()
-            .memory_set
-            .add_segment(stack.get_segment())?;
+            .alloc_page_range(STACK_SIZE, Flags::READABLE | Flags::WRITABLE)?;
 
         // 构建线程的 Context
-        let context = Context {
-            x: {
-                let mut x = [0usize; 32];
-                // 栈顶为新创建的栈顶
-                x[2] = stack.top().into();
-                // 写入参数，这里没有考虑一些特殊情况，比如参数大于 8 个或 struct 铺开等
-                if let Some(args) = arguments {
-                    x[10..(10 + args.len())].copy_from_slice(args);
-                }
-                x
-            },
-            // sstatus 设置为，在 sret 之后，开启中断
-            sstatus: {
-                let mut sstatus = sstatus::read();
-                if process.read().is_user {
-                    sstatus.set_spp(User);
-                } else {
-                    sstatus.set_spp(Supervisor);
-                }
-                // 这样设置 SPIE 和 SIE 位，使得替换 sstatus 后关闭中断，
-                // 而在 sret 到用户线程时开启中断。详见 SPIE 和 SIE 的定义
-                sstatus.set_spie(true);
-                sstatus.set_sie(false);
-                sstatus
-            },
-            // sret 后进入 entry_point
-            sepc: entry_point,
-        };
+        let context = Context::new(
+            stack.end.into(),
+            entry_point,
+            arguments,
+            process.read().is_user,
+        );
 
         // 打包成线程
         let thread = Arc::new(Thread {
@@ -112,20 +79,28 @@ impl Thread {
             },
             stack,
             context: Mutex::new(Some(context)),
-            process: process.clone(),
+            process,
         });
+
         Ok(thread)
     }
 }
 
-impl Eq for Thread {}
-
+/// 通过线程 ID 来判等
 impl PartialEq for Thread {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
     }
 }
 
+/// 通过线程 ID 来判等
+/// 
+/// 在 Rust 中，[`PartialEq`] trait 不要求任意对象 `a` 满足 `a == a`。
+/// 将类型标注为 [`Eq`]，会沿用 `PartialEq` 中定义的 `eq()` 方法，
+/// 同时声明对于任意对象 `a` 满足 `a == a`。
+impl Eq for Thread {}
+
+/// 打印线程除了父进程以外的信息
 impl core::fmt::Debug for Thread {
     fn fmt(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter
