@@ -42,24 +42,22 @@
 
 use super::*;
 use core::mem::size_of;
-use lazy_static::*;
 
 /// 内核栈
 #[repr(align(16))]
 #[repr(C)]
 pub struct KernelStack([u8; KERNEL_STACK_SIZE]);
 
-lazy_static! {
-    /// 公用的内核栈
-    pub static ref KERNEL_STACK: KernelStack = KernelStack([0; STACK_SIZE]);
-}
+/// 公用的内核栈
+pub static KERNEL_STACK: KernelStack = KernelStack([0; KERNEL_STACK_SIZE]);
 
 impl KernelStack {
-    /// 在栈顶加入 Context 并且返回 sp
-    pub fn push_context(&self, context: Context) -> usize {
-        let push_address = &self as *const _ as usize + STACK_SIZE - size_of::<Context>();
+    /// 在栈顶加入 Context 并且返回新的栈顶指针
+    pub fn push_context(&self, context: Context) -> *mut Context {
+        let stack_top = &self as *const _ as usize + size_of::<Self>();
+        let push_address = (stack_top - size_of::<Context>()) as *mut Context;
         unsafe {
-            *(push_address as *mut Context) = context;
+            *push_address = context;
         }
         push_address
     }

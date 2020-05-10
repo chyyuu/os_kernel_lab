@@ -34,7 +34,7 @@ impl Thread {
 
         if self.process.read().is_user {
             // 用户线程则将 Context 放至内核栈顶
-            KERNEL_STACK.push_context(parked_frame) as *mut Context
+            KERNEL_STACK.push_context(parked_frame)
         } else {
             // 内核线程则将 Context 放至 sp 下
             let context = (parked_frame.sp() - size_of::<Context>()) as *mut Context;

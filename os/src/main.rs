@@ -59,24 +59,25 @@ pub extern "C" fn rust_main() -> ! {
 
     let process = Process::new_kernel().unwrap();
 
-    let thread = Thread::new(
-        process.clone(),
-        sample_process as usize,
-        Some(&[12345usize]),
-    )
-    .unwrap();
-    PROCESSOR.get().add_thread(thread);
-    let thread = Thread::new(process, sample_process as usize, Some(&[12345usize])).unwrap();
-    PROCESSOR.get().add_thread(thread);
+    for message in 0..8 {
+        let thread = Thread::new(
+            process.clone(),
+            sample_process as usize,
+            Some(&[message]),
+        ).unwrap();
+        PROCESSOR.get().add_thread(thread);
+    }
+
+    // 把多余的 process 引用丢弃掉
+    drop(process);
 
     PROCESSOR.get().run();
 }
 
-fn sample_process(arg: usize) {
-    println!("sample_process called with argument {}", arg);
-    let mut sum = 0;
-    for i in 0..10000 {
-        sum += i;
+fn sample_process(message: usize) {
+    for i in 0..1000000 {
+        if i % 200000 == 0 {
+            println!("thread {}", message);
+        }
     }
-    println!("i'm back with {}", sum);
 }
