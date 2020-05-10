@@ -1,6 +1,5 @@
 //! 保存现场所用的 struct [`Context`]
 
-use crate::memory::*;
 use core::fmt;
 use core::mem::zeroed;
 use riscv::register::sstatus::{self, Sstatus, SPP::*};
@@ -63,6 +62,17 @@ impl Context {
         self
     }
 
+    /// 获取返回地址
+    pub fn ra(&self) -> usize {
+        self.x[1]
+    }
+
+    /// 设置返回地址
+    pub fn set_ra(&mut self, value: usize) -> &mut Self {
+        self.x[1] = value;
+        self
+    }
+
     /// 按照函数调用规则写入参数
     ///
     /// 没有考虑一些特殊情况，例如超过 8 个参数，或 struct 空间展开
@@ -82,7 +92,7 @@ impl Context {
         let mut context = Self::default();
 
         // 设置栈顶指针
-        context.set_sp(stack_top);
+        context.set_sp(stack_top).set_ra(-1isize as usize);
         // 设置初始参数
         if let Some(args) = arguments {
             context.set_arguments(args);
@@ -97,10 +107,9 @@ impl Context {
         } else {
             context.sstatus.set_spp(Supervisor);
         }
-        // 这样设置 SPIE 和 SIE 位，使得替换 sstatus 后关闭中断，
+        // 这样设置 SPIE 位，使得替换 sstatus 后关闭中断，
         // 而在 sret 到用户线程时开启中断。详见 SPIE 和 SIE 的定义
         context.sstatus.set_spie(true);
-        context.sstatus.set_sie(false);
 
         context
     }

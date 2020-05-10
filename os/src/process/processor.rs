@@ -36,10 +36,7 @@ impl Processor {
             fn __restore(context: usize);
         }
         // 从 current_thread 中取出 Context
-        let thread = self.current_thread();
-        let context = thread.run();
-        // 这个函数不会执行到结尾，所以手动 drop 掉 thread 的一个 Arc
-        drop(thread);
+        let context = self.current_thread().run();
         // 从此将没有回头
         unsafe {
             __restore(context as usize);
