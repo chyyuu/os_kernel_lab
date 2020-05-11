@@ -94,7 +94,7 @@ impl PartialEq for Thread {
 }
 
 /// 通过线程 ID 来判等
-/// 
+///
 /// 在 Rust 中，[`PartialEq`] trait 不要求任意对象 `a` 满足 `a == a`。
 /// 将类型标注为 [`Eq`]，会沿用 `PartialEq` 中定义的 `eq()` 方法，
 /// 同时声明对于任意对象 `a` 满足 `a == a`。

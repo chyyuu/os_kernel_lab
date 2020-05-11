@@ -6,12 +6,12 @@
 // 所以在模块范围内不提示『未使用的函数』等警告
 #![allow(dead_code)]
 
-mod address;
-mod config;
-mod frame;
-mod heap;
-mod mapping;
-mod range;
+pub mod address;
+pub mod config;
+pub mod frame;
+pub mod heap;
+pub mod mapping;
+pub mod range;
 
 /// 一个缩写，模块中一些函数会使用
 pub type MemoryResult<T> = Result<T, &'static str>;
@@ -29,4 +29,5 @@ pub use {
 /// - [`heap::init`]
 pub fn init() {
     heap::init();
+    println!("mod memory initialized");
 }

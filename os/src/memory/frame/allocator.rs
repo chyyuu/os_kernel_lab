@@ -3,8 +3,8 @@
 //! 返回的 [`FrameTracker`] 类型代表一个帧，它在被 drop 时会自动将空间补回分配器中。
 
 use super::*;
-use algorithm::*;
 use crate::memory::*;
+use algorithm::*;
 use lazy_static::*;
 use spin::Mutex;
 

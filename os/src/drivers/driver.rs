@@ -1,0 +1,1 @@
+pub type DriverResult<T> = Result<T, &'static str>;

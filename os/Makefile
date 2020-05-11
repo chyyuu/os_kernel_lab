@@ -37,7 +37,9 @@ qemu: build
     		-machine virt \
     		-nographic \
     		-bios default \
-    		-device loader,file=$(BIN_FILE),addr=0x80200000
+    		-device loader,file=$(BIN_FILE),addr=0x80200000 \
+    		-drive file=$(BIN_FILE),format=raw,id=sfs \
+    		-device virtio-blk-device,drive=sfs
 
 # 一键运行
 run: build qemu

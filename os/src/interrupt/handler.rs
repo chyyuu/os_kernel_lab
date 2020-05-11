@@ -55,7 +55,11 @@ fn supervisor_timer(context: &mut Context) -> *mut Context {
 
 /// 出现未能解决的异常，终止当前线程
 fn fault(_context: &mut Context, scause: Scause, stval: usize) -> *mut Context {
-    println!("{:?} terminated with {:?}", PROCESSOR.get().current_thread(), scause.cause());
+    println!(
+        "{:?} terminated with {:?}",
+        PROCESSOR.get().current_thread(),
+        scause.cause()
+    );
     println!("stval: {:x}", stval);
     PROCESSOR.get().kill_current_thread();
     // 跳转到 PROCESSOR 调度的下一个线程

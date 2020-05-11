@@ -53,7 +53,7 @@ impl Mapping {
         // segment 可能可以内部做好映射
         if let Some(ppn_iter) = segment.iter_mapped() {
             // segment 可以提供映射，那么直接用它得到 vpn 和 ppn 的迭代器
-            println!("map {:x?}", segment.page_range);
+            // println!("map {:x?}", segment.page_range);
             for (vpn, ppn) in segment.iter().zip(ppn_iter) {
                 self.map_one(vpn, ppn, segment.flags | Flags::VALID)?;
             }
@@ -64,7 +64,7 @@ impl Mapping {
             let mut allocated_pairs = vec![];
             for vpn in segment.iter() {
                 let frame: FrameTracker = FRAME_ALLOCATOR.lock().alloc()?;
-                println!("map {:x?} -> {:x?}", vpn, frame.page_number());
+                // println!("map {:x?} -> {:x?}", vpn, frame.page_number());
                 self.map_one(vpn, frame.page_number(), segment.flags | Flags::VALID)?;
                 allocated_pairs.push((vpn, frame));
             }

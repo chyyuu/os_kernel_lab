@@ -36,6 +36,7 @@
 
 #[macro_use]
 mod console;
+mod drivers;
 mod interrupt;
 mod memory;
 mod panic;
@@ -53,31 +54,24 @@ global_asm!(include_str!("asm/entry.asm"));
 ///
 /// 在 `_start` 为我们进行了一系列准备之后，这是第一个被调用的 Rust 函数
 #[no_mangle]
-pub extern "C" fn rust_main() -> ! {
+pub extern "C" fn rust_main(_hart_id: usize, dtb_paddr: usize) -> ! {
     memory::init();
     interrupt::init();
+    drivers::init(dtb_paddr);
 
     let process = Process::new_kernel().unwrap();
 
-    for message in 0..8 {
-        let thread = Thread::new(
-            process.clone(),
-            sample_process as usize,
-            Some(&[message]),
-        ).unwrap();
+    for _ in 0..8 {
+        let thread = Thread::new(process.clone(), sample_process as usize, None).unwrap();
         PROCESSOR.get().add_thread(thread);
     }
 
     // 把多余的 process 引用丢弃掉
     drop(process);
 
-    PROCESSOR.get().run();
+    PROCESSOR.get().run()
 }
 
-fn sample_process(message: usize) {
-    for i in 0..1000000 {
-        if i % 200000 == 0 {
-            println!("thread {}", message);
-        }
-    }
+fn sample_process() {
+    loop {}
 }

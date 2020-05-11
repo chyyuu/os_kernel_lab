@@ -5,7 +5,7 @@
 /// SBI 调用
 #[inline(always)]
 fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
-    let ret;
+    let mut ret;
     unsafe {
         llvm_asm!("ecall"
             : "={x10}" (ret)
