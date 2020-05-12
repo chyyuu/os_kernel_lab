@@ -35,7 +35,7 @@ _start:
     .section .bss.stack
     .global boot_stack
 boot_stack:
-    .space 4096 * 4
+    .space 4096 * 16
     .global boot_stack_top
 boot_stack_top:
     # 栈结尾
@@ -49,7 +49,7 @@ boot_page_table:
     # 第 2 项：0x8000_0000 -> 0x8000_0000，0xcf 表示 VRWXAD 均为 1
     .quad (0x80000 << 10) | 0xcf
     .zero 505 * 8
-    # 第 508 项
+    # 第 508 项：0xffff_ffff_0000_0000 -> 0x0000_0000，0xcf 表示 VRWXAD 均为 1
     .quad (0x00000 << 10) | 0xcf
     .quad 0
     # 第 510 项：0xffff_ffff_8000_0000 -> 0x8000_0000，0xcf 表示 VRWXAD 均为 1

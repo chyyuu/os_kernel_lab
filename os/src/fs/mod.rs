@@ -4,14 +4,16 @@ use rcore_fs_sfs::SimpleFileSystem;
 use crate::drivers::driver::{DRIVERS, DeviceType, BlockDriver};
 use alloc::sync::Arc;
 use rcore_fs::dev::block_cache::BlockCache;
+use crate::fs::config::*;
+
+pub mod config;
 
 lazy_static! {
     pub static ref ROOT_INODE: Arc<dyn INode> = {
         for driver in DRIVERS.read().iter() {
             if driver.device_type() == DeviceType::Block {
                 let driver = BlockDriver(driver.clone());
-                let device = Arc::new(BlockCache::new(driver, 0x20));
-                println!("load");
+                let device = Arc::new(BlockCache::new(driver, BLOCK_CACHE_CAPACITY));
                 return SimpleFileSystem::open(device).expect("failed to open SFS").root_inode();
             }
         }

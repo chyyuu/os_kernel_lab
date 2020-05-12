@@ -1,0 +1,1 @@
+pub const BLOCK_CACHE_CAPACITY: usize = 0x10;

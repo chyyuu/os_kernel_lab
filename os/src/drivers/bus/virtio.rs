@@ -22,8 +22,6 @@ pub fn virtio_probe(node: &Node) {
         // only support legacy device
         return;
     }
-    println!("vendor id: {:#x}", header.vendor_id());
-    println!("Device tree node {:?}", node);
     match header.device_type() {
         DeviceType::Block => virtio_blk::add_driver(header),
         device => println!("unrecognized virtio device: {:?}", device),

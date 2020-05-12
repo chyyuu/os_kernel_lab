@@ -27,7 +27,6 @@ pub struct FrameAllocator<T: Allocator> {
 impl<T: Allocator> FrameAllocator<T> {
     /// 创建对象
     pub fn new(range: impl Into<Range<PhysicalPageNumber>> + Copy) -> Self {
-        println!("{} {}", range.into().start, *KERNEL_END_ADDRESS);
         FrameAllocator {
             start_ppn: range.into().start,
             allocator: T::new(range.into().len()),

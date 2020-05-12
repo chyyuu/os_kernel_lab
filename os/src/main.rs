@@ -45,6 +45,7 @@ mod process;
 mod sbi;
 
 use process::*;
+use crate::memory::PhysicalAddress;
 
 extern crate alloc;
 
@@ -55,24 +56,18 @@ global_asm!(include_str!("asm/entry.asm"));
 ///
 /// 在 `_start` 为我们进行了一系列准备之后，这是第一个被调用的 Rust 函数
 #[no_mangle]
-pub extern "C" fn rust_main(_hart_id: usize, dtb_paddr: usize) -> ! {
+pub extern "C" fn rust_main(_hart_id: usize, dtb_paddr: PhysicalAddress) -> ! {
     memory::init();
     interrupt::init();
     drivers::init(dtb_paddr);
     fs::init();
 
-    println!("OK1 {}", *memory::KERNEL_END_ADDRESS);
-
     let process = Process::new_kernel().unwrap();
-
-    println!("OK");
 
     for _ in 0..8 {
         let thread = Thread::new(process.clone(), sample_process as usize, None).unwrap();
         PROCESSOR.get().add_thread(thread);
     }
-
-    loop {}
 
     // 把多余的 process 引用丢弃掉
     drop(process);
@@ -81,6 +76,5 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_paddr: usize) -> ! {
 }
 
 fn sample_process() {
-    println!("OK!");
     loop {}
 }
