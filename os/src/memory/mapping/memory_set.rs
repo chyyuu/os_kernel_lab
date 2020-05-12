@@ -30,7 +30,11 @@ impl MemorySet {
             fn rodata_start();
             fn data_start();
             fn bss_start();
+            fn kernel_end();
         }
+
+        println!("OK {}", VirtualAddress::from(kernel_end as usize));
+        println!("OK {}", *KERNEL_END_ADDRESS);
 
         // 建立字段
         let segments = vec![
@@ -78,6 +82,7 @@ impl MemorySet {
                 flags: Flags::READABLE | Flags::WRITABLE,
             },
         ];
+        println!("OK3");
         let mut mapping = Mapping::new()?;
         // 准备保存所有新分配的物理页面
         let mut allocated_pairs: Box<dyn Iterator<Item = (VirtualPageNumber, FrameTracker)>> =

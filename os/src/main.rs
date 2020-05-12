@@ -61,12 +61,18 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_paddr: usize) -> ! {
     drivers::init(dtb_paddr);
     fs::init();
 
+    println!("OK1 {}", *memory::KERNEL_END_ADDRESS);
+
     let process = Process::new_kernel().unwrap();
+
+    println!("OK");
 
     for _ in 0..8 {
         let thread = Thread::new(process.clone(), sample_process as usize, None).unwrap();
         PROCESSOR.get().add_thread(thread);
     }
+
+    loop {}
 
     // 把多余的 process 引用丢弃掉
     drop(process);
@@ -75,5 +81,6 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_paddr: usize) -> ! {
 }
 
 fn sample_process() {
+    println!("OK!");
     loop {}
 }

@@ -10,7 +10,8 @@ lazy_static! {
         for driver in DRIVERS.read().iter() {
             if driver.device_type() == DeviceType::Block {
                 let driver = BlockDriver(driver.clone());
-                let device = Arc::new(BlockCache::new(driver, 0x100));
+                let device = Arc::new(BlockCache::new(driver, 0x20));
+                println!("load");
                 return SimpleFileSystem::open(device).expect("failed to open SFS").root_inode();
             }
         }

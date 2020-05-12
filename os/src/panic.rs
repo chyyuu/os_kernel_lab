@@ -2,6 +2,7 @@
 
 use crate::sbi::shutdown;
 use core::panic::PanicInfo;
+use core::alloc::Layout;
 
 /// 打印 panic 的信息并 [`shutdown`]
 ///
