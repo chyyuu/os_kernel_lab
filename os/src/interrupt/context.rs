@@ -50,6 +50,7 @@ impl fmt::Debug for Context {
     }
 }
 
+#[allow(unused)]
 impl Context {
     /// 获取栈指针
     pub fn sp(&self) -> usize {

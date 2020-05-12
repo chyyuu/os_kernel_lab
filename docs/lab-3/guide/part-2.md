@@ -136,7 +136,8 @@ _start:
     .section .bss.stack
     .global boot_stack
 boot_stack:
-    .space 4096 * 4
+    # 16K 启动栈大小
+    .space 4096 * 16
     .global boot_stack_top
 boot_stack_top:
     # 栈结尾

@@ -34,6 +34,13 @@ impl MemorySet {
 
         // 建立字段
         let segments = vec![
+            // DEVICE 段，rwx
+            Segment {
+                map_type: MapType::Linear,
+                page_range: Range::<VirtualAddress>::from(0xffffffff10000000..0xffffffff10900000)
+                    .into(),
+                flags: Flags::READABLE | Flags::WRITABLE,
+            },
             // .text 段，r-x
             Segment {
                 map_type: MapType::Linear,

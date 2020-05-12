@@ -49,6 +49,13 @@ impl PageTableEntry {
     pub fn is_empty(&self) -> bool {
         self.0 == 0
     }
+    /// 是否指向下一级（RWX 全为0）
+    pub fn has_next_level(&self) -> bool {
+        let flags = self.flags();
+        !(flags.contains(Flags::READABLE)
+            || flags.contains(Flags::WRITABLE)
+            || flags.contains(Flags::EXECUTABLE))
+    }
 }
 
 impl core::fmt::Debug for PageTableEntry {

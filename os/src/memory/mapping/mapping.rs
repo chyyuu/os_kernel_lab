@@ -10,6 +10,20 @@ use crate::memory::{
     MemoryResult,
 };
 use alloc::{vec, vec::Vec};
+use lazy_static::lazy_static;
+use spin::RwLock;
+
+lazy_static! {
+    /// 当前映射的根页表的物理页号
+    pub static ref CURRENT_ROOT_PPN: RwLock<PhysicalPageNumber> = {
+        // 初始为 boot 线程的初始页表
+        extern "C" {
+            fn boot_page_table();
+        }
+        let pa = PhysicalAddress::from(VirtualAddress(boot_page_table as usize));
+        RwLock::new(PhysicalPageNumber::from(pa))
+    };
+}
 
 #[derive(Default)]
 /// 某个线程的内存映射关系
@@ -21,10 +35,11 @@ pub struct Mapping {
 }
 
 impl Mapping {
-    /// 将当前的映射加载到 `satp` 寄存器
+    /// 将当前的映射加载到 `satp` 寄存器并记录
     pub fn activate(&self) {
         // satp 低 27 位为页号，高 4 位为模式，8 表示 Sv39
         let new_satp = self.root_ppn.0 | (8 << 60);
+        *(CURRENT_ROOT_PPN.write()) = self.root_ppn;
         unsafe {
             // 将 new_satp 的值写到 satp 寄存器
             llvm_asm!("csrw satp, $0" :: "r"(new_satp) :: "volatile");
@@ -105,6 +120,28 @@ impl Mapping {
         }
         // 此时 entry 位于第三级页表
         Ok(entry)
+    }
+
+    /// 查找虚拟地址对应的物理地址
+    pub fn lookup(va: VirtualAddress) -> Option<PhysicalAddress> {
+        let root_table: &PageTable = PhysicalAddress::from(*CURRENT_ROOT_PPN.read()).deref_kernel();
+        let vpn = VirtualPageNumber::floor(va);
+        let mut entry = &root_table.entries[vpn.levels()[0]];
+        let mut length = 12 + 2 * 9;
+        for vpn_slice in &vpn.levels()[1..] {
+            if entry.is_empty() {
+                return None;
+            }
+            if entry.has_next_level() {
+                length -= 9;
+                entry = &mut entry.get_next_table().entries[*vpn_slice];
+            } else {
+                break;
+            }
+        }
+        let base = PhysicalAddress::from(entry.page_number()).0;
+        let offset = va.0 & ((1 << length) - 1);
+        Some(PhysicalAddress(base + offset))
     }
 
     /// 为给定的虚拟 / 物理页号建立映射关系

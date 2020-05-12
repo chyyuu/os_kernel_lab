@@ -2,8 +2,6 @@
 //!
 //!
 
-#![allow(unused)]
-
 mod context;
 mod handler;
 mod timer;

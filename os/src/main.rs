@@ -1,13 +1,14 @@
 //! # 全局属性
-//! - `#![no_std]`  
+//!
+//! - `#![no_std]`
 //!   禁用标准库
 #![no_std]
 //!
-//! - `#![no_main]`  
+//! - `#![no_main]`
 //!   不使用 `main` 函数等全部 Rust-level 入口点来作为程序入口
 #![no_main]
 //!
-//! - `#![deny(missing_docs)]`  
+//! - `#![deny(missing_docs)]`
 //!   任何没有注释的地方都会产生警告：这个属性用来压榨写实验指导的学长，同学可以删掉了
 #![warn(missing_docs)]
 //! # 一些 unstable 的功能需要在 crate 层级声明后才可以使用
@@ -21,11 +22,11 @@
 //!   内嵌汇编
 #![feature(llvm_asm)]
 //!
-//! - `#![feature(global_asm)]`  
+//! - `#![feature(global_asm)]`
 //!   内嵌整个汇编文件
 #![feature(global_asm)]
 //!
-//! - `#![feature(panic_info_message)]`  
+//! - `#![feature(panic_info_message)]`
 //!   panic! 时，获取其中的信息并打印
 #![feature(panic_info_message)]
 //!
@@ -44,8 +45,8 @@ mod panic;
 mod process;
 mod sbi;
 
-use process::*;
 use crate::memory::PhysicalAddress;
+use process::*;
 
 extern crate alloc;
 
@@ -56,18 +57,17 @@ global_asm!(include_str!("asm/entry.asm"));
 ///
 /// 在 `_start` 为我们进行了一系列准备之后，这是第一个被调用的 Rust 函数
 #[no_mangle]
-pub extern "C" fn rust_main(_hart_id: usize, dtb_paddr: PhysicalAddress) -> ! {
+pub extern "C" fn rust_main(_hart_id: usize, dtb_pa: PhysicalAddress) -> ! {
     memory::init();
     interrupt::init();
-    drivers::init(dtb_paddr);
+    drivers::init(dtb_pa);
     fs::init();
 
     let process = Process::new_kernel().unwrap();
 
-    for _ in 0..8 {
-        let thread = Thread::new(process.clone(), sample_process as usize, None).unwrap();
-        PROCESSOR.get().add_thread(thread);
-    }
+    PROCESSOR
+        .get()
+        .add_thread(Thread::new(process.clone(), simple as usize, Some(&[0])).unwrap());
 
     // 把多余的 process 引用丢弃掉
     drop(process);
@@ -75,6 +75,15 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_paddr: PhysicalAddress) -> ! {
     PROCESSOR.get().run()
 }
 
-fn sample_process() {
+/// 测试任何内核线程都可以操作文件系统和驱动
+fn simple(id: usize) {
+    println!("hello from thread id {}", id);
+    // 新建一个目录
+    fs::ROOT_INODE
+        .create("tmp", rcore_fs::vfs::FileType::Dir, 0o666)
+        .expect("failed to mkdir /tmp");
+    // 输出根文件目录内容
+    fs::ls("/");
+
     loop {}
 }
