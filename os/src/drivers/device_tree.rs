@@ -1,8 +1,8 @@
 use core::slice;
 
+use super::bus::virtio::virtio_probe;
 use crate::memory::VirtualAddress;
 use device_tree::{DeviceTree, Node};
-use crate::drivers::virtio::virtio_probe;
 
 const DEVICE_TREE_MAGIC: u32 = 0xd00dfeed;
 
@@ -28,8 +28,7 @@ pub fn init(dtb_vaddr: VirtualAddress) {
     let magic = u32::from_be(header.magic);
     if magic == DEVICE_TREE_MAGIC {
         let size = u32::from_be(header.size);
-        let data =
-            unsafe { slice::from_raw_parts(dtb_vaddr.0 as *const u8, size as usize) };
+        let data = unsafe { slice::from_raw_parts(dtb_vaddr.0 as *const u8, size as usize) };
         if let Ok(dt) = DeviceTree::load(data) {
             walk(&dt.root);
         }

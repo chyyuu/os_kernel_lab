@@ -37,6 +37,7 @@
 #[macro_use]
 mod console;
 mod drivers;
+mod fs;
 mod interrupt;
 mod memory;
 mod panic;
@@ -58,6 +59,7 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_paddr: usize) -> ! {
     memory::init();
     interrupt::init();
     drivers::init(dtb_paddr);
+    fs::init();
 
     let process = Process::new_kernel().unwrap();
 
