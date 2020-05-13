@@ -42,18 +42,18 @@ lazy_static! {
 
 这里暂时只有块设备这个种类，不过这样写还是为了方便未来的扩展。
 
-### 抽象块设备驱动
+### 抽象块设备
 
-有了驱动的概念，我们进一步抽象块设备的驱动：
+有了驱动的概念，我们进一步抽象块设备：
 
 ```rust
-/// 块设备驱动接口
-pub struct BlockDriver(pub Arc<dyn Driver>);
+/// 块设备抽象（驱动的引用）
+pub struct BlockDevice(pub Arc<dyn Driver>);
 
-/// 为 [`BlockDriver`] 实现 [`rcore-fs`] 中 [`BlockDevice`] trait
+/// 为 [`BlockDevice`] 实现 [`rcore-fs`] 中 [`BlockDevice`] trait
 ///
 /// 使得文件系统可以通过调用块设备的该接口来读写
-impl BlockDevice for BlockDriver {
+impl dev::BlockDevice for BlockDevice {
     /// 每个块的大小（取 2 的对数）
     ///
     /// 这里取 512B 是因为 virtio 驱动对设备的操作粒度为 512B
@@ -84,7 +84,7 @@ impl BlockDevice for BlockDriver {
 }
 ```
 
-这里所谓的 `BlockDriver` 其实就是一个 `Driver` 的引用。而且利用 rcore-fs 中提供的 `BlockDevice` trait 实现了为文件系统的接口，实际上是对上传文件系统的连接。
+这里所谓的 `BlockDevice` 其实就是一个 `Driver` 的引用。而且利用 rcore-fs 中提供的 `BlockDevice` trait 实现了为文件系统的接口，实际上是对上传文件系统的连接。
 
 ### virtio-blk 块设备驱动
 
@@ -128,8 +128,8 @@ pub fn add_driver(header: &'static mut VirtIOHeader) {
 
 ### 小结
 
-至此，我们完成了全部的驱动逻辑，目前的设计模式可能比较和平常使用不一样，我们总结一下如下所示：
+至此，我们完成了全部的驱动逻辑，我们总结一下目前的设计模式如下所示：
 
 <div align=center> <img src="../pics/design.png" style="zoom:40%;"/> </div>
 
-其中 `Driver` 作为一个核心 trait 为上提供实现，上层也就是 `Driver` 的使用侧，而下层则是 `Driver` 的实现侧。而下一个小节，我们将利用这些驱动来实现文件系统。
+其中 `Driver` 作为一个核心 trait 为上提供实现，上层也就是 `Driver` 的使用侧（设备的抽象），而下层则是 `Driver` 的实现侧（设备的实现）。而下一个小节，我们将利用这些驱动来实现文件系统。

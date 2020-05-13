@@ -3,7 +3,7 @@
 //! 将读取第一个块设备作为根文件系统
 
 use crate::drivers::{
-    block::BlockDriver,
+    block::BlockDevice,
     driver::{DeviceType, DRIVERS},
 };
 use alloc::sync::Arc;
@@ -20,10 +20,10 @@ lazy_static! {
         // 选择第一个块设备
         for driver in DRIVERS.read().iter() {
             if driver.device_type() == DeviceType::Block {
-                let driver = BlockDriver(driver.clone());
+                let device = BlockDevice(driver.clone());
                 // 动态分配一段内存空间作为设备 Cache
-                let device = Arc::new(BlockCache::new(driver, BLOCK_CACHE_CAPACITY));
-                return SimpleFileSystem::open(device)
+                let device_with_cache = Arc::new(BlockCache::new(device, BLOCK_CACHE_CAPACITY));
+                return SimpleFileSystem::open(device_with_cache)
                     .expect("failed to open SFS")
                     .root_inode();
             }

@@ -61,3 +61,4 @@
   * [virtio](docs/lab-5/guide/part-2.md)
   * [驱动和块设备驱动](docs/lab-5/guide/part-3.md)
   * [文件系统](docs/lab-5/guide/part-4.md)
+  * [小结](docs/lab-5/guide/summary.md)

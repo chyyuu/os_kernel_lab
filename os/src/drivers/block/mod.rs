@@ -1,20 +1,20 @@
-//! 块设备驱动
+//! 块设备抽象
 //!
 //! 目前仅仅实现了 virtio 协议的块设备，另外还有类似 AHCI 等协议
 
 use super::driver::Driver;
 use alloc::sync::Arc;
-use rcore_fs::dev::{self, BlockDevice};
+use rcore_fs::dev;
 
 pub mod virtio_blk;
 
-/// 块设备驱动接口
-pub struct BlockDriver(pub Arc<dyn Driver>);
+/// 块设备抽象（驱动的引用）
+pub struct BlockDevice(pub Arc<dyn Driver>);
 
-/// 为 [`BlockDriver`] 实现 [`rcore-fs`] 中 [`BlockDevice`] trait
+/// 为 [`BlockDevice`] 实现 [`rcore-fs`] 中 [`BlockDevice`] trait
 ///
 /// 使得文件系统可以通过调用块设备的该接口来读写
-impl BlockDevice for BlockDriver {
+impl dev::BlockDevice for BlockDevice {
     /// 每个块的大小（取 2 的对数）
     ///
     /// 这里取 512B 是因为 virtio 驱动对设备的操作粒度为 512B
