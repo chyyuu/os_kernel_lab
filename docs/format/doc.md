@@ -23,6 +23,7 @@
 - 其他一些名词
   - ABI
   - GitHub
+  - virtio
 - Rust 相关
   - rustup
   - cargo

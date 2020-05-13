@@ -1,6 +1,6 @@
 //! 块设备驱动
 //!
-//! 目前仅仅实现了 VirtIO 协议的块设备，另外还有类似 AHCI 等协议
+//! 目前仅仅实现了 virtio 协议的块设备，另外还有类似 AHCI 等协议
 
 use super::driver::Driver;
 use alloc::sync::Arc;
@@ -17,7 +17,7 @@ pub struct BlockDriver(pub Arc<dyn Driver>);
 impl BlockDevice for BlockDriver {
     /// 每个块的大小（取 2 的对数）
     ///
-    /// 这里取 512B 是因为 VirtIO 驱动对设备的操作粒度为 512B
+    /// 这里取 512B 是因为 virtio 驱动对设备的操作粒度为 512B
     const BLOCK_SIZE_LOG2: u8 = 9;
 
     /// 读取某个块到 buf 中

@@ -1,6 +1,6 @@
-//! VirtIO MMIO 总线协议驱动
+//! virtio MMIO 总线协议驱动
 //!
-//! 目前仅仅实现了 VirtIO Block Device 协议，另外还有类似 VirtIO Network 等协议
+//! 目前仅仅实现了 virtio Block Device 协议，另外还有类似 virtio Network 等协议
 
 use super::super::block::virtio_blk;
 use crate::memory::{
@@ -14,7 +14,7 @@ use lazy_static::lazy_static;
 use spin::RwLock;
 use virtio_drivers::{DeviceType, VirtIOHeader};
 
-/// 从设备树的某个节点探测 VirtIO 协议具体类型
+/// 从设备树的某个节点探测 virtio 协议具体类型
 pub fn virtio_probe(node: &Node) {
     // reg 属性中包含了描述设备的 Header 的位置
     let reg = match node.prop_raw("reg") {
@@ -24,7 +24,7 @@ pub fn virtio_probe(node: &Node) {
     let pa = PhysicalAddress(reg.as_slice().read_be_u64(0).unwrap() as usize);
     let va = VirtualAddress::from(pa);
     let header = unsafe { &mut *(va.0 as *mut VirtIOHeader) };
-    // 目前只支持某个特定版本的 VirtIO 协议
+    // 目前只支持某个特定版本的 virtio 协议
     if !header.verify() {
         return;
     }

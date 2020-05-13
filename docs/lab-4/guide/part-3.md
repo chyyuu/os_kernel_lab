@@ -1,8 +1,8 @@
-# 线程的切换
+## 线程的切换
 
 回答一下前一节的思考题：当发生中断时，在 `__restore` 时，`a0` 寄存器的值是 `handle_interrupt` 的返回值。也就是说，如果我们令 `handle_interrupt` 返回另一个线程的 `*mut Context`，就可以在时钟中断后跳转到这个线程来执行。
 
-## 修改中断处理
+### 修改中断处理
 
 在线程切换时（即时钟中断时），`handle_interrupt` 需要将上一个线程的 `Context` 保存起来，然后将下一个线程的 `Context` 并返回。
 
@@ -34,7 +34,7 @@ fn supervisor_timer(context: &mut Context) -> *mut Context {
 
 可以看到，当发生断点中断时，直接返回原来的上下文（修改一下 `sepc`）；而如果是时钟中断的时候，我们返回了 `PROCESSOR.get().tick(context)` 作为上下文，那它又是怎么工作的呢？
 
-## 线程切换
+### 线程切换
 
 让我们看一下 `Processor::tick` 是如何实现的。
 
@@ -115,6 +115,6 @@ pub fn run(&self) -> *mut Context {
 
 现在，线程保存 `Context` 都是根据 `sp` 指针，在栈上压入一个 `Context` 来存储。但是，对于一个用户线程，可能只有上帝才知道触发中断时 `sp` 指到了哪里。所以，为了不让一个线程的崩溃导致操作系统的崩溃，我们需要提前准备好内核栈来存储用户线程的 `Context`。在下一节我们将具体讲解该如何做。
 
-## 小结
+### 小结
 
 为了实现线程的切换，我们让 `handle_interrupt` 返回一个 `*mut Context`。如果需要切换线程，就将前一个线程的 `Context` 保存起来换上新的线程的 `Context`。而如果不需要切换，那么直接返回原本的 `Context` 即可。

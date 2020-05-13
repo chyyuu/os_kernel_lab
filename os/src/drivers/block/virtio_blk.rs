@@ -3,7 +3,7 @@ use alloc::sync::Arc;
 use spin::Mutex;
 use virtio_drivers::{VirtIOBlk, VirtIOHeader};
 
-/// VirtIO 协议的块设备驱动
+/// virtio 协议的块设备驱动
 struct VirtIOBlkDriver(Mutex<VirtIOBlk<'static>>);
 
 /// 为 [`VirtIOBlkDriver`] 实现 [`Driver`] trait

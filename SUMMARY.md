@@ -55,3 +55,9 @@
   * [内核栈](docs/lab-4/guide/part-4.md)
   * [线程调度](docs/lab-4/guide/part-5.md)
   * [小结](docs/lab-4/guide/summary.md)
+* 实验指导五
+  * [摘要](docs/lab-5/guide/intro.md)
+  * [设备树](docs/lab-5/guide/part-1.md)
+  * [virtio](docs/lab-5/guide/part-2.md)
+  * [驱动和块设备驱动](docs/lab-5/guide/part-3.md)
+  * [文件系统](docs/lab-5/guide/part-4.md)
