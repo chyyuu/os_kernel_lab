@@ -2,8 +2,6 @@
 
 回答一下前一节的思考题：当发生中断时，在 `__restore` 时，`a0` 寄存器的值是 `handle_interrupt` 的返回值。也就是说，如果我们令 `handle_interrupt` 返回另一个线程的 `*mut Context`，就可以在时钟中断后跳转到这个线程来执行。
 
-<br/>
-
 ## 修改中断处理
 
 在线程切换时（即时钟中断时），`handle_interrupt` 需要将上一个线程的 `Context` 保存起来，然后将下一个线程的 `Context` 并返回。
@@ -36,15 +34,13 @@ fn supervisor_timer(context: &mut Context) -> *mut Context {
 
 可以看到，当发生断点中断时，直接返回原来的上下文（修改一下 `sepc`）；而如果是时钟中断的时候，我们返回了 `PROCESSOR.get().tick(context)` 作为上下文，那它又是怎么工作的呢？
 
-<br/>
-
 ## 线程切换
 
 让我们看一下 `Processor::tick` 是如何实现的。
 
 （调度器 `scheduler` 会在后面的小节中讲解，我们只需要知道它能够返回下一个等待执行的线程。）
 
-{% label %}os/src/process/processor.rs{% endlabel %}
+{% label %}os/src/process/processor.rs: impl Processor{% endlabel %}
 ```rust
 /// 在一个时钟中断时，替换掉 context
 pub fn tick(&mut self, context: &mut Context) -> *mut Context {
@@ -68,13 +64,11 @@ pub fn tick(&mut self, context: &mut Context) -> *mut Context {
 }
 ```
 
-<br/>
-
 #### 上下文 `Context` 的保存和取出
 
 在线程切换时，我们需要存下前一个线程的 `Context`，为此我们实现 `Thread::park`。
 
-{% label %}os/src/process/thread.rs{% endlabel %}
+{% label %}os/src/process/thread.rs: impl Thread{% endlabel %}
 ```rust
 /// 发生时钟中断后暂停线程，保存状态
 pub fn park(&self, context: Context) {
@@ -88,7 +82,7 @@ pub fn park(&self, context: Context) {
 
 然后，我们需要取出下一个线程的 `Context`，为此我们实现 `Thread::run`。不过这次需要注意的是，启动一个线程除了需要 `Context`，还需要切换页表。这个操作我们也在这个方法中完成。
 
-{% label %}os/src/process/thread.rs{% endlabel %}
+{% label %}os/src/process/thread.rs: impl Thread{% endlabel %}
 ```rust
 /// 准备执行一个线程
 ///
@@ -117,13 +111,9 @@ pub fn run(&self) -> *mut Context {
 > 不会，因为每一个进程的 `MemorySet` 都会映射操作系统的空间，否则在遇到中断的时候，将无法执行异常处理。
 {% endreveal %}
 
-<br/>
-
 #### 内核栈？
 
 现在，线程保存 `Context` 都是根据 `sp` 指针，在栈上压入一个 `Context` 来存储。但是，对于一个用户线程，可能只有上帝才知道触发中断时 `sp` 指到了哪里。所以，为了不让一个线程的崩溃导致操作系统的崩溃，我们需要提前准备好内核栈来存储用户线程的 `Context`。在下一节我们将具体讲解该如何做。
-
-<br/>
 
 ## 小结
 

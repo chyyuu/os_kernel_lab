@@ -12,6 +12,7 @@ _book
 public
 # npm 依赖文件
 node_modules
+package-lock.json
 
 ### Cargo
 # Cargo 包设置（自动生成）

@@ -19,8 +19,6 @@
 - 从中断中返回时（`__restore` 时），如果是用户线程，`a0` 应指向被压在内核栈中的 `Context`。此时应该出栈 `Context` 并且将栈顶保存到 `sscratch` 中  
   如果是内核线程，`a0` 应指向当前线程的栈中的 `Context`。此时直接将 `Context` 出栈即可
 
-<br/>
-
 ## 实现
 
 #### 为内核栈预留空间
@@ -57,8 +55,6 @@ impl KernelStack {
 }
 ```
 
-<br/>
-
 #### 修改 `interrupt.asm`
 
 在这个汇编代码中，我们需要加入对 `sscratch` 的判断和使用。
@@ -93,7 +89,7 @@ _from_user:
     # ...
 ```
 
-以及事后的恢复
+以及事后的恢复：
 
 {% label %}os/src/asm/interrupt.asm{% endlabel %}
 ```asm
@@ -119,8 +115,6 @@ _to_kernel:
     # 恢复通用寄存器
     # ...
 ```
-
-<br/>
 
 ## 小结
 

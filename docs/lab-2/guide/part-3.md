@@ -27,13 +27,6 @@ pub const MEMORY_END_ADDRESS: PhysicalAddress = PhysicalAddress(0x8800_0000);
 
 {% label %}os/src/memory/frame_tracker.rs{% endlabel %}
 ```rust
-//! 提供物理页的『`Box`』 [`FrameTracker`]
-
-use crate::memory::{
-    address::*,
-    frame::allocator::FRAME_ALLOCATOR,
-};
-
 /// 分配出的物理页
 ///
 /// # `Tracker` 是什么？
@@ -84,16 +77,6 @@ impl Drop for FrameTracker {
 
 {% label %}os/src/memory/frame/allocator.rs{% endlabel %}
 ```rust
-//! 提供帧分配器 [`FRAME_ALLOCATOR`](FrameAllocator)
-//!
-//! 返回的 [`FrameTracker`] 类型代表一个帧，它在被 drop 时会自动将空间补回分配器中。
-
-use super::*;
-use crate::data_structure::*;
-use crate::memory::*;
-use lazy_static::*;
-use spin::Mutex;
-
 lazy_static! {
     /// 帧分配器
     pub static ref FRAME_ALLOCATOR: Mutex<FrameAllocator<AllocatorImpl>> = Mutex::new(FrameAllocator::new(Range::from(
@@ -158,8 +141,6 @@ pub trait Allocator {
 并在 `os/src/data_structure/` 中分别实现了链表和线段树算法，具体内容可以参考代码。
 
 我们注意到，我们使用了 `lazy_static!` 和 `Mutex` 来包装分配器。需要知道，对于 `static mut` 类型的修改操作是 unsafe 的。我们之后会提到线程的概念，对于静态数据，所有的线程都能访问。当一个线程正在访问这段数据的时候，如果另一个线程也来访问，就可能会产生冲突，并带来难以预测的结果。
-
-<!-- TODO 是不是能把锁去掉？ -->
 
 所以我们的方法是使用 `spin::Mutex<T>` 给这段数据加一把锁，一个线程试图通过 `lock()` 打开锁来获取内部数据的可变引用，如果钥匙被别的线程所占用，那么这个线程就会一直卡在这里；直到那个占用了钥匙的线程对内部数据的访问结束，锁被释放，将钥匙交还出来，被卡住的那个线程拿到了钥匙，就可打开锁获取内部引用，访问内部数据。
 

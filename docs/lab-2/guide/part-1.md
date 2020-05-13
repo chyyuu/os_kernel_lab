@@ -37,7 +37,7 @@ unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout);
 
 ### 支持动态内存分配
 
-为了避免重复造轮子，我们可以直接开一个静态的 8M 数组作为堆的空间，然后调用 @jiege 开发的 Buddy System Allocator。
+为了避免重复造轮子，我们可以直接开一个静态的 8M 数组作为堆的空间，然后调用 [@jiege](https://github.com/jiegec/) 开发的 Buddy System Allocator。
 
 {% label %}os/src/memory/config.rs{% endlabel %}
 ```rust
@@ -47,13 +47,6 @@ pub const KERNEL_HEAP_SIZE: usize = 0x80_0000;
 
 {% label %}os/src/memory/heap.rs{% endlabel %}
 ```rust
-//! 实现操作系统动态内存分配所用的堆
-//! 
-//! 基于 `buddy_system_allocator` crate，致敬杰哥。
-
-use super::config::KERNEL_HEAP_SIZE;
-use buddy_system_allocator::LockedHeap;
-
 /// 进行动态内存分配所用的堆空间
 /// 
 /// 大小为 [`KERNEL_HEAP_SIZE`]  

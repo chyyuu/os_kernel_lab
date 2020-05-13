@@ -27,10 +27,6 @@
 
 {% label %}os/src/memory/mapping/segment.rs{% endlabel %}
 ```rust
-//! 映射类型 [`MapType`] 和映射片段 [`Segment`]
-
-use crate::memory::{address::*, mapping::Flags, range::Range};
-
 /// 映射的类型
 #[derive(Debug)]
 pub enum MapType {

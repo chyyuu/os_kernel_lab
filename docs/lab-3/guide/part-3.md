@@ -147,38 +147,4 @@ impl PageTableTracker {
 }
 ```
 
-最后，可以利用一些解引用的 Rust 特性方便后面的工作：
-
-{% label %}os/src/memory/mapping/page_table.rs{% endlabel %}
-```rust
-// PageTableEntry 和 PageTableTracker 都可以 deref 到对应的 PageTable
-// （使用线性映射来访问相应的物理地址）
-
-impl core::ops::Deref for PageTableTracker {
-    type Target = PageTable;
-    fn deref(&self) -> &Self::Target {
-        unsafe { self.0.address().deref_kernel() }
-    }
-}
-
-impl core::ops::DerefMut for PageTableTracker {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.0.address().deref_kernel() }
-    }
-}
-
-impl core::ops::Deref for PageTableEntry {
-    type Target = PageTable;
-    fn deref(&self) -> &Self::Target {
-        unsafe { self.address().deref_kernel() }
-    }
-}
-
-impl core::ops::DerefMut for PageTableEntry {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.address().deref_kernel() }
-    }
-}
-```
-
 至此，我们完成了物理页中的页表。后面，我们将把内核中各个段做一个更精细的映射，把之前的那个粗糙的初始映射页表替换掉。

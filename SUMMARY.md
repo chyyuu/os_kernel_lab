@@ -8,10 +8,8 @@
 * [代码格式规范](docs/format/code.md)
 
 ## 实验之前
-<!-- TODO -->
-* [Rust 基础介绍](docs/pre-lab/rust.md) 
-<!-- TODO -->
-* [操作系统背景知识](docs/pre-lab/os.md)
+<!-- TODO * [Rust 基础介绍](docs/pre-lab/rust.md)  -->
+<!-- TODO * [操作系统背景知识](docs/pre-lab/os.md) -->
 * [环境部署](docs/pre-lab/env.md)
 
 ## 实验指导
@@ -29,7 +27,7 @@
   * [小结](docs/lab-0/guide/summary.md)
 * 实验指导一
   * [摘要](docs/lab-1/guide/intro.md)
-  * [背景知识](docs/lab-1/guide/part-1.md)
+  * [什么是中断](docs/lab-1/guide/part-1.md)
   * [RISC-V 中的中断](docs/lab-1/guide/part-2.md)
   * [程序运行状态](docs/lab-1/guide/part-3.md)
   * [状态的保存与恢复](docs/lab-1/guide/part-4.md)
@@ -57,6 +55,3 @@
   * [内核栈](docs/lab-4/guide/part-4.md)
   * [线程调度](docs/lab-4/guide/part-5.md)
   * [小结](docs/lab-4/guide/summary.md)
-
-## 实验题目
-* [实验题目一](docs/lab-1/exercise/intro.md)

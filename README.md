@@ -11,18 +11,20 @@
 - `docs/`：教学实验指导分实验内容和开发规范
 - `notes/`：开题报告和若干讨论
 - `os/`：操作系统代码
+- `user/`：用户态代码
 - `SUMMARY.md`：GitBook 目录页
 - `book.json`：GitBook 配置文件
 - `rust-toolchain`：限定 Rust 工具链版本
+- `deploy.sh`：自动部署脚本
 <!-- Rust 工具链版本需要根据时间更新 -->
 
 ## 实验指导
 
-基于 GitBook，目前已经部署到了 [GitHub Pages](https://os20-rcore-tutorial.github.io/rCore-Tutorial-deploy)
- 上面。
+基于 GitBook，目前已经部署到了 [GitHub Pages](https://os20-rcore-tutorial.github.io/rCore-Tutorial-deploy) 上面。
 
-### 本地使用方法
+### 文档本地使用方法
 
+{% label %}运行命令{% endlabel %}
 ```bash
 npm install -g gitbook-cli
 gitbook install
@@ -33,6 +35,7 @@ gitbook serve
 
 ### 操作系统代码
 基于 cargo 项目，进入 `os` 目录通过相关命令可以运行：
+{% label %}运行命令{% endlabel %}
 ```bash
 cd os
 # 编译并运行
@@ -43,7 +46,9 @@ cargo doc
 
 ### 参考和感谢
 
-本文档和代码大量参考了：
+本文档和代码部分参考了：
+- [rCore](https://github.com/rcore-os/rCore)
+- [zCore](https://github.com/rcore-os/zCore)
 - [rCore_tutorial](https://rcore-os.github.io/rCore_tutorial_doc/)
 - [使用Rust编写操作系统](https://github.com/rustcc/writing-an-os-in-rust)
 

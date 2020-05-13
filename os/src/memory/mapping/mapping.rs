@@ -16,7 +16,7 @@ use spin::RwLock;
 lazy_static! {
     /// 当前映射的根页表的物理页号
     pub static ref CURRENT_ROOT_PPN: RwLock<PhysicalPageNumber> = {
-        // 初始为 boot 线程的初始页表
+        // 初始为 boot 线程的页表
         extern "C" {
             fn boot_page_table();
         }
@@ -127,6 +127,7 @@ impl Mapping {
         let root_table: &PageTable = PhysicalAddress::from(*CURRENT_ROOT_PPN.read()).deref_kernel();
         let vpn = VirtualPageNumber::floor(va);
         let mut entry = &root_table.entries[vpn.levels()[0]];
+        // 为了支持大页的查找，我们用 length 表示查找到的物理页需要加多少位的偏移
         let mut length = 12 + 2 * 9;
         for vpn_slice in &vpn.levels()[1..] {
             if entry.is_empty() {

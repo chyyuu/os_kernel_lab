@@ -23,13 +23,11 @@ pub struct Processor {
 
 注意到这里我们用了一个 `UnsafeWrapper`，这个东西相当于 Rust 提供的 `UnsafeCell`，或者 C 语言的指针：任何线程都可以随时从中获取一个 `&'static mut` 引用。由于在我们的设计中，**只有时钟中断（以及未来的系统调用）时可以使用 `PROCESSOR`**，而在此过程中，操作系统是关闭时钟中断的。因此，这里使用 `UnsafeCell` 是安全的。
 
-<br/>
-
 ## 调度器
 
 调度器的算法有许多种，我们将它提取出一个 trait 作为接口
 
-{% label %}(os/src/) algorithm/src/scheduler/mod.rs{% endlabel %}
+{% label %}os/src/algorithm/src/scheduler/mod.rs{% endlabel %}
 ```rust
 /// 线程调度器
 ///
@@ -46,9 +44,7 @@ pub trait Scheduler<ThreadType: Clone + Eq>: Default {
 }
 ```
 
-具体的算法就不在此展开了，我们可以参照目录下的一些样例。
-
-<br/>
+具体的算法就不在此展开了，我们可以参照目录 `os/src/algorithm/src/scheduler` 下的一些样例。
 
 ## 运行！
 
@@ -76,6 +72,9 @@ pub fn run(&mut self) -> ! {
 
 {% label %}os/src/main.rs{% endlabel %}
 ```rust
+/// Rust 的入口函数
+///
+/// 在 `_start` 为我们进行了一系列准备之后，这是第一个被调用的 Rust 函数
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
     memory::init();
@@ -109,8 +108,6 @@ fn sample_process(message: usize) {
 
 ```
 
-<br/>
-
 运行一下，我们会得到类似的输出：
 
 {% label %}运行输出{% endlabel %}
@@ -140,6 +137,5 @@ thread 3
 thread 2
 thread 1
 thread 0
-
 ...
 ```
