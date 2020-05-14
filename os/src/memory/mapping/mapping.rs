@@ -10,20 +10,6 @@ use crate::memory::{
     MemoryResult,
 };
 use alloc::{vec, vec::Vec};
-use lazy_static::lazy_static;
-use spin::RwLock;
-
-lazy_static! {
-    /// 当前映射的根页表的物理页号
-    pub static ref CURRENT_ROOT_PPN: RwLock<PhysicalPageNumber> = {
-        // 初始为 boot 线程的页表
-        extern "C" {
-            fn boot_page_table();
-        }
-        let pa = PhysicalAddress::from(VirtualAddress(boot_page_table as usize));
-        RwLock::new(PhysicalPageNumber::from(pa))
-    };
-}
 
 #[derive(Default)]
 /// 某个进程的内存映射关系
@@ -39,7 +25,6 @@ impl Mapping {
     pub fn activate(&self) {
         // satp 低 27 位为页号，高 4 位为模式，8 表示 Sv39
         let new_satp = self.root_ppn.0 | (8 << 60);
-        *(CURRENT_ROOT_PPN.write()) = self.root_ppn;
         unsafe {
             // 将 new_satp 的值写到 satp 寄存器
             llvm_asm!("csrw satp, $0" :: "r"(new_satp) :: "volatile");
@@ -124,7 +109,13 @@ impl Mapping {
 
     /// 查找虚拟地址对应的物理地址
     pub fn lookup(va: VirtualAddress) -> Option<PhysicalAddress> {
-        let root_table: &PageTable = PhysicalAddress::from(*CURRENT_ROOT_PPN.read()).deref_kernel();
+        let mut current_ppn;
+        unsafe {
+            llvm_asm!("csrr $0, satp" : "=r"(current_ppn) ::: "volatile");
+            current_ppn ^= 8 << 60;
+        }
+
+        let root_table: &PageTable = PhysicalAddress::from(PhysicalPageNumber(current_ppn)).deref_kernel();
         let vpn = VirtualPageNumber::floor(va);
         let mut entry = &root_table.entries[vpn.levels()[0]];
         // 为了支持大页的查找，我们用 length 表示查找到的物理页需要加多少位的偏移
