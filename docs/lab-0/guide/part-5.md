@@ -125,6 +125,7 @@ Disassembly of section .text:
 
 由于我们目前没有调试的手段，不需要调试信息；同时也不会解析 elf 格式文件，所以我们可以使用工具 rust-objcopy 从 elf 格式可执行文件生成内核镜像：
 
+{% label %}运行命令{% endlabel %}
 ```bash
 rust-objcopy target/riscv64imac-unknown-none-elf/debug/os --strip-all -O binary target/riscv64imac-unknown-none-elf/debug/kernel.bin
 ```

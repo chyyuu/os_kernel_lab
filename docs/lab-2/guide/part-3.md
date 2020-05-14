@@ -57,12 +57,6 @@ impl FrameTracker {
     }
 }
 
-impl<T: Into<PhysicalPageNumber>> From<T> for FrameTracker {
-    fn from(v: T) -> Self {
-        Self(v.into().into())
-    }
-}
-
 /// 帧在释放时会放回 [`static@FRAME_ALLOCATOR`] 的空闲链表中
 impl Drop for FrameTracker {
     fn drop(&mut self) {
@@ -73,7 +67,7 @@ impl Drop for FrameTracker {
 
 这里，我们实现了 `FrameTracker` 这个结构，而区分于实际在内存中的 4KB 大小的 "Frame"，我们设计的初衷是分配器分配给我们 `FrameTracker` 作为一个帧的标识，而随着不再需要这个物理页，我们需要回收，我们利用 Rust 的 drop 机制在析构的时候自动实现回收。
 
-最后，我们封装一个物理页分配器，为了符合更 Rust 规范的设计，这个分配器将不涉及任何的具体算法，具体的算法将用一个名为 `Allocator` 的 Rust trait 封装起来,而我们的 `FrameAllocator` 会依赖于具体的 trait 实现例化。
+最后，我们封装一个物理页分配器，为了符合更 Rust 规范的设计，这个分配器将不涉及任何的具体算法，具体的算法将用一个名为 `Allocator` 的 Rust trait 封装起来，而我们的 `FrameAllocator` 会依赖于具体的 trait 实现例化。
 
 {% label %}os/src/memory/frame/allocator.rs{% endlabel %}
 ```rust

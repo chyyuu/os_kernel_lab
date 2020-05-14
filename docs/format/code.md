@@ -23,6 +23,7 @@
     /// not here
     fn default() -> Self { ... }
   }
+  ```
 
 ### 参考
 - https://doc.rust-lang.org/1.26.2/book/first-edition/comments.html
