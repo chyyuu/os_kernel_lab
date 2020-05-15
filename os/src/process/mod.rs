@@ -8,7 +8,7 @@ mod thread;
 
 use crate::interrupt::*;
 use crate::memory::*;
-use alloc::sync::Arc;
+use alloc::{sync::Arc, vec::Vec, vec};
 use spin::{Mutex, RwLock};
 
 pub use config::*;

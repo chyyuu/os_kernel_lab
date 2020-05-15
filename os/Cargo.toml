@@ -11,13 +11,15 @@ algorithm = { path = 'src/algorithm' }
 bit_field = "0.10.0"
 bitflags = "1.2.1"
 buddy_system_allocator = "0.3.9"
+hashbrown = "0.7.2"
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 spin = "0.5.2"
 device_tree = { git = "https://github.com/rcore-os/device_tree-rs" }
 virtio-drivers = { git = "https://github.com/rcore-os/virtio-drivers" }
-rcore-fs = { git = "https://github.com/rcore-os/rcore-fs" }
-rcore-fs-sfs = { git = "https://github.com/rcore-os/rcore-fs" }
+rcore-fs = { git = "https://github.com/rcore-os/rcore-fs"}
+rcore-fs-sfs = { git = "https://github.com/rcore-os/rcore-fs"}
+xmas-elf = "0.7.0"
 
 # panic 时直接终止，因为我们没有实现堆栈展开的功能
 [profile.dev]
