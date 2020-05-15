@@ -5,7 +5,7 @@ BIN_FILE    := target/$(TARGET)/$(MODE)/kernel.bin
 
 USER_DIR	:= ../user
 USER_BUILD	:= $(USER_DIR)/build
-TEST_IMG	:= $(USER_BUILD)/test.img
+IMG_FILE	:= $(USER_BUILD)/disk.img
 
 OBJDUMP     := rust-objdump --arch-name=riscv64
 OBJCOPY     := rust-objcopy --binary-architecture=riscv64
@@ -42,7 +42,7 @@ qemu: build
     		-nographic \
     		-bios default \
     		-device loader,file=$(BIN_FILE),addr=0x80200000 \
-    		-drive file=$(TEST_IMG),format=raw,id=sfs \
+    		-drive file=$(IMG_FILE),format=raw,id=sfs \
     		-device virtio-blk-device,drive=sfs
 
 # 一键运行

@@ -1,7 +1,11 @@
+//! 系统调用
+
 const SYSCALL_WRITE: usize = 64;
 const SYSCALL_EXIT: usize = 93;
 
+/// 将参数放在对应寄存器中，并执行 `ecall`
 fn syscall(id: usize, arg0: usize, arg1: usize, arg2: usize) -> isize {
+    // 返回值
     let mut ret;
     unsafe {
         llvm_asm!("ecall"
@@ -13,10 +17,12 @@ fn syscall(id: usize, arg0: usize, arg1: usize, arg2: usize) -> isize {
     ret
 }
 
+/// 打印一个字符
 pub fn sys_write(c: usize) -> isize {
     syscall(SYSCALL_WRITE, c, 0, 0)
 }
 
+/// 退出并返回数值
 pub fn sys_exit(code: isize) -> ! {
     syscall(SYSCALL_EXIT, code as usize, 0, 0);
     unreachable!()
