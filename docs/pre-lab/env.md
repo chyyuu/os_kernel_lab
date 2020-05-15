@@ -18,6 +18,7 @@
 ### macOS
 在 macOS 中，我们可以直接打开命令行用 Homebrew 软件包管理器来安装最新版 QEMU 和其依赖：
 
+{% label %}运行命令{% endlabel %}
 ```bash
 brew install qemu
 ```
@@ -25,6 +26,7 @@ brew install qemu
 ### Linux / Windows WSL
 在 Linux 中，由于很多软件包管理器的默认软件源中包含的 QEMU 版本过低，这里**推荐**的方式是我们自己手动从源码编译安装：
 
+{% label %}运行命令{% endlabel %}
 ```bash
 # 下载源码包 （如果下载速度过慢可以把地址替换为我们提供的地址：TODO）
 wget https://download.qemu.org/qemu-4.2.0.tar.xz
@@ -46,6 +48,7 @@ sudo make install
 
 当然如果你可以找到包含较新版本的 QEMU 的软件包源，**也可以**通过软件包管理器直接安装：
 
+{% label %}运行命令{% endlabel %}
 ```bash
 # Ubuntu / Debian / Windows WSL
 sudo apt-get install qemu
@@ -60,6 +63,7 @@ sudo yum install qemu
 ## 安装 Rust 工具链
 首先安装 Rust 版本管理器 rustup 和 Rust 包管理器 cargo，这里我们用官方的安装脚本来安装：
 
+{% label %}运行命令{% endlabel %}
 ```bash
 curl https://sh.rustup.rs -sSf | sh
 ```
@@ -68,6 +72,7 @@ curl https://sh.rustup.rs -sSf | sh
 
 如果官方的脚本在运行时出现了网络速度较慢的问题，**可选地**可以通过修改 rustup 的镜像地址（修改为中国科学技术大学的镜像服务器）来加速：
 
+{% label %}运行命令{% endlabel %}
 ```bash
 export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
 export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
@@ -75,6 +80,8 @@ curl https://sh.rustup.rs -sSf | sh
 ```
 
 **或者**也可以通过在运行前设置命令行中的科学上网代理来实现：
+
+{% label %}运行命令{% endlabel %}
 ```bash
 # e.g. Shadowsocks 代理
 export https_proxy=http://127.0.0.1:1080
@@ -83,6 +90,8 @@ export ftp_proxy=http://127.0.0.1:1080
 ```
 
 安装完成后，**最好**我们也可以把软件包管理器 cargo 所用的软件包镜像地址 crates.io 也换成中国科学技术大学的镜像服务器来加速。我们打开（如果没有就新建）`~/.cargo/config` 文件，并把内容修改为：
+
+{% label %}~/.cargo/config{% endlabel %}
 ```toml
 [source.crates-io]
 registry = "https://github.com/rust-lang/crates.io-index"
@@ -93,6 +102,8 @@ registry = "git://mirrors.ustc.edu.cn/crates.io-index"
 
 ## 安装完成后
 在相关软件包安装完成之后，只需要下面的命令，就可以把整个教程完成之后的 rCore 系统在你的系统上运行起来：
+
+{% label %}运行命令{% endlabel %}
 ```bash
 # 克隆仓库并编译运行
 git clone TODO
@@ -104,6 +115,8 @@ make run
 ```
 
 如果一切正常，则 QEMU 模拟的 RISC-V 64 处理器将输出
+
+{% label %}运行输出{% endlabel %}
 ```bash
 TODO
 ```
@@ -114,6 +127,7 @@ TODO
 
 所以我们的工作目录下会有一个名为 `rust-toolchain` 的文件（无后缀名），在其中有所需的工具链版本：
 
+{% label %}rust-toolchain{% endlabel %}
 ```
 nightly-2020-03-06
 ```

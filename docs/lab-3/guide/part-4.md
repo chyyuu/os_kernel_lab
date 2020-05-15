@@ -50,7 +50,7 @@ pub struct Segment {
 
 后面，上层需要做的是把一个 Segment 中没有确定虚拟页到哪个物理页的全部虚拟页都申请一个物理页（或者说线性映射没有这样的虚拟页，而分配映射需要把每个虚拟页都申请一个对应的物理页）。
 
-于是我们可以实现这样一个需要具体分配的迭代器（后面一并实现了一个方便的解引用）：
+于是我们可以实现这样一个需要具体分配的迭代器：
 
 {% label %}os/src/memory/mapping/segment.rs{% endlabel %}
 ```rust
@@ -63,14 +63,6 @@ impl Segment {
             // 按帧映射无法直接获得物理地址，需要分配
             MapType::Framed => None,
         }
-    }
-}
-
-/// 方便访问 `page_range` 域中的方法
-impl core::ops::Deref for Segment {
-    type Target = Range<VirtualPageNumber>;
-    fn deref(&self) -> &Self::Target {
-        &self.page_range
     }
 }
 ```
@@ -149,7 +141,7 @@ fn map_one(
 }
 ```
 
-有了 `map_one` 来实现一个虚拟页对物理页的映射，我们就可以一个连续的 Segment 的映射：
+有了 `map_one` 来实现一个虚拟页对物理页的映射，我们就可以实现对一个连续的 Segment 的映射：
 
 {% label %}os/src/memory/mapping/mapping.rs: impl Mapping{% endlabel %}
 ```rust

@@ -2,6 +2,7 @@
 
 ### 创建项目
 我们首先创建一个整个项目的目录，并在工作目录中首先创建一个名为 `rust-toolchain` 的文件，并在其中写入所需要的工具链版本：
+
 {% label %}rust-toolchain{% endlabel %}
 ```
 nightly-2020-03-06
@@ -9,6 +10,7 @@ nightly-2020-03-06
 
 之后在目录内部使用 `cargo new` 命令在我们的项目目录内创建一个新的 Rust 项目 os，命令如下：
 
+{% label %}运行命令{% endlabel %}
 ```bash
 cargo new os
 ```
@@ -18,6 +20,8 @@ cargo new os
 ### 目录结构
 
 创建完成后，整个项目的目录结构如下：
+
+{% label %}目录结构{% endlabel %}
 ```bash
 Project                 项目目录
 ├── rust-toolchain      Rust 工具链版本
