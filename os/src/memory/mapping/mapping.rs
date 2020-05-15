@@ -71,7 +71,6 @@ impl Mapping {
             }
             MapType::Framed => {
                 // 需要再分配帧进行映射
-            println!("map {:x?}", segment);
                 
                 // 记录所有成功分配的页面映射
                 let mut allocated_pairs = Vec::new();

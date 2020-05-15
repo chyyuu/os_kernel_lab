@@ -1,8 +1,8 @@
 //! 为 [`INode`] 实现 trait [`INodeExt`] 以扩展功能
 
-use rcore_fs::vfs::*;
-use alloc::vec::Vec;
+use super::*;
 
+/// 为 [`INode`] 类型添加的扩展功能
 pub trait INodeExt {
     /// 打印当前目录的文件
     fn ls(&self);

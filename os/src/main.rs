@@ -75,7 +75,7 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_pa: PhysicalAddress) -> ! {
 }
 
 fn test() {
-    let hello_world = fs::ROOT_INODE.find("hello_world").unwrap();
+    let hello_world = fs::ROOT_INODE.find("notebook").unwrap();
     let data = hello_world.readall().unwrap();
     let elf: ElfFile = ElfFile::new(data.as_slice()).unwrap();
     let process = Process::from_elf(&elf, true).unwrap();

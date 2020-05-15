@@ -6,16 +6,23 @@ use crate::drivers::{
     block::BlockDevice,
     driver::{DeviceType, DRIVERS},
 };
-use alloc::sync::Arc;
+use crate::kernel::Condvar;
+use alloc::{sync::Arc, vec::Vec};
+use core::any::Any;
 use lazy_static::lazy_static;
-use rcore_fs::{dev::block_cache::BlockCache, vfs::*};
 use rcore_fs_sfs::SimpleFileSystem;
+use spin::Mutex;
 
 mod config;
 mod inode_ext;
+mod stdin;
+mod stdout;
 
+pub use rcore_fs::{dev::block_cache::BlockCache, vfs::*};
 pub use config::*;
 pub use inode_ext::INodeExt;
+pub use stdin::STDIN;
+pub use stdout::STDOUT;
 
 lazy_static! {
     /// 根文件系统的根目录的 INode

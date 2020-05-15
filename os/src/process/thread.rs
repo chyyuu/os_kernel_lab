@@ -1,7 +1,11 @@
 //! 线程 [`Thread`]
 
 use super::*;
-use core::{mem::size_of, hash::{Hash, Hasher}};
+use crate::fs::*;
+use core::{
+    hash::{Hash, Hasher},
+    mem::size_of,
+};
 
 /// 线程 ID 使用 `isize`，可以用负数表示错误
 pub type ThreadID = isize;
@@ -14,14 +18,22 @@ pub struct Thread {
     pub id: ThreadID,
     /// 线程的栈
     pub stack: Range<VirtualAddress>,
+    /// 所属的进程
+    pub process: Arc<RwLock<Process>>,
+    /// 用 `Mutex` 包装一些可变的变量
+    pub inner: Mutex<ThreadInner>,
+}
+
+/// 线程中需要可变的部分
+pub struct ThreadInner {
     /// 线程执行上下文
     ///
     /// 当且仅当线程被暂停执行时，`context` 为 `Some`
-    pub context: Mutex<Option<Context>>,
+    pub context: Option<Context>,
     /// 是否进入休眠
-    pub sleeping: Mutex<bool>,
-    /// 所属的进程
-    pub process: Arc<RwLock<Process>>,
+    pub sleeping: bool,
+    /// 打开的文件
+    pub descriptors: Vec<Arc<dyn INode>>,
 }
 
 impl Thread {
@@ -32,7 +44,7 @@ impl Thread {
         // 激活页表
         self.process.write().memory_set.activate();
         // 取出 Context
-        let parked_frame = self.context.lock().take().unwrap();
+        let parked_frame = self.inner().context.take().unwrap();
 
         if self.process.read().is_user {
             // 用户线程则将 Context 放至内核栈顶
@@ -48,10 +60,9 @@ impl Thread {
     /// 发生时钟中断后暂停线程，保存状态
     pub fn park(&self, context: Context) {
         // 检查目前线程内的 context 应当为 None
-        let mut slot = self.context.lock();
-        assert!(slot.is_none());
+        assert!(self.inner().context.is_none());
         // 将 Context 保存到线程中
-        slot.replace(context);
+        self.inner().context.replace(context);
     }
 
     /// 创建一个线程
@@ -80,12 +91,19 @@ impl Thread {
                 THREAD_COUNTER
             },
             stack,
-            context: Mutex::new(Some(context)),
-            sleeping: Mutex::new(false),
             process,
+            inner: Mutex::new(ThreadInner {
+                context: Some(context),
+                sleeping: false,
+                descriptors: vec![STDIN.clone(), STDOUT.clone()],
+            }),
         });
 
         Ok(thread)
+    }
+
+    pub fn inner(&self) -> spin::MutexGuard<ThreadInner> {
+        self.inner.lock()
     }
 }
 
@@ -117,7 +135,7 @@ impl core::fmt::Debug for Thread {
             .debug_struct("Thread")
             .field("thread_id", &self.id)
             .field("stack", &self.stack)
-            .field("context", &self.context)
+            .field("context", &self.inner().context)
             .finish()
     }
 }

@@ -114,7 +114,7 @@ impl Processor {
 
     /// 唤醒一个休眠线程
     pub fn wake_thread(&mut self, thread: Arc<Thread>) {
-        *thread.sleeping.lock() = false;
+        thread.inner().sleeping = false;
         self.sleeping_threads.remove(&thread);
         self.scheduler.add_thread(thread, 0);
     }
@@ -127,9 +127,9 @@ impl Processor {
     /// 令当前线程进入休眠
     pub fn sleep_current_thread(&mut self) {
         // 从 current_thread 中取出
-        let current_thread = self.current_thread.take().unwrap();
+        let current_thread = self.current_thread();
         // 记为 sleeping
-        *current_thread.sleeping.lock() = true;
+        current_thread.inner().sleeping = true;
         // 从 scheduler 移出到 sleeping_threads 中
         self.scheduler.remove_thread(&current_thread);
         self.sleeping_threads.insert(current_thread);

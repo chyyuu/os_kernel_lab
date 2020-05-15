@@ -1,9 +1,13 @@
 use super::context::Context;
 use super::timer;
 use crate::process::PROCESSOR;
+use crate::kernel::syscall_handler;
+use crate::memory::*;
+use crate::sbi::console_getchar;
+use crate::fs::STDIN;
 use riscv::register::{
     scause::{Exception, Interrupt, Scause, Trap},
-    stvec,
+    stvec, sie
 };
 
 global_asm!(include_str!("../asm/interrupt.asm"));
@@ -19,6 +23,15 @@ pub fn init() {
         }
         // 使用 Direct 模式，将中断入口设置为 `__interrupt`
         stvec::write(__interrupt as usize, stvec::TrapMode::Direct);
+
+        // 开启外部中断使能
+        sie::set_sext();
+
+        // 在 OpenSBI 中开启外部中断
+        *PhysicalAddress(0x0c00_2080).deref_kernel() = 1 << 10;
+        // 在 OpenSBI 中开启串口
+        *PhysicalAddress(0x1000_0004).deref_kernel() = 0x0bu8;
+        *PhysicalAddress(0x1000_0001).deref_kernel() = 0x01u8;
     }
 }
 
@@ -31,8 +44,12 @@ pub fn handle_interrupt(context: &mut Context, scause: Scause, stval: usize) -> 
     match scause.cause() {
         // 断点中断（ebreak）
         Trap::Exception(Exception::Breakpoint) => breakpoint(context),
+        // 系统调用
+        Trap::Exception(Exception::UserEnvCall) => syscall_handler(context),
         // 时钟中断
         Trap::Interrupt(Interrupt::SupervisorTimer) => supervisor_timer(context),
+        // 外部中断（键盘输入）
+        Trap::Interrupt(Interrupt::SupervisorExternal) => supervisor_external(context),
         // 其他情况，终止当前线程
         _ => fault(context, scause, stval),
     }
@@ -66,4 +83,16 @@ fn fault(_context: &mut Context, scause: Scause, stval: usize) -> *mut Context {
     PROCESSOR.get().kill_current_thread();
     // 跳转到 PROCESSOR 调度的下一个线程
     PROCESSOR.get().prepare_next_thread()
+}
+
+/// 处理外部中断，只实现了键盘输入
+fn supervisor_external(context: &mut Context) -> *mut Context {
+    let mut c = console_getchar();
+    if c <= 255 {
+        if c == '\r' as usize {
+            c = '\n' as usize;
+        }
+        STDIN.push(c as u8);
+    }
+    context
 }

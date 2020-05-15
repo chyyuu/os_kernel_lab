@@ -1,5 +1,9 @@
 //! 系统调用
 
+pub const STDIN: usize = 0;
+pub const STDOUT: usize = 1;
+
+const SYSCALL_READ: usize = 63;
 const SYSCALL_WRITE: usize = 64;
 const SYSCALL_EXIT: usize = 93;
 
@@ -17,9 +21,19 @@ fn syscall(id: usize, arg0: usize, arg1: usize, arg2: usize) -> isize {
     ret
 }
 
-/// 打印一个字符
-pub fn sys_write(c: usize) -> isize {
-    syscall(SYSCALL_WRITE, c, 0, 0)
+/// 读取字符
+pub fn sys_read(fd: usize, buffer: &mut [u8]) -> isize {
+    loop {
+        let ret = syscall(SYSCALL_READ, fd, buffer as *const [u8] as *const u8 as usize, buffer.len());
+        if ret > 0 {
+            return ret;
+        }
+    }
+}
+
+/// 打印字符串
+pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
+    syscall(SYSCALL_WRITE, fd, buffer as *const [u8] as *const u8 as usize, buffer.len())
 }
 
 /// 退出并返回数值

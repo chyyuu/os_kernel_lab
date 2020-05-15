@@ -7,8 +7,9 @@ extern crate user_lib;
 use user_lib::console::*;
 
 #[no_mangle]
-pub fn main() -> usize {
-    getchar();
-    println!("Hello world from user mode program!");
-    0
+pub fn main() -> ! {
+    loop {
+        let string = getchars();
+        print!("{}", string);
+    }
 }

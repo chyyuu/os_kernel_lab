@@ -17,14 +17,14 @@ impl Condvar {
     }
 
     /// 唤起一个等待此条件变量的线程
-    pub fn notify_one(&mut self) {
+    pub fn notify_one(&self) {
         if let Some(thread) = self.watchers.lock().pop_front() {
             PROCESSOR.get().wake_thread(thread);
         }
     }
 
     /// 唤起所有等待此条件变量的线程
-    pub fn notify_all(&mut self) {
+    pub fn notify_all(&self) {
         for thread in self.watchers.lock().drain(..) {
             PROCESSOR.get().wake_thread(thread);
         }

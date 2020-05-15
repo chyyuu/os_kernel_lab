@@ -125,8 +125,6 @@ impl MemorySet {
             memory_set.add_segment(segment, Some(data))?;
         }
 
-        println!("{:x?}", memory_set.mapping.find_entry(VirtualPageNumber::from(200)).unwrap().page_number());
-
         Ok(memory_set)
     }
 
