@@ -23,6 +23,7 @@ ifeq ($(shell which rcore-fs-fuse),)
 	@cargo install rcore-fs-fuse --git https://github.com/rcore-os/rcore-fs
 endif
 
+# 编译、打包、格式转换、预留空间
 build: dependency
 	@cargo build
 	@echo Targets: $(patsubst $(SRC_DIR)/%.rs, %, $(SRC_FILES))
@@ -35,3 +36,4 @@ build: dependency
 
 clean:
 	@cargo clean
+	@rm -rf $(OUT_DIR) $(IMG_FILE) $(QCOW_FILE)

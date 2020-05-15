@@ -8,7 +8,6 @@ use user_lib::console::*;
 
 #[no_mangle]
 pub fn main() -> usize {
-    getchar();
     println!("Hello world from user mode program!");
     0
 }

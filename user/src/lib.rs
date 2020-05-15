@@ -21,7 +21,7 @@ use config::USER_HEAP_SIZE;
 use core::alloc::Layout;
 use core::panic::PanicInfo;
 use buddy_system_allocator::LockedHeap;
-use crate::syscall::sys_exit;
+pub use crate::syscall::*;
 
 /// 大小为 [`USER_HEAP_SIZE`] 的堆空间
 static mut HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];

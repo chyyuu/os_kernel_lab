@@ -11,7 +11,7 @@ use crate::memory::{
     config::PAGE_SIZE,
 };
 use alloc::{vec, vec::Vec};
-use core::cmp::{max, min};
+use core::cmp::min;
 use core::ptr::slice_from_raw_parts_mut;
 
 #[derive(Default)]

@@ -62,3 +62,12 @@
   * [驱动和块设备驱动](docs/lab-5/guide/part-3.md)
   * [文件系统](docs/lab-5/guide/part-4.md)
   * [小结](docs/lab-5/guide/summary.md)
+* 实验指导六
+  * [摘要](docs/lab-6/guide/intro.md)
+  * [构建用户程序框架](docs/lab-6/guide/part-1.md)
+  * [打包为磁盘镜像](docs/lab-6/guide/part-2.md)
+  * [解析 ELF 文件并创建线程](docs/lab-6/guide/part-3.md)
+  * [实现系统调用](docs/lab-6/guide/part-4.md)
+  * [处理文件描述符](docs/lab-6/guide/part-5.md)
+  * [条件变量](docs/lab-6/guide/part-6.md)
+  * [小结](docs/lab-6/guide/summary.md)

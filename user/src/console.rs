@@ -4,7 +4,7 @@
 
 use crate::syscall::*;
 use core::fmt::{self, Write};
-use alloc::{vec::Vec, string::String};
+use alloc::string::String;
 
 /// 实现 [`core::fmt::Write`] trait 来进行格式化输出
 struct Stdout;

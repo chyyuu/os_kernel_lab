@@ -67,18 +67,23 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_pa: PhysicalAddress) -> ! {
     drivers::init(dtb_pa);
     fs::init();
 
-    &*fs::ROOT_INODE;
-
-    test();
+    start_user_thread("hello_world");
+    start_user_thread("notebook");
 
     PROCESSOR.get().run()
 }
 
-fn test() {
-    let hello_world = fs::ROOT_INODE.find("notebook").unwrap();
-    let data = hello_world.readall().unwrap();
-    let elf: ElfFile = ElfFile::new(data.as_slice()).unwrap();
+fn start_user_thread(name: &str) {
+    // 从文件系统中找到程序
+    let app = fs::ROOT_INODE.find(name).unwrap();
+    // 读取数据
+    let data = app.readall().unwrap();
+    // 解析 ELF 文件
+    let elf = ElfFile::new(data.as_slice()).unwrap();
+    // 利用 ELF 文件创建线程，映射空间并加载数据
     let process = Process::from_elf(&elf, true).unwrap();
+    // 再从 ELF 中读出程序入口地址
     let thread = Thread::new(process, elf.header.pt2.entry_point() as usize, None).unwrap();
+    // 添加线程
     PROCESSOR.get().add_thread(thread);
 }

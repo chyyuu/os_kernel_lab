@@ -22,11 +22,4 @@ impl Condvar {
             PROCESSOR.get().wake_thread(thread);
         }
     }
-
-    /// 唤起所有等待此条件变量的线程
-    pub fn notify_all(&self) {
-        for thread in self.watchers.lock().drain(..) {
-            PROCESSOR.get().wake_thread(thread);
-        }
-    }
 }
