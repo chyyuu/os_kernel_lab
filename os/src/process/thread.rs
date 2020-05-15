@@ -1,7 +1,7 @@
 //! 线程 [`Thread`]
 
 use super::*;
-use core::mem::size_of;
+use core::{mem::size_of, hash::{Hash, Hasher}};
 
 /// 线程 ID 使用 `isize`，可以用负数表示错误
 pub type ThreadID = isize;
@@ -18,6 +18,8 @@ pub struct Thread {
     ///
     /// 当且仅当线程被暂停执行时，`context` 为 `Some`
     pub context: Mutex<Option<Context>>,
+    /// 是否进入休眠
+    pub sleeping: Mutex<bool>,
     /// 所属的进程
     pub process: Arc<RwLock<Process>>,
 }
@@ -26,9 +28,9 @@ impl Thread {
     /// 准备执行一个线程
     ///
     /// 激活对应进程的页表，并返回其 Context
-    pub fn run(&self) -> *mut Context {
+    pub fn prepare(&self) -> *mut Context {
         // 激活页表
-        self.process.read().memory_set.activate();
+        self.process.write().memory_set.activate();
         // 取出 Context
         let parked_frame = self.context.lock().take().unwrap();
 
@@ -79,6 +81,7 @@ impl Thread {
             },
             stack,
             context: Mutex::new(Some(context)),
+            sleeping: Mutex::new(false),
             process,
         });
 
@@ -99,6 +102,13 @@ impl PartialEq for Thread {
 /// 将类型标注为 [`Eq`]，会沿用 `PartialEq` 中定义的 `eq()` 方法，
 /// 同时声明对于任意对象 `a` 满足 `a == a`。
 impl Eq for Thread {}
+
+/// 通过线程 ID 来哈希
+impl Hash for Thread {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write_isize(self.id);
+    }
+}
 
 /// 打印线程除了父进程以外的信息
 impl core::fmt::Debug for Thread {

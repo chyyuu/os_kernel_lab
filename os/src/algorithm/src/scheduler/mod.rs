@@ -18,7 +18,7 @@ pub trait Scheduler<ThreadType: Clone + Eq>: Default {
     /// 获取下一个时间段应当执行的线程
     fn get_next(&mut self) -> Option<ThreadType>;
     /// 移除一个线程
-    fn remove_thread(&mut self, thread: ThreadType);
+    fn remove_thread(&mut self, thread: &ThreadType);
     /// 设置线程的优先级
     fn set_priority<T>(&mut self, thread: ThreadType, priority: T);
 }

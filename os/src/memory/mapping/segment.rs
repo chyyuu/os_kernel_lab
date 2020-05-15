@@ -17,7 +17,7 @@ pub struct Segment {
     /// 映射类型
     pub map_type: MapType,
     /// 所映射的虚拟地址
-    pub page_range: Range<VirtualPageNumber>,
+    pub range: Range<VirtualAddress>,
     /// 权限标志
     pub flags: Flags,
 }
@@ -27,17 +27,14 @@ impl Segment {
     pub fn iter_mapped(&self) -> Option<impl Iterator<Item = PhysicalPageNumber>> {
         match self.map_type {
             // 线性映射可以直接将虚拟地址转换
-            MapType::Linear => Some(self.iter().map(PhysicalPageNumber::from)),
+            MapType::Linear => Some(self.page_range().into().iter()),
             // 按帧映射无法直接获得物理地址，需要分配
             MapType::Framed => None,
         }
     }
-}
 
-/// 方便访问 `page_range` 域中的方法
-impl core::ops::Deref for Segment {
-    type Target = Range<VirtualPageNumber>;
-    fn deref(&self) -> &Self::Target {
-        &self.page_range
+    /// 将地址相应地上下取整，获得虚拟页号区间
+    pub fn page_range(&self) -> Range<VirtualPageNumber> {
+        Range::from(VirtualPageNumber::floor(self.range.start)..VirtualPageNumber::ceil(self.range.end))
     }
 }

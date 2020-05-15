@@ -1,6 +1,7 @@
 //! 进程 [`Process`]
 
 use super::*;
+use xmas_elf::ElfFile;
 
 /// 进程的信息
 pub struct Process {
@@ -19,13 +20,12 @@ impl Process {
         })))
     }
 
-    /// 返回用 [`Flags`] 类型表示的用户态信息
-    fn user_flag(&self) -> Flags {
-        if self.is_user {
-            Flags::USER
-        } else {
-            Flags::empty()
-        }
+    /// 创建进程，从文件中读取代码
+    pub fn from_elf(file: &ElfFile, is_user: bool) -> MemoryResult<Arc<RwLock<Self>>> {
+        Ok(Arc::new(RwLock::new(Self {
+            is_user,
+            memory_set: MemorySet::from_elf(file, is_user)?,
+        })))
     }
 
     /// 分配一定数量的连续虚拟空间
@@ -41,7 +41,7 @@ impl Process {
         // memory_set 只能按页分配，所以让 size 向上取整页
         let alloc_size = (size + PAGE_SIZE - 1) & !(PAGE_SIZE - 1);
         // 从 memory_set 中找一段不会发生重叠的空间
-        let mut range = Range::<VirtualAddress>::from(0..alloc_size);
+        let mut range = Range::<VirtualAddress>::from(0x1000000..0x1000000 + alloc_size);
         while self.memory_set.overlap_with(range.into()) {
             range.start += alloc_size;
             range.end += alloc_size;
@@ -49,9 +49,9 @@ impl Process {
         // 分配物理页面，建立映射
         self.memory_set.add_segment(Segment {
             map_type: MapType::Framed,
-            page_range: range.into(),
-            flags: flags | self.user_flag(),
-        })?;
+            range,
+            flags: flags | Flags::user(self.is_user),
+        }, None)?;
         // 返回地址区间（使用参数 size，而非向上取整的 alloc_size）
         Ok(Range::from(range.start..(range.start + size)))
     }

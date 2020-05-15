@@ -6,10 +6,13 @@
 use crate::memory::{
     address::*,
     frame::{FrameTracker, FRAME_ALLOCATOR},
-    mapping::{Flags, PageTable, PageTableEntry, PageTableTracker, Segment},
+    mapping::{Flags, MapType, PageTable, PageTableEntry, PageTableTracker, Segment},
     MemoryResult,
+    config::PAGE_SIZE,
 };
 use alloc::{vec, vec::Vec};
+use core::cmp::{max, min};
+use core::ptr::slice_from_raw_parts_mut;
 
 #[derive(Default)]
 /// 某个进程的内存映射关系
@@ -49,32 +52,66 @@ impl Mapping {
     pub fn map(
         &mut self,
         segment: &Segment,
+        init_data: Option<&[u8]>,
     ) -> MemoryResult<Vec<(VirtualPageNumber, FrameTracker)>> {
-        // segment 可能可以内部做好映射
-        if let Some(ppn_iter) = segment.iter_mapped() {
-            // segment 可以提供映射，那么直接用它得到 vpn 和 ppn 的迭代器
-            // println!("map {:x?}", segment.page_range);
-            for (vpn, ppn) in segment.iter().zip(ppn_iter) {
-                self.map_one(vpn, ppn, segment.flags | Flags::VALID)?;
+        match segment.map_type {
+            MapType::Linear => {
+                // 线性映射，直接对虚拟地址进行转换
+                for vpn in segment.page_range().iter() {
+                    self.map_one(vpn, vpn.into(), segment.flags | Flags::VALID)?;
+                }
+                // 拷贝数据
+                if let Some(data) = init_data {
+                    unsafe {
+                        (&mut *slice_from_raw_parts_mut(segment.range.start.deref(), data.len()))
+                            .copy_from_slice(data);
+                    }
+                }
+                Ok(Vec::new())
             }
-            Ok(vec![])
-        } else {
-            // 需要再分配帧进行映射
-            // 记录所有成功分配的页面映射
-            let mut allocated_pairs = vec![];
-            for vpn in segment.iter() {
-                let frame: FrameTracker = FRAME_ALLOCATOR.lock().alloc()?;
-                // println!("map {:x?} -> {:x?}", vpn, frame.page_number());
-                self.map_one(vpn, frame.page_number(), segment.flags | Flags::VALID)?;
-                allocated_pairs.push((vpn, frame));
+            MapType::Framed => {
+                // 需要再分配帧进行映射
+            println!("map {:x?}", segment);
+                
+                // 记录所有成功分配的页面映射
+                let mut allocated_pairs = Vec::new();
+                for vpn in segment.page_range().iter() {
+                    let frame = FRAME_ALLOCATOR.lock().alloc()?;
+                    let frame_address = frame.address();
+
+                    self.map_one(vpn, frame.page_number(), segment.flags | Flags::VALID)?;
+                    allocated_pairs.push((vpn, frame));
+
+                    // 拷贝数据，注意页表尚未应用，无法直接从刚刚映射的虚拟地址访问，因此必须用物理地址 + 偏移来访问。
+                    if let Some(data) = init_data {
+                        unsafe {
+                            if data.len() == 0 {
+                                // bss 段中，data 长度为 0，但是仍需要 0-初始化整个空间
+                                (&mut *slice_from_raw_parts_mut(
+                                    frame_address.deref_kernel(),
+                                    PAGE_SIZE,
+                                ))
+                                .fill(0);
+                            } else {
+                                // 拷贝时考虑区间与整页不对齐的特殊情况
+                                // 这里默认每个字段的起始位置一定是 4K 对齐的
+                                let copy_size = min(PAGE_SIZE, segment.range.end - VirtualAddress::from(vpn));
+                                (&mut *slice_from_raw_parts_mut(
+                                    frame_address.deref_kernel(),
+                                    copy_size,
+                                )).copy_from_slice(&data[VirtualAddress::from(vpn) - segment.range.start..VirtualAddress::from(vpn) - segment.range.start + copy_size]);
+                            }
+                        }
+                    }
+                }
+                Ok(allocated_pairs)
             }
-            Ok(allocated_pairs)
         }
     }
 
     /// 移除一段映射
     pub fn unmap(&mut self, segment: &Segment) {
-        for vpn in segment.iter() {
+        for vpn in segment.page_range().iter() {
             let entry = self.find_entry(vpn).unwrap();
             assert!(!entry.is_empty());
             // 从页表中清除项
@@ -115,7 +152,8 @@ impl Mapping {
             current_ppn ^= 8 << 60;
         }
 
-        let root_table: &PageTable = PhysicalAddress::from(PhysicalPageNumber(current_ppn)).deref_kernel();
+        let root_table: &PageTable =
+            PhysicalAddress::from(PhysicalPageNumber(current_ppn)).deref_kernel();
         let vpn = VirtualPageNumber::floor(va);
         let mut entry = &root_table.entries[vpn.levels()[0]];
         // 为了支持大页的查找，我们用 length 表示查找到的物理页需要加多少位的偏移

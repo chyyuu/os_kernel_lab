@@ -34,19 +34,23 @@
 //!   允许使用 naked 函数，即编译器不在函数前后添加出入栈操作。
 //!   这允许我们在函数中间内联汇编使用 `ret` 提前结束，而不会导致栈出现异常
 #![feature(naked_functions)]
+#![feature(slice_fill)]
 
 #[macro_use]
 mod console;
 mod drivers;
 mod fs;
 mod interrupt;
+mod kernel;
 mod memory;
 mod panic;
 mod process;
 mod sbi;
 
 use crate::memory::PhysicalAddress;
+use fs::*;
 use process::*;
+use xmas_elf::ElfFile;
 
 extern crate alloc;
 
@@ -63,27 +67,18 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_pa: PhysicalAddress) -> ! {
     drivers::init(dtb_pa);
     fs::init();
 
-    let process = Process::new_kernel().unwrap();
+    &*fs::ROOT_INODE;
 
-    PROCESSOR
-        .get()
-        .add_thread(Thread::new(process.clone(), simple as usize, Some(&[0])).unwrap());
-
-    // 把多余的 process 引用丢弃掉
-    drop(process);
+    test();
 
     PROCESSOR.get().run()
 }
 
-/// 测试任何内核线程都可以操作文件系统和驱动
-fn simple(id: usize) {
-    println!("hello from thread id {}", id);
-    // 新建一个目录
-    fs::ROOT_INODE
-        .create("tmp", rcore_fs::vfs::FileType::Dir, 0o666)
-        .expect("failed to mkdir /tmp");
-    // 输出根文件目录内容
-    fs::ls("/");
-
-    loop {}
+fn test() {
+    let hello_world = fs::ROOT_INODE.find("hello_world").unwrap();
+    let data = hello_world.readall().unwrap();
+    let elf: ElfFile = ElfFile::new(data.as_slice()).unwrap();
+    let process = Process::from_elf(&elf, true).unwrap();
+    let thread = Thread::new(process, elf.header.pt2.entry_point() as usize, None).unwrap();
+    PROCESSOR.get().add_thread(thread);
 }

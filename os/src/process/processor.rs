@@ -2,6 +2,7 @@
 
 use super::*;
 use algorithm::*;
+use hashbrown::HashSet;
 use lazy_static::*;
 
 lazy_static! {
@@ -10,12 +11,49 @@ lazy_static! {
 }
 
 /// 线程调度和管理
+///
+/// 休眠线程会从调度器中移除，单独保存。在它们被唤醒之前，不会被调度器安排。
+/// 
+/// # 用例
+/// ### 初始化并运行第一个线程
+/// ```rust
+/// processor.add_thread(thread);
+/// processor.run();
+/// unreachable!();
+/// ```
+/// 
+/// ### 切换线程（在中断中）
+/// ```rust
+/// processor.park_current_thread(context);
+/// processor.prepare_next_thread()
+/// ```
+/// 
+/// ### 结束线程（在中断中）
+/// ```rust
+/// processor.kill_current_thread();
+/// processor.prepare_next_thread()
+/// ```
+/// 
+/// ### 休眠线程（在中断中）
+/// ```rust
+/// processor.park_current_thread(context);
+/// processor.sleep_current_thread();
+/// processor.prepare_next_thread()
+/// ```
+/// 
+/// ### 唤醒线程
+/// 线程会根据调度器分配执行，不一定会立即执行。
+/// ```rust
+/// processor.wake_thread(thread);
+/// ```
 #[derive(Default)]
 pub struct Processor {
     /// 当前正在执行的线程
     current_thread: Option<Arc<Thread>>,
-    /// 线程调度器，记录所有线程
+    /// 线程调度器，记录活跃线程
     scheduler: SchedulerImpl<Arc<Thread>>,
+    /// 保存休眠线程
+    sleeping_threads: HashSet<Arc<Thread>>,
 }
 
 impl Processor {
@@ -36,7 +74,7 @@ impl Processor {
             fn __restore(context: usize);
         }
         // 从 current_thread 中取出 Context
-        let context = self.current_thread().run();
+        let context = self.current_thread().prepare();
         // 从此将没有回头
         unsafe {
             __restore(context as usize);
@@ -44,47 +82,63 @@ impl Processor {
         unreachable!()
     }
 
-    /// 在一个时钟中断时，替换掉 context
-    pub fn tick(&mut self, context: &mut Context) -> *mut Context {
-        // 向调度器询问下一个线程
-        if let Some(next_thread) = self.scheduler.get_next() {
-            if next_thread == self.current_thread() {
-                // 没有更换线程，直接返回 Context
-                context
-            } else {
+    /// 激活下一个线程的 `Context`
+    pub fn prepare_next_thread(&mut self) -> *mut Context {
+        loop {
+            // 向调度器询问下一个线程
+            if let Some(next_thread) = self.scheduler.get_next() {
                 // 准备下一个线程
-                let next_context = next_thread.run();
-                let current_thread = self.current_thread.replace(next_thread).unwrap();
-                // 储存当前线程 Context
-                current_thread.park(*context);
-                // 返回下一个线程的 Context
-                next_context
+                let context = next_thread.prepare();
+                self.current_thread = Some(next_thread);
+                return context;
+            } else {
+                // 没有活跃线程
+                if self.sleeping_threads.is_empty() {
+                    // 也没有休眠线程，则退出
+                    panic!("all threads terminated, shutting down");
+                } else {
+                    // 有休眠线程，则等待中断
+                    crate::interrupt::wait_for_interrupt();
+                }
             }
-        } else {
-            panic!("all threads terminated, shutting down");
         }
     }
 
     /// 添加一个待执行的线程
     pub fn add_thread(&mut self, thread: Arc<Thread>) {
-        // 如果 current_thread 为空就添加为 current_thread
         if self.current_thread.is_none() {
-            self.current_thread.replace(thread.clone());
+            self.current_thread = Some(thread.clone());
         }
-        // 将线程加入调度器
         self.scheduler.add_thread(thread, 0);
+    }
+
+    /// 唤醒一个休眠线程
+    pub fn wake_thread(&mut self, thread: Arc<Thread>) {
+        *thread.sleeping.lock() = false;
+        self.sleeping_threads.remove(&thread);
+        self.scheduler.add_thread(thread, 0);
+    }
+
+    /// 保存当前线程的 `Context`
+    pub fn park_current_thread(&mut self, context: &Context) {
+        self.current_thread().park(*context);
+    }
+
+    /// 令当前线程进入休眠
+    pub fn sleep_current_thread(&mut self) {
+        // 从 current_thread 中取出
+        let current_thread = self.current_thread.take().unwrap();
+        // 记为 sleeping
+        *current_thread.sleeping.lock() = true;
+        // 从 scheduler 移出到 sleeping_threads 中
+        self.scheduler.remove_thread(&current_thread);
+        self.sleeping_threads.insert(current_thread);
     }
 
     /// 终止当前的线程
     pub fn kill_current_thread(&mut self) {
         // 从调度器中移除
         let thread = self.current_thread.take().unwrap();
-        self.scheduler.remove_thread(thread);
-        // 向调度器询问下一个线程，替换 current_thread
-        if let Some(next_thread) = self.scheduler.get_next() {
-            self.current_thread.replace(next_thread);
-        } else {
-            panic!("all threads terminated, shutting down");
-        }
+        self.scheduler.remove_thread(&thread);
     }
 }

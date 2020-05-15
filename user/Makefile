@@ -13,7 +13,8 @@ SRC_FILES	:= $(wildcard $(SRC_DIR)/*.rs)
 BIN_FILES	:= $(patsubst $(SRC_DIR)/%.rs, $(TARGET_DIR)/%, $(SRC_FILES))
 
 OUT_DIR		:= build/disk
-IMG_FILE	:= build/disk.img
+IMG_FILE	:= build/raw.img
+QCOW_FILE	:= build/disk.img
 
 # 安装 rcore-fs-fuse 工具
 dependency:
@@ -26,7 +27,11 @@ build: dependency
 	@cargo build
 	@echo Targets: $(patsubst $(SRC_DIR)/%.rs, %, $(SRC_FILES))
 	@rm -rf $(OUT_DIR)
-	@mkdir -p $(OUT_DIR)/rust
-	@cp $(BIN_FILES) $(OUT_DIR)/rust
-	@dd if=/dev/zero of=$(OUT_DIR)/temp bs=1k count=2
+	@mkdir -p $(OUT_DIR)
+	@cp $(BIN_FILES) $(OUT_DIR)
 	@rcore-fs-fuse --fs sfs $(IMG_FILE) $(OUT_DIR) zip
+	@qemu-img convert -f raw $(IMG_FILE) -O qcow2 $(QCOW_FILE)
+	@qemu-img resize $(QCOW_FILE) +1G
+
+clean:
+	@cargo clean

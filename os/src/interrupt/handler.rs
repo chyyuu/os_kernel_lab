@@ -50,18 +50,20 @@ fn breakpoint(context: &mut Context) -> *mut Context {
 /// 处理时钟中断
 fn supervisor_timer(context: &mut Context) -> *mut Context {
     timer::tick();
-    PROCESSOR.get().tick(context)
+    PROCESSOR.get().park_current_thread(context);
+    PROCESSOR.get().prepare_next_thread()
+
 }
 
 /// 出现未能解决的异常，终止当前线程
 fn fault(_context: &mut Context, scause: Scause, stval: usize) -> *mut Context {
     println!(
-        "{:?} terminated with {:?}",
+        "{:x?} terminated with {:x?}",
         PROCESSOR.get().current_thread(),
         scause.cause()
     );
     println!("stval: {:x}", stval);
     PROCESSOR.get().kill_current_thread();
     // 跳转到 PROCESSOR 调度的下一个线程
-    PROCESSOR.get().current_thread().run()
+    PROCESSOR.get().prepare_next_thread()
 }

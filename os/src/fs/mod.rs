@@ -7,12 +7,15 @@ use crate::drivers::{
     driver::{DeviceType, DRIVERS},
 };
 use alloc::sync::Arc;
-use config::*;
 use lazy_static::lazy_static;
 use rcore_fs::{dev::block_cache::BlockCache, vfs::*};
 use rcore_fs_sfs::SimpleFileSystem;
 
-pub mod config;
+mod config;
+mod inode_ext;
+
+pub use config::*;
+pub use inode_ext::INodeExt;
 
 lazy_static! {
     /// 根文件系统的根目录的 INode
@@ -32,20 +35,8 @@ lazy_static! {
     };
 }
 
-/// 打印某个目录的全部文件
-pub fn ls(path: &str) {
-    let mut id = 0;
-    let dir = ROOT_INODE.lookup(path).unwrap();
-    print!("files in {}: \n  ", path);
-    while let Ok(name) = dir.get_entry(id) {
-        id += 1;
-        print!("{} ", name);
-    }
-    print!("\n");
-}
-
 /// 触发 [`static@ROOT_INODE`] 的初始化并打印根目录内容
 pub fn init() {
-    ls("/");
+    ROOT_INODE.ls();
     println!("mod fs initialized");
 }
