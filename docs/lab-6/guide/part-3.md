@@ -81,6 +81,8 @@ pub fn from_elf(file: &ElfFile, is_user: bool) -> MemoryResult<MemorySet> {
 > 而且，就算是想要直接映射磁盘空间，也不一定可行。这是因为虚实地址转换时，页内偏移是不变的。这是就无法保证在 ELF 中指定的地址和其在磁盘中的地址满足这样的关系。
 {% endreveal %}
 
+<br/>
+
 我们将修改 `Mapping::map` 函数，为其增加一个参数表示用于初始化的数据。在实现时，有一些重要的细节需要考虑。
 
 - 因为用户程序的内存分配是动态的，其分配到的物理页面不一定连续，所以必须单独考虑每一个页面
@@ -94,12 +96,15 @@ pub fn from_elf(file: &ElfFile, is_user: bool) -> MemoryResult<MemorySet> {
 > 但是，我们通过分配器得到了页面的**物理地址**，而这个物理地址实际上已经在内核的线性映射当中了。所以，这里实际上用的是**物理地址**来写入数据。
 {% endreveal %}
 
+<br/>
+
 具体的实现，可以查看 `os/src/memory/mapping/mapping.rs` 中的 `Mapping::map` 函数。
 
 ### 运行 Hello World？
 
 现在，我们就可以在操作系统中运行磁盘镜像中的用户程序了，代码示例如下：
 
+{% label %}os/src/main.rs{% endlabel %}
 ```rust
 // 从文件系统中找到程序
 let app = fs::ROOT_INODE.find("hello_world").unwrap();

@@ -6,6 +6,7 @@
 
 通过 cargo 来安装 `rcore-fs-fuse` 工具：
 
+{% label %}运行命令{% endlabel %}
 ```bash
 cargo install rcore-fs-fuse --git https://github.com/rcore-os/rcore-fs
 ```
@@ -27,7 +28,7 @@ build: dependency
 	@cp $(BIN_FILES) $(OUT_DIR)
 	# 使用 rcore-fs-fuse 工具进行打包
 	@rcore-fs-fuse --fs sfs $(IMG_FILE) $(OUT_DIR) zip
-	# 将镜像文件的格式转换为 qemu 使用的高级格式
+	# 将镜像文件的格式转换为 QEMU 使用的高级格式
 	@qemu-img convert -f raw $(IMG_FILE) -O qcow2 $(QCOW_FILE)
 	# 提升镜像文件的容量（并非实际大小），来允许更多数据写入
 	@qemu-img resize $(QCOW_FILE) +1G

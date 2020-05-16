@@ -6,10 +6,12 @@
 
 我们在与 `os` 的旁边建立一个 `user` crate。此时，我们移除默认的 `main.rs`，而是在 `src` 目录下建立 `lib` 子目录，在其中存放的源文件会被编译成多个单独的执行文件。
 
+{% label %}运行命令{% endlabel %}
 ```bash
 cargo new --bin user
 ```
 
+{% label %}目录结构{% endlabel %}
 ```
 rCore-Tutorial
   - os
