@@ -11,6 +11,7 @@ pub struct Process {
     pub memory_set: MemorySet,
 }
 
+#[allow(unused)]
 impl Process {
     /// 创建一个内核进程
     pub fn new_kernel() -> MemoryResult<Arc<RwLock<Self>>> {
