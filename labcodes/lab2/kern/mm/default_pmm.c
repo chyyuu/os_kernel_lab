@@ -292,6 +292,7 @@ default_check(void) {
 
     le = &free_list;
     while ((le = list_next(le)) != &free_list) {
+        assert(le->next->prev == le && le->prev->next == le);
         struct Page *p = le2page(le, page_link);
         count --, total -= p->property;
     }
