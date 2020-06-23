@@ -2,7 +2,7 @@
 
 use super::*;
 
-lazy_static!{
+lazy_static! {
     pub static ref STDOUT: Arc<Stdout> = Default::default();
 }
 

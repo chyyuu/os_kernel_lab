@@ -35,6 +35,8 @@ impl Segment {
 
     /// 将地址相应地上下取整，获得虚拟页号区间
     pub fn page_range(&self) -> Range<VirtualPageNumber> {
-        Range::from(VirtualPageNumber::floor(self.range.start)..VirtualPageNumber::ceil(self.range.end))
+        Range::from(
+            VirtualPageNumber::floor(self.range.start)..VirtualPageNumber::ceil(self.range.end),
+        )
     }
 }

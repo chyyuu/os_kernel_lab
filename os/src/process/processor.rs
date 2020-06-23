@@ -13,7 +13,7 @@ lazy_static! {
 /// 线程调度和管理
 ///
 /// 休眠线程会从调度器中移除，单独保存。在它们被唤醒之前，不会被调度器安排。
-/// 
+///
 /// # 用例
 /// ### 初始化并运行第一个线程
 /// ```rust
@@ -21,26 +21,26 @@ lazy_static! {
 /// processor.run();
 /// unreachable!();
 /// ```
-/// 
+///
 /// ### 切换线程（在中断中）
 /// ```rust
 /// processor.park_current_thread(context);
 /// processor.prepare_next_thread()
 /// ```
-/// 
+///
 /// ### 结束线程（在中断中）
 /// ```rust
 /// processor.kill_current_thread();
 /// processor.prepare_next_thread()
 /// ```
-/// 
+///
 /// ### 休眠线程（在中断中）
 /// ```rust
 /// processor.park_current_thread(context);
 /// processor.sleep_current_thread();
 /// processor.prepare_next_thread()
 /// ```
-/// 
+///
 /// ### 唤醒线程
 /// 线程会根据调度器分配执行，不一定会立即执行。
 /// ```rust

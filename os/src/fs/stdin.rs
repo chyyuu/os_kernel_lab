@@ -3,7 +3,7 @@
 use super::*;
 use alloc::collections::VecDeque;
 
-lazy_static!{
+lazy_static! {
     pub static ref STDIN: Arc<Stdin> = Default::default();
 }
 
@@ -39,12 +39,12 @@ impl INode for Stdin {
         }
     }
 
-    fn poll(&self) -> Result<PollStatus> {
+    /// Write bytes at `offset` from `buf`, return the number of bytes written.
+    fn write_at(&self, _offset: usize, _buf: &[u8]) -> Result<usize> {
         Err(FsError::NotSupported)
     }
 
-    /// Write bytes at `offset` from `buf`, return the number of bytes written.
-    fn write_at(&self, _offset: usize, _buf: &[u8]) -> Result<usize> {
+    fn poll(&self) -> Result<PollStatus> {
         Err(FsError::NotSupported)
     }
 

@@ -3,8 +3,8 @@
 //! 代码与 `os` crate 中的 `console.rs` 基本相同
 
 use crate::syscall::*;
-use core::fmt::{self, Write};
 use alloc::string::String;
+use core::fmt::{self, Write};
 
 /// 实现 [`core::fmt::Write`] trait 来进行格式化输出
 struct Stdout;
@@ -50,7 +50,8 @@ pub fn getchars() -> String {
     let mut buffer = [0u8; 64];
     loop {
         let size = sys_read(STDIN, &mut buffer);
-        if let Ok(string) = String::from_utf8(buffer.iter().copied().take(size as usize).collect()) {
+        if let Ok(string) = String::from_utf8(buffer.iter().copied().take(size as usize).collect())
+        {
             return string;
         }
     }

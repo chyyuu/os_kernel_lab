@@ -2,16 +2,16 @@
 
 mod condvar;
 mod fs;
-mod syscall;
 mod process;
+mod syscall;
 
 use crate::interrupt::*;
 use crate::process::*;
 use alloc::sync::Arc;
-use spin::Mutex;
-pub(self) use syscall::*;
 pub(self) use fs::*;
 pub(self) use process::*;
+use spin::Mutex;
+pub(self) use syscall::*;
 
 pub use condvar::Condvar;
 pub use syscall::syscall_handler;

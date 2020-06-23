@@ -4,9 +4,9 @@ mod fifo_scheduler;
 mod hrrn_scheduler;
 
 /// 线程调度器
-/// 
+///
 /// `ThreadType` 应为 `Arc<Thread>`
-/// 
+///
 /// ### 使用方法
 /// - 在每一个时间片结束后，调用 [`Scheduler::get_next()`] 来获取下一个时间片应当执行的线程。
 ///   这个线程可能是上一个时间片所执行的线程。

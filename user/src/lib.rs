@@ -17,11 +17,11 @@ pub mod console;
 
 extern crate alloc;
 
+pub use crate::syscall::*;
+use buddy_system_allocator::LockedHeap;
 use config::USER_HEAP_SIZE;
 use core::alloc::Layout;
 use core::panic::PanicInfo;
-use buddy_system_allocator::LockedHeap;
-pub use crate::syscall::*;
 
 /// 大小为 [`USER_HEAP_SIZE`] 的堆空间
 static mut HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
@@ -50,7 +50,8 @@ fn panic(info: &PanicInfo) -> ! {
 #[no_mangle]
 pub extern "C" fn _start(_args: isize, _argv: *const u8) -> ! {
     unsafe {
-        HEAP.lock().init(HEAP_SPACE.as_ptr() as usize, USER_HEAP_SIZE);
+        HEAP.lock()
+            .init(HEAP_SPACE.as_ptr() as usize, USER_HEAP_SIZE);
     }
     sys_exit(main())
 }
@@ -66,7 +67,7 @@ fn main() -> isize {
 
 /// 终止程序
 #[no_mangle]
-pub extern fn abort() {
+pub extern "C" fn abort() {
     panic!("abort");
 }
 

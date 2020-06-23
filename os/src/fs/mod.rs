@@ -18,9 +18,9 @@ mod inode_ext;
 mod stdin;
 mod stdout;
 
-pub use rcore_fs::{dev::block_cache::BlockCache, vfs::*};
 pub use config::*;
 pub use inode_ext::INodeExt;
+pub use rcore_fs::{dev::block_cache::BlockCache, vfs::*};
 pub use stdin::STDIN;
 pub use stdout::STDOUT;
 

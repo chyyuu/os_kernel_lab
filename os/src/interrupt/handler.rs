@@ -1,13 +1,13 @@
 use super::context::Context;
 use super::timer;
-use crate::process::PROCESSOR;
+use crate::fs::STDIN;
 use crate::kernel::syscall_handler;
 use crate::memory::*;
+use crate::process::PROCESSOR;
 use crate::sbi::console_getchar;
-use crate::fs::STDIN;
 use riscv::register::{
     scause::{Exception, Interrupt, Scause, Trap},
-    stvec, sie
+    sie, stvec,
 };
 
 global_asm!(include_str!("../asm/interrupt.asm"));
@@ -69,7 +69,6 @@ fn supervisor_timer(context: &mut Context) -> *mut Context {
     timer::tick();
     PROCESSOR.get().park_current_thread(context);
     PROCESSOR.get().prepare_next_thread()
-
 }
 
 /// 出现未能解决的异常，终止当前线程

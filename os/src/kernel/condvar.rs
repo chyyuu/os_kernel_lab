@@ -12,7 +12,9 @@ pub struct Condvar {
 impl Condvar {
     /// 令当前线程休眠，等待此条件变量
     pub fn wait(&self) {
-        self.watchers.lock().push_back(PROCESSOR.get().current_thread());
+        self.watchers
+            .lock()
+            .push_back(PROCESSOR.get().current_thread());
         PROCESSOR.get().sleep_current_thread();
     }
 

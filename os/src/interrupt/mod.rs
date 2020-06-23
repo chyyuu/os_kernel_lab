@@ -6,7 +6,7 @@ mod context;
 mod handler;
 mod timer;
 
-use riscv::register::{sstatus, sie};
+use riscv::register::{sie, sstatus};
 
 pub use context::Context;
 

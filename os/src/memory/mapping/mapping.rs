@@ -5,10 +5,10 @@
 
 use crate::memory::{
     address::*,
+    config::PAGE_SIZE,
     frame::{FrameTracker, FRAME_ALLOCATOR},
     mapping::{Flags, MapType, PageTable, PageTableEntry, PageTableTracker, Segment},
     MemoryResult,
-    config::PAGE_SIZE,
 };
 use alloc::{vec, vec::Vec};
 use core::cmp::min;
@@ -71,7 +71,7 @@ impl Mapping {
             }
             MapType::Framed => {
                 // 需要再分配帧进行映射
-                
+
                 // 记录所有成功分配的页面映射
                 let mut allocated_pairs = Vec::new();
                 for vpn in segment.page_range().iter() {
@@ -90,15 +90,21 @@ impl Mapping {
                                     frame_address.deref_kernel(),
                                     PAGE_SIZE,
                                 ))
-                                .fill(0);
+                                    .fill(0);
                             } else {
                                 // 拷贝时考虑区间与整页不对齐的特殊情况
                                 // 这里默认每个字段的起始位置一定是 4K 对齐的
-                                let copy_size = min(PAGE_SIZE, segment.range.end - VirtualAddress::from(vpn));
+                                let copy_size =
+                                    min(PAGE_SIZE, segment.range.end - VirtualAddress::from(vpn));
                                 (&mut *slice_from_raw_parts_mut(
                                     frame_address.deref_kernel(),
                                     copy_size,
-                                )).copy_from_slice(&data[VirtualAddress::from(vpn) - segment.range.start..VirtualAddress::from(vpn) - segment.range.start + copy_size]);
+                                ))
+                                    .copy_from_slice(
+                                        &data[VirtualAddress::from(vpn) - segment.range.start
+                                            ..VirtualAddress::from(vpn) - segment.range.start
+                                                + copy_size],
+                                    );
                             }
                         }
                     }

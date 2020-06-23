@@ -48,11 +48,14 @@ impl Process {
             range.end += alloc_size;
         }
         // 分配物理页面，建立映射
-        self.memory_set.add_segment(Segment {
-            map_type: MapType::Framed,
-            range,
-            flags: flags | Flags::user(self.is_user),
-        }, None)?;
+        self.memory_set.add_segment(
+            Segment {
+                map_type: MapType::Framed,
+                range,
+                flags: flags | Flags::user(self.is_user),
+            },
+            None,
+        )?;
         // 返回地址区间（使用参数 size，而非向上取整的 alloc_size）
         Ok(Range::from(range.start..(range.start + size)))
     }

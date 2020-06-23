@@ -109,7 +109,7 @@ macro_rules! implement_flags {
     };
 }
 
-implement_flags!{USER, user, "USER"}
-implement_flags!{READABLE, readable, "READABLE"}
-implement_flags!{WRITABLE, writable, "WRITABLE"}
-implement_flags!{EXECUTABLE, executable, "EXECUTABLE"}
+implement_flags! {USER, user, "USER"}
+implement_flags! {READABLE, readable, "READABLE"}
+implement_flags! {WRITABLE, writable, "WRITABLE"}
+implement_flags! {EXECUTABLE, executable, "EXECUTABLE"}

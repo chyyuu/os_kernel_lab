@@ -44,7 +44,7 @@ impl<ThreadType: Clone + Eq> Scheduler<ThreadType> for HrrnScheduler<ThreadType>
         self.current_time += 1;
 
         // 遍历线程池，返回响应比最高者
-        let current_time = self.current_time;   // borrow-check
+        let current_time = self.current_time; // borrow-check
         if let Some(best) = self.pool.iter_mut().max_by(|x, y| {
             ((current_time - x.birth_time) * y.service_count)
                 .cmp(&((current_time - y.birth_time) * x.service_count))
