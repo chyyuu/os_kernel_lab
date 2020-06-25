@@ -6,8 +6,7 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
 
 无论你来自哪里，如果你完成了ucore_os labs，且还希望更加深入地学习OS，实习OS的科研/工程项目甚至攻读博士研究生，欢迎与陈渝老师（yuchen AT tsinghua.edu.cn）联系，本地或远程加入到我们的清华大学的OS实验室！
 
-# 新闻
-- 2018.02.03：ucore os labs 增加对开源的[RISC-V CPU](https://riscv.org/)（privileged arch spec 1.10）的支持。请访问[此repo的riscv32-priv-1.10 branch](https://github.com/chyyuu/ucore_os_lab/tree/riscv32-priv-1.10)。
+# [新闻](https://github.com/chyyuu/ucore_os_lab#news)
 
 # 提前测试
 [计算机基础导论实验](https://github.com/chyyuu/v8-cpu)是提供给清华大学计算机系大一新生必需课“计算机基础导论”的一个在线实验环境，适合初步了解计算机系统/编程/操作系统等基础知识，欢迎大家先看看。如果你觉得这些小练习你能够应对自如，欢迎挑战这门课程的实验！
