@@ -6,6 +6,7 @@ ucore os labs was used as OS Experiments in OS Course Of Dept. of Computer Scien
 
 NEWS
 ====
+- 2020.07.01: [Rust-based OS Tutorial Summer of Code 2020](https://github.com/rcore-os/rCore/wiki/os-tutorial-summer-of-code)
 - 2020.02.21: add branch ricv64-opensbi for ucore labs which can run after opensbi boots. Runji Wang's great work!
 - 2020.01.10: [Playground of Learning RUST by Example](https://www.shiyanlou.com/courses/1499)
 - 2020.01.10: [Playground of Learning OS in RUST, Verification Code: wfkblCQp ](https://www.shiyanlou.com/courses/1481)
