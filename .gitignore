@@ -20,3 +20,5 @@ a.out
 chytesting
 disk0
 *.orig
+.idea
+compile_commands.json
