@@ -1,4 +1,4 @@
-# rCore 教学实验（开发中）
+# rCore 教学实验 V3（开发中）
 
 本教学仓库是继 [rCore_tutorial](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的版本。
 
