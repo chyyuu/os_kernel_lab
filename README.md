@@ -1,6 +1,6 @@
 # rCore 教学实验 V3（开发中）
 
-本教学仓库是继 [rCore_tutorial](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的版本。
+本教学仓库是继 [rCore_tutorial ver.2](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的V3版本。
 
 本文档的目标主要针对「做实验的同学」，我们会对每章结束后提供完成的代码，你的练习题只需要基于我们给出的版本上增量实现即可，不需要重新按照教程写一遍。
 
@@ -22,7 +22,7 @@
 
 ## 实验指导
 
-基于 GitBook，目前已经部署到了 [GitHub Pages](https://os20-rcore-tutorial.github.io/rCore-Tutorial-deploy) 上面。
+基于 GitBook，目前已经部署到了 [GitHub Pages](https://rcore-os.github.io/rCore-Tutorial-deploy/) 上面。
 
 ### 文档本地使用方法
 
@@ -51,7 +51,7 @@ cargo doc
 本文档和代码部分参考了：
 - [rCore](https://github.com/rcore-os/rCore)
 - [zCore](https://github.com/rcore-os/zCore)
-- [rCore_tutorial](https://rcore-os.github.io/rCore_tutorial_doc/)
+- [rCore_tutorial ver.2](https://rcore-os.github.io/rCore_tutorial_doc/)
 - [使用Rust编写操作系统](https://github.com/rustcc/writing-an-os-in-rust)
 
 在此对仓库的开发和维护者表示感谢，同时也感谢很多在本项目开发中一起讨论和勘误的老师和同学们。
