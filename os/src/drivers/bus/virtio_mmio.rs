@@ -60,7 +60,7 @@ extern "C" fn virtio_dma_alloc(pages: usize) -> PhysicalAddress {
         last = tracker.address();
         TRACKERS.write().insert(last, tracker);
     }
-    return pa;
+    pa
 }
 
 /// 为 DMA 操作释放对应的之前申请的连续的物理页（为 [`virtio_drivers`] 库提供）
