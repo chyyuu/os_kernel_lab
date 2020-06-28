@@ -1,6 +1,6 @@
 //! 允许像 C 指针一样随意使用的 [`UnsafeWrapper`]
 
-// 所以在模块范围内不提示『未使用的函数』等警告
+// 所以在模块范围内不提示「未使用的函数」等警告
 #![allow(dead_code)]
 
 use alloc::boxed::Box;
