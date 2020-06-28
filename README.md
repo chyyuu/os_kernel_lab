@@ -1,5 +1,7 @@
 # rCore 教学实验 V3（开发中）
 
+[![Actions Status](https://github.com/rcore-os/rCore-Tutorial/workflows/CI/badge.svg?branch=master)](https://github.com/rcore-os/rCore-Tutorial/actions)
+
 本教学仓库是继 [rCore_tutorial](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的版本。
 
 本文档的目标主要针对「做实验的同学」，我们会对每章结束后提供完成的代码，你的练习题只需要基于我们给出的版本上增量实现即可，不需要重新按照教程写一遍。
