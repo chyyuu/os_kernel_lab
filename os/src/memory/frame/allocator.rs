@@ -38,7 +38,7 @@ impl<T: Allocator> FrameAllocator<T> {
         self.allocator
             .alloc()
             .ok_or("no available frame to allocate")
-            .map(|offset| FrameTracker::from(self.start_ppn + offset))
+            .map(|offset| FrameTracker(self.start_ppn + offset))
     }
 
     /// 将被释放的帧添加到空闲列表的尾部

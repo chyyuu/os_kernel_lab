@@ -1,6 +1,6 @@
 //! 提供物理页的『`Box`』 [`FrameTracker`]
 
-use crate::memory::{address::*, frame::allocator::FRAME_ALLOCATOR};
+use crate::memory::{address::*, FRAME_ALLOCATOR, PAGE_SIZE};
 
 /// 分配出的物理页
 ///
@@ -19,22 +19,31 @@ use crate::memory::{address::*, frame::allocator::FRAME_ALLOCATOR};
 ///
 /// 使用 `Tracker` 其实就很像使用一个 smart pointer。如果需要引用计数，
 /// 就在外面再套一层 [`Arc`](alloc::sync::Arc) 就好
-pub struct FrameTracker(PhysicalAddress);
+pub struct FrameTracker(pub(super) PhysicalPageNumber);
 
 impl FrameTracker {
     /// 帧的物理地址
     pub fn address(&self) -> PhysicalAddress {
-        self.0
+        self.0.into()
     }
     /// 帧的物理页号
     pub fn page_number(&self) -> PhysicalPageNumber {
-        PhysicalPageNumber::from(self.0)
+        self.0
     }
 }
 
-impl<T: Into<PhysicalPageNumber>> From<T> for FrameTracker {
-    fn from(v: T) -> Self {
-        Self(v.into().into())
+/// `FrameTracker` 可以 deref 得到对应的 `[u8; PAGE_SIZE]`
+impl core::ops::Deref for FrameTracker {
+    type Target = [u8; PAGE_SIZE];
+    fn deref(&self) -> &Self::Target {
+        self.page_number().deref_kernel()
+    }
+}
+
+/// `FrameTracker` 可以 deref 得到对应的 `[u8; PAGE_SIZE]`
+impl core::ops::DerefMut for FrameTracker {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.page_number().deref_kernel()
     }
 }
 
