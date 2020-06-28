@@ -45,7 +45,7 @@ OpenSBI 所做的一件事情就是把 CPU 从 M Mode 切换到 S Mode，接着�
 # 关于 RISC-V 下的汇编语言，可以参考 https://github.com/riscv/riscv-asm-manual/blob/master/riscv-asm.md
 
     .section .text.entry
-    .global _start
+    .globl _start
 # 目前 _start 的功能：将预留的栈空间写入 $sp，然后跳转至 rust_main
 _start:
     la sp, boot_stack_top
