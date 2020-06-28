@@ -46,15 +46,6 @@ impl Mapping {
         })
     }
 
-    /// 功能同 C 函数，用于初始化内存空间
-    ///
-    /// 注意到 `dst` 是物理地址，因为分配的帧使用物理地址；`src` 是虚拟地址，其数据来源甚至可能不在内存中。
-    unsafe fn memcpy(dst: PhysicalAddress, src: VirtualAddress, len: usize) {
-        let dst_slice: &mut [u8] = &mut *slice_from_raw_parts_mut(dst.deref_kernel(), len);
-        let src_slice: &[u8] = &*slice_from_raw_parts_mut(src.deref(), len);
-        dst_slice.copy_from_slice(src_slice);
-    }
-
     /// 加入一段映射，可能会相应地分配物理页面
     ///
     /// 未被分配物理页面的虚拟页号暂时不会写入页表当中，它们会在发生 PageFault 后再建立页表项。
