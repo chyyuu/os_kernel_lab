@@ -28,10 +28,13 @@ pub fn init() {
         sie::set_sext();
 
         // 在 OpenSBI 中开启外部中断
-        *PhysicalAddress(0x0c00_2080).deref_kernel() = 1 << 10;
+        *PhysicalAddress(0x0c00_2080).deref_kernel() = 1u32 << 10;
         // 在 OpenSBI 中开启串口
         *PhysicalAddress(0x1000_0004).deref_kernel() = 0x0bu8;
         *PhysicalAddress(0x1000_0001).deref_kernel() = 0x01u8;
+        // 其他一些外部中断相关魔数
+        *PhysicalAddress(0x0C00_0028).deref_kernel() = 0x07u32;
+        *PhysicalAddress(0x0C20_1000).deref_kernel() = 0u32;
     }
 }
 
