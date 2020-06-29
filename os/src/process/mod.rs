@@ -2,6 +2,7 @@
 
 mod config;
 mod kernel_stack;
+#[allow(clippy::module_inception)]
 mod process;
 mod processor;
 mod thread;

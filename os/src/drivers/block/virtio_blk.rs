@@ -30,5 +30,5 @@ impl Driver for VirtIOBlkDriver {
 pub fn add_driver(header: &'static mut VirtIOHeader) {
     let virtio_blk = VirtIOBlk::new(header).expect("failed to init blk driver");
     let driver = Arc::new(VirtIOBlkDriver(Mutex::new(virtio_blk)));
-    DRIVERS.write().push(driver.clone());
+    DRIVERS.write().push(driver);
 }

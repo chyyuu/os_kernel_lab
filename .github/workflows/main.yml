@@ -1,0 +1,48 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          target: riscv64imac-unknown-none-elf
+          components: rustfmt, clippy
+      - name: Check user
+        run: |
+          cd user
+          cargo fmt -- --check
+          cargo clippy -- -D warnings
+      - name: Check os
+        run: |
+          export USER_IMG="../usr/build/riscv64.img"
+          cd os
+          cargo fmt -- --check
+          cargo clippy -- -D warnings
+
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, macos-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          target: riscv64imac-unknown-none-elf
+          components: llvm-tools-preview
+      - name: Install cargo-binutils
+        run: cargo install cargo-binutils
+      - name: Install QEMU
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
+        run: sudo apt install qemu-utils
+      - name: Install QEMU
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: brew install qemu
+      - name: Build user
+        run: cd user && make build
+      - name: Build os
+        run: cd os && make build

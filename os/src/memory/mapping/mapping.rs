@@ -84,7 +84,7 @@ impl Mapping {
                     // 拷贝数据，注意页表尚未应用，无法直接从刚刚映射的虚拟地址访问，因此必须用物理地址 + 偏移来访问。
                     if let Some(data) = init_data {
                         unsafe {
-                            if data.len() == 0 {
+                            if data.is_empty() {
                                 // bss 段中，data 长度为 0，但是仍需要 0-初始化整个空间
                                 (&mut *slice_from_raw_parts_mut(
                                     frame_address.deref_kernel(),

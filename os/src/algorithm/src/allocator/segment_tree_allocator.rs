@@ -39,7 +39,7 @@ impl Allocator for SegmentTreeAllocator {
             // 递归查找直到找到一个值为 0 的树叶
             while node < self.tree.len() / 2 {
                 if !self.tree.get_bit(node * 2) {
-                    node = node * 2;
+                    node *= 2;
                 } else if !self.tree.get_bit(node * 2 + 1) {
                     node = node * 2 + 1;
                 } else {

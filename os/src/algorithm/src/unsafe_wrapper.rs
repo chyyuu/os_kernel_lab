@@ -18,6 +18,7 @@ impl<T> UnsafeWrapper<T> {
         }
     }
 
+    #[allow(clippy::mut_from_ref)]
     pub fn get(&self) -> &mut T {
         unsafe { &mut *self.object.get() }
     }
@@ -52,6 +53,7 @@ impl<T> StaticUnsafeWrapper<T> {
 }
 
 impl<T: Default> StaticUnsafeWrapper<T> {
+    #[allow(clippy::mut_from_ref)]
     pub fn get(&self) -> &mut T {
         unsafe {
             if *self.pointer.get() as usize == 0 {
