@@ -3,7 +3,7 @@ INTRODUCTION
 ucore os labs was used as OS Experiments in OS Course Of Dept. of Computer Science & Technology, Tsinghua University.
 
 - [ucore os lab docs](https://chyyuu.gitbooks.io/ucore_os_docs/content/)
-- [rcore os lab docs](https://os20-rcore-tutorial.github.io/rCore-Tutorial-deploy/)
+- [rcore os lab docs](https://rcore-os.github.io/rCore-Tutorial-deploy/)
 
 NEWS
 ====
