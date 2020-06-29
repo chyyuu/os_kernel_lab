@@ -28,11 +28,11 @@ impl INode for Stdin {
             Ok(0)
         } else {
             let mut stdin_buffer = self.buffer.lock();
-            for i in 0..buf.len() {
-                if stdin_buffer.is_empty() {
-                    return Ok(i);
+            for (i, byte) in buf.iter_mut().enumerate() {
+                if let Some(b) = stdin_buffer.pop_front() {
+                    *byte = b;
                 } else {
-                    buf[i] = stdin_buffer.pop_front().unwrap();
+                    return Ok(i);
                 }
             }
             Ok(buf.len())

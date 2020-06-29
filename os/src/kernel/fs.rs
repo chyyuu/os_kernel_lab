@@ -21,7 +21,8 @@ pub(super) fn sys_read(fd: usize, buffer: *mut u8, size: usize) -> SyscallResult
         let ret = ret as isize;
         if ret > 0 {
             return SyscallResult::Proceed(ret);
-        } else if ret == 0 {
+        }
+        if ret == 0 {
             return SyscallResult::Park(ret);
         }
     }
