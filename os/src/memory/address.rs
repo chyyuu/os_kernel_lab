@@ -69,11 +69,19 @@ impl VirtualAddress {
     pub fn deref<T>(self) -> &'static mut T {
         unsafe { &mut *(self.0 as *mut T) }
     }
+    /// 取得页内偏移
+    pub fn page_offset(&self) -> usize {
+        self.0 % PAGE_SIZE
+    }
 }
 impl PhysicalAddress {
     /// 从物理地址经过线性映射取得 &mut 引用
     pub fn deref_kernel<T>(self) -> &'static mut T {
         VirtualAddress::from(self).deref()
+    }
+    /// 取得页内偏移
+    pub fn page_offset(&self) -> usize {
+        self.0 % PAGE_SIZE
     }
 }
 impl VirtualPageNumber {

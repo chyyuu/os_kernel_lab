@@ -1,14 +1,14 @@
-# rCore 教学实验第三版（开发中）
+# rCore-Tutorial V3（开发中）
 
 [![Actions Status](https://github.com/rcore-os/rCore-Tutorial/workflows/CI/badge.svg?branch=master)](https://github.com/rcore-os/rCore-Tutorial/actions)
 
-本教学仓库是继 [rCore 教学实验 V2](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的 V3 版本。
+本教学仓库是继 [rCore_tutorial V2](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的 V3 版本。
 
 本文档的目标主要针对「做实验的同学」，我们会对每章结束后提供完成的代码，你的练习题只需要基于我们给出的版本上增量实现即可，不需要重新按照教程写一遍。
 
 而对想完整实现一个 rCore 的同学来说，我们的文档可能不太友好。因为在开发过程中，我们需要对清晰和全面做很多的权衡和考虑、需要省略掉大量语法层面而 OS 无关的代码来带来更多的可读性和精简性，所以想参考本文档并完整实现同学可能不会有从头复制到尾的流畅（这样的做法也不是学习的初衷），可能需要自己有一些完整的认识和思考。
 
-另外，如果你觉得字体大小和样式不舒服，可以通过上方的按钮调节。
+另外，如果你觉得字体大小和样式不舒服，可以通过 GitBook 上方的按钮调节。
 
 ## 仓库目录
 
@@ -45,7 +45,7 @@ gitbook serve
 本文档和代码部分参考了：
 - [rCore](https://github.com/rcore-os/rCore)
 - [zCore](https://github.com/rcore-os/zCore)
-- [rCore_tutorial ver.2](https://rcore-os.github.io/rCore_tutorial_doc/)
+- [rCore_tutorial V2](https://rcore-os.github.io/rCore_tutorial_doc/)
 - [使用Rust编写操作系统](https://github.com/rustcc/writing-an-os-in-rust)
 
 在此对仓库的开发和维护者表示感谢，同时也感谢很多在本项目开发中一起讨论和勘误的老师和同学们。
