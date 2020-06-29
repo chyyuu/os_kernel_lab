@@ -5,7 +5,7 @@
 
 {% label %}rust-toolchain{% endlabel %}
 ```
-nightly-2020-03-06
+nightly-2020-06-27
 ```
 
 之后在目录内部使用 `cargo new` 命令在我们的项目目录内创建一个新的 Rust 项目 os，命令如下：

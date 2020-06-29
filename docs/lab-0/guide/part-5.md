@@ -14,6 +14,10 @@ rustup component add llvm-tools-preview
 
 之后尝试使用 `rust-objdump --version` 命令看看是否安装成功。
 
+> **[info] `rust-objdump` 找不到？**
+>
+> `cargo install` 会默认将二进制文件添加到 `${HOME}/.cargo/bin` 中，我们将这个路径加入到 `$PATH` 环境变量中之后就能找到需要的 `rust-objdump` 命令了。
+
 > **[info] 其它选择：GNU 工具链**
 >
 > 除了内置的 LLVM 工具链以外，我们也可以使用 GNU 工具链，其中还包含了 GCC 等 C 语言工具链。

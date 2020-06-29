@@ -1,4 +1,4 @@
-# rCore 教学实验 V3（开发中）
+# rCore 教学实验第三版（开发中）
 
 [![Actions Status](https://github.com/rcore-os/rCore-Tutorial/workflows/CI/badge.svg?branch=master)](https://github.com/rcore-os/rCore-Tutorial/actions)
 
@@ -24,11 +24,11 @@
 
 ## 实验指导
 
-基于 GitBook，目前已经部署到了 [GitHub Pages](https://rcore-os.github.io/rCore-Tutorial-deploy/) 上面。
+基于 GitBook，目前已经部署到了 [GitHub Pages](https://rcore-os.github.io/rCore-Tutorial-deploy/) 上面。
 
 ### 文档本地使用方法
 
-{% label %}运行命令{% endlabel %}
+<!-- 下面的代码不再使用标签，因为也同时会渲染到 GitHub 的项目首页 -->
 ```bash
 npm install -g gitbook-cli
 gitbook install
@@ -38,15 +38,7 @@ gitbook serve
 ## 代码
 
 ### 操作系统代码
-基于 cargo 项目，进入 `os` 目录通过相关命令可以运行：
-{% label %}运行命令{% endlabel %}
-```bash
-cd os
-# 编译并运行
-make run
-# 根据代码注释生成文档
-cargo doc
-```
+本项目基于 cargo 和 make 等工具，在根目录通过 `make run` 命令即可运行代码，更具体的细节请参见 `Makefile`、`os/Makefile` 以及 `user/Makefile`。
 
 ### 参考和感谢
 
