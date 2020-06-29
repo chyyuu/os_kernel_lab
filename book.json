@@ -1,0 +1,22 @@
+{
+    "plugins": [
+        "hide-element",
+        "chapter-fold",
+        "katex",
+        "alerts",
+        "emphasize",
+        "mermaid-gb3",
+        "codeblock-label",
+        "code",
+        "search-pro",
+        "click-reveal",
+        "expandable-chapters-interactive"
+      ],
+    "pluginsConfig": {
+      "fontsettings": {
+        "theme": "white",
+        "family": "sans",
+        "size": 1
+      }
+    }
+}

@@ -1,0 +1,27 @@
+### 环境文件
+# macOS
+.DS_Store
+# JetBrains
+**/.idea
+# VS Code
+**/.vscode
+
+### GitBook
+# GitBook 部署文件
+_book
+public
+# npm 依赖文件
+node_modules
+package-lock.json
+
+### Cargo
+# Cargo 包设置（自动生成）
+Cargo.lock
+
+### rCore
+# Rust 编译文件
+os/target
+user/target
+user/build
+# GDB 临时文件
+.gdb_history
