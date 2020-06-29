@@ -43,7 +43,7 @@ pub fn from_elf(file: &ElfFile, is_user: bool) -> MemoryResult<MemorySet> {
         if program_header.get_type() != Ok(Type::Load) {
             continue;
         }
-        // 从每个字段读取『起始地址』『大小』和『数据』
+        // 从每个字段读取「起始地址」「大小」和「数据」
         let start = VirtualAddress(program_header.virtual_addr() as usize);
         let size = program_header.mem_size() as usize;
         let data: &[u8] =
