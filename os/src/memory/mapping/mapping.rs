@@ -85,7 +85,7 @@ impl Mapping {
                 // 拷贝数据，注意页表尚未应用，无法直接从刚刚映射的虚拟地址访问，因此必须用物理地址 + 偏移来访问。
                 if let Some(data) = init_data {
                     // 对于 bss，参数会传入 data，但其长度为 0。我们已经在前面用 0 填充过页面了，因此跳过
-                    if data.len() > 0 {
+                    if !data.is_empty() {
                         for (vpn, frame) in allocated_pairs.iter_mut() {
                             // 拷贝时必须考虑区间与整页不对齐的情况
                             //    start（仅第一页时非零）
