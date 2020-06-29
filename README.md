@@ -5,7 +5,7 @@
 
 本教学仓库是继 [rCore_tutorial V2](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的 V3 版本。
 
->> 也可访问以前的[基于C语言的OS kernel labs](https://github.com/chyyuu/os_kernel_lab/tree/master)和[实验指导文档](https://github.com/chyyuu/ucore_os_docs)
+> 也可访问以前的[基于C语言的OS kernel labs](https://github.com/chyyuu/os_kernel_lab/tree/master)和[实验指导文档](https://github.com/chyyuu/ucore_os_docs)
 
 本文档的目标主要针对「做实验的同学」，我们会对每章结束后提供完成的代码，你的练习题只需要基于我们给出的版本上增量实现即可，不需要重新按照教程写一遍。
 
