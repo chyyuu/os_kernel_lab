@@ -7,6 +7,6 @@ mod lang_items;
 global_asm!(include_str!("entry.asm"));
 
 #[no_mangle]
-pub extern "C" fn rust_main() -> ! {
+pub fn rust_main() -> ! {
     loop {}
 }
