@@ -10,36 +10,33 @@ SECTIONS
     stext = .;
     .text : {
         *(.text.entry)
-        *(.text)
+        *(.text .text.*)
     }
 
     . = ALIGN(4K);
     etext = .;
     srodata = .;
     .rodata : {
-        *(.rodata)
+        *(.rodata .rodata.*)
     }
 
     . = ALIGN(4K);
     erodata = .;
     sdata = .;
     .data : {
-        *(.data)
+        *(.data .data.*)
     }
 
     . = ALIGN(4K);
     edata = .;
-    sbss = .;
     .bss : {
-        *(.bss)
+        *(.bss.stack)
+        sbss = .;
+        *(.bss .bss.*)
     }
 
     . = ALIGN(4K);
     ebss = .;
-    .stack : {
-        *(.bss.stack)
-    }
-
     ekernel = .;
 
     /DISCARD/ : {
