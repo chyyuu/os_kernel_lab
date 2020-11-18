@@ -26,12 +26,19 @@ fn clear_bss() {
 
 #[no_mangle]
 pub fn rust_main() -> ! {
-    extern "C" {
-        fn app_0_start();
-        fn app_0_end();
-    };
     clear_bss();
     println!("Hello, world!");
-    println!("app_0 [{:#x}, {:#x})", app_0_start as usize, app_0_end as usize);
+    extern "C" {
+        fn _num_app();
+    }
+    let num_app_ptr = _num_app as usize as *const usize;
+    let num_app = unsafe { num_app_ptr.read_volatile() };
+    println!("num_app = {}", num_app);
+    let app_start: &[usize] = unsafe {
+        core::slice::from_raw_parts(num_app_ptr.add(1), num_app + 1)
+    };
+    for i in 0..num_app {
+        println!("app_{} [{:#x}, {:#x})", i, app_start[i], app_start[i + 1]);
+    }
     panic!("Shutdown machine!");
 }
