@@ -37,7 +37,8 @@ _num_app:
     .quad app_{}_end
     "#, apps.len() - 1)?;
 
-    for (idx, app_with_extension) in apps.iter().enumerate() {
+    for (idx, app) in apps.iter().enumerate() {
+        println!("app_{}: {}", idx, app);
         writeln!(f, r#"
     .section .data
     .global app_{0}_start
@@ -45,7 +46,7 @@ _num_app:
 app_{0}_start:
     .incbin "{2}{1}.bin"
 app_{0}_end:
-        "#, idx, app_with_extension, TARGET_PATH)?;
+        "#, idx, app, TARGET_PATH)?;
     }
     Ok(())
 }

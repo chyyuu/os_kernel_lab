@@ -11,8 +11,8 @@ mod lang_items;
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
-    main();
-    loop {}
+    syscall::sys_exit(main());
+    panic!("unreachable after sys_exit!");
 }
 
 #[linkage = "weak"]
