@@ -10,6 +10,7 @@ use riscv::register::{
     },
     stval,
 };
+use crate::syscall::syscall;
 
 global_asm!(include_str!("trap.S"));
 
@@ -23,10 +24,11 @@ pub fn init() {
 #[no_mangle]
 pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
     let scause = scause::read();
-    let stval = stval::read();
+    let _stval = stval::read();
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
-            panic!("Triggered UserEnvCall!");
+            cx.sepc += 4;
+            cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
         _ => {
             panic!("Unsupported trap!");

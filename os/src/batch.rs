@@ -43,7 +43,7 @@ struct AppManager {
 }
 struct AppManagerInner {
     num_app: usize,
-    next_app: usize,
+    current_app: usize,
     app_start: [usize; MAX_APP_NUM + 1],
 }
 unsafe impl Sync for AppManager {}
@@ -57,6 +57,10 @@ impl AppManagerInner {
     }
 
     unsafe fn load_app(&self, app_id: usize) {
+        if app_id >= self.num_app {
+            panic!("All applications completed!");
+        }
+        println!("[kernel] Loading app_{}", app_id);
         // clear app area
         (APP_BASE_ADDRESS..APP_BASE_ADDRESS + APP_SIZE_LIMIT).for_each(|addr| {
             (addr as *mut u8).write_volatile(0);
@@ -72,15 +76,10 @@ impl AppManagerInner {
         app_dst.copy_from_slice(app_src);
     }
 
-    pub fn run_next_app(&mut self) {
-        unsafe { self.load_app(self.next_app); }
-        self.next_app += 1;
-        extern "C" { fn __restore(cx: &mut TrapContext); }
-        unsafe {
-            __restore(KERNEL_STACK.push_context(
-                TrapContext::app_init_context(APP_BASE_ADDRESS, USER_STACK.get_sp())
-            ));
-        }
+    pub fn get_current_app(&self) -> usize { self.current_app }
+
+    pub fn move_to_next_app(&mut self) {
+        self.current_app += 1;
     }
 }
 
@@ -94,10 +93,10 @@ lazy_static! {
             let app_start_raw: &[usize] = unsafe {
                 core::slice::from_raw_parts(num_app_ptr.add(1), num_app + 1)
             };
-            &app_start[..=num_app].copy_from_slice(app_start_raw);
+            app_start[..=num_app].copy_from_slice(app_start_raw);
             AppManagerInner {
                 num_app,
-                next_app: 0,
+                current_app: 0,
                 app_start,
             }
         }),
@@ -112,6 +111,17 @@ pub fn print_app_info() {
     APP_MANAGER.inner.borrow().print_app_info();
 }
 
-pub fn run_next_app() {
-    APP_MANAGER.inner.borrow_mut().run_next_app();
+pub fn run_next_app() -> ! {
+    let current_app = APP_MANAGER.inner.borrow().get_current_app();
+    unsafe {
+        APP_MANAGER.inner.borrow().load_app(current_app);
+    }
+    APP_MANAGER.inner.borrow_mut().move_to_next_app();
+    extern "C" { fn __restore(cx_addr: usize); }
+    unsafe {
+        __restore(KERNEL_STACK.push_context(
+            TrapContext::app_init_context(APP_BASE_ADDRESS, USER_STACK.get_sp())
+        ) as *const _ as usize);
+    }
+    panic!("Unreachable in batch::run_current_app!");
 }

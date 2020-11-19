@@ -2,9 +2,9 @@ use riscv::register::sstatus::{Sstatus, self, SPP};
 
 #[repr(C)]
 pub struct TrapContext {
-    x: [usize; 32],
-    sstatus: Sstatus,
-    sepc: usize,
+    pub x: [usize; 32],
+    pub sstatus: Sstatus,
+    pub sepc: usize,
 }
 
 impl TrapContext {

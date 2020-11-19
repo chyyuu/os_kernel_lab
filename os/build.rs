@@ -2,11 +2,11 @@ use std::io::{Result, Write};
 use std::fs::{File, read_dir};
 
 fn main() {
-    println!("cargo:rerun-if-changed=../user");
+    println!("cargo:rerun-if-changed=../user/src/bin/");
     insert_app_data().unwrap();
 }
 
-static TARGET_PATH: &'static str = "../user/target/riscv64gc-unknown-none-elf/release/";
+static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
 
 fn insert_app_data() -> Result<()> {
     let mut f = File::create("src/link_app.S").unwrap();

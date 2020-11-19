@@ -6,7 +6,7 @@ extern crate user_lib;
 
 const SIZE: usize = 10;
 const P: u32 = 3;
-const STEP: usize = 10000000;
+const STEP: usize = 100000;
 const MOD: u32 = 10007;
 
 #[no_mangle]
