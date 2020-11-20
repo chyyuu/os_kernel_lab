@@ -10,7 +10,7 @@ static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
 
 fn insert_app_data() -> Result<()> {
     let mut f = File::create("src/link_app.S").unwrap();
-    let apps: Vec<_> = read_dir("../user/src/bin")
+    let mut apps: Vec<_> = read_dir("../user/src/bin")
         .unwrap()
         .into_iter()
         .map(|dir_entry| {
@@ -19,6 +19,7 @@ fn insert_app_data() -> Result<()> {
             name_with_ext
         })
         .collect();
+    apps.sort();
 
     writeln!(f, r#"
     .align 4
