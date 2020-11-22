@@ -17,7 +17,9 @@ SECTIONS
         *(.data .data.*)
     }
     .bss : {
+        start_bss = .;
         *(.bss .bss.*)
+        end_bss = .;
     }
     /DISCARD/ : {
         *(.eh_frame)
