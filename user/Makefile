@@ -19,3 +19,5 @@ build: binary
 
 clean:
 	@cargo clean
+
+.PHONY: elf binary build clean

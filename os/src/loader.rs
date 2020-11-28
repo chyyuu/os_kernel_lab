@@ -1,5 +1,3 @@
-use core::cell::RefCell;
-use lazy_static::*;
 use crate::trap::TrapContext;
 use crate::task::TaskContext;
 use crate::config::*;
@@ -29,11 +27,13 @@ impl KernelStack {
         self.data.as_ptr() as usize + KERNEL_STACK_SIZE
     }
     pub fn push_context(&self, trap_cx: TrapContext, task_cx: TaskContext) -> &'static mut TaskContext {
-        let trap_cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
-        unsafe { *trap_cx_ptr = trap_cx; }
-        let task_cx_ptr = (trap_cx_ptr as usize - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
-        unsafe { *task_cx_ptr = task_cx; }
-        unsafe { task_cx_ptr.as_mut().unwrap() }
+        unsafe {
+            let trap_cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
+            *trap_cx_ptr = trap_cx;
+            let task_cx_ptr = (trap_cx_ptr as usize - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
+            *task_cx_ptr = task_cx;
+            task_cx_ptr.as_mut().unwrap()
+        }
     }
 }
 
@@ -63,8 +63,6 @@ pub fn load_apps() {
     unsafe { llvm_asm!("fence.i" :::: "volatile"); }
     // load apps
     for i in 0..num_app {
-        println!("i = {}", i);
-        println!("[{:#x}, {:#x})", app_start[i], app_start[i + 1]);
         let base_i = get_base_i(i);
         // clear region
         (base_i..base_i + APP_SIZE_LIMIT).for_each(|addr| unsafe {
@@ -82,11 +80,6 @@ pub fn load_apps() {
 }
 
 pub fn init_app_cx(app_id: usize) -> &'static TaskContext {
-    println!("app_id = {}, kernel_sp = {:#x}, user_sp = {:#x}",
-             app_id,
-             KERNEL_STACK[app_id].get_sp(),
-             USER_STACK[app_id].get_sp()
-    );
     KERNEL_STACK[app_id].push_context(
         TrapContext::app_init_context(get_base_i(app_id), USER_STACK[app_id].get_sp()),
         TaskContext::goto_restore(),
