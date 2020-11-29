@@ -1,18 +1,20 @@
 use crate::task::{
-    mark_current_suspended,
-    mark_current_exited,
-    run_next_task
+    suspend_current_and_run_next,
+    exit_current_and_run_next,
 };
+use crate::timer::get_time;
 
 pub fn sys_exit(xstate: i32) -> ! {
     println!("[kernel] Application exited with code {}", xstate);
-    mark_current_exited();
-    run_next_task();
+    exit_current_and_run_next();
     panic!("Unreachable in sys_exit!");
 }
 
 pub fn sys_yield() -> isize {
-    mark_current_suspended();
-    run_next_task();
+    suspend_current_and_run_next();
     0
+}
+
+pub fn sys_get_time() -> isize {
+    get_time() as isize
 }

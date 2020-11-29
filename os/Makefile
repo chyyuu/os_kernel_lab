@@ -29,7 +29,7 @@ $(KERNEL_BIN): kernel
 
 kernel:
 	@cd ../user && make build
-	@cargo build --release
+	@cargo build --release --features "board_$(BOARD)"
 
 clean:
 	@cargo clean
