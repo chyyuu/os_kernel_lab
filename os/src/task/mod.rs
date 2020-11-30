@@ -94,7 +94,7 @@ impl TaskManager {
                 );
             }
         } else {
-            panic!("[kernel] All applications completed!");
+            panic!("All applications completed!");
         }
     }
 }
