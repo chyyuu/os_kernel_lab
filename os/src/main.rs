@@ -37,8 +37,7 @@ fn clear_bss() {
 pub fn rust_main() -> ! {
     clear_bss();
     println!("[kernel] Hello, world!");
-    mm::init_heap();
-    mm::heap_test();
+    mm::init();
     loop {}
     trap::init();
     loader::load_apps();
