@@ -1,6 +1,7 @@
 use crate::trap::TrapContext;
 use crate::task::TaskContext;
 use crate::config::*;
+use xmas_elf::ElfFile;
 
 #[repr(align(4096))]
 struct KernelStack {
@@ -52,6 +53,32 @@ pub fn get_num_app() -> usize {
     unsafe { (_num_app as usize as *const usize).read_volatile() }
 }
 
+fn debug_elf(start_addr: usize, end_addr: usize) {
+    let data_array = unsafe {
+        core::slice::from_raw_parts(start_addr as *const u8, end_addr - start_addr)
+    };
+    let elf = ElfFile::new(data_array).unwrap();
+    let elf_header = elf.header;
+    let magic = elf_header.pt1.magic;
+    assert_eq!(magic, [0x7f, 0x45, 0x4c, 0x46], "invalid elf!");
+    let ph_count = elf_header.pt2.ph_count();
+    println!("ph_count = {}", ph_count);
+    for i in 0..ph_count {
+        let ph = elf.program_header(i).unwrap();
+        if ph.get_type().unwrap() == xmas_elf::program::Type::Load {
+            println!(
+                "offset={:#x},va={:#x},pa={:#x},filesz={:#x},memsz={:#x},align={:#x}",
+                ph.offset(),
+                ph.virtual_addr(),
+                ph.physical_addr(),
+                ph.file_size(),
+                ph.mem_size(),
+                ph.align(),
+            );
+        }
+    }
+}
+
 pub fn load_apps() {
     extern "C" { fn _num_app(); }
     let num_app_ptr = _num_app as usize as *const usize;
@@ -59,6 +86,18 @@ pub fn load_apps() {
     let app_start = unsafe {
         core::slice::from_raw_parts(num_app_ptr.add(1), num_app + 1)
     };
+    println!("num_app = {}", num_app);
+    for i in 0..num_app {
+        println!(
+            "app_{} [{:#x},{:#x}) size={:#x}",
+            i,
+            app_start[i],
+            app_start[i + 1],
+            app_start[i + 1] - app_start[i]
+        );
+        debug_elf(app_start[i], app_start[i + 1]);
+    }
+    loop {}
     // clear i-cache first
     unsafe { llvm_asm!("fence.i" :::: "volatile"); }
     // load apps
