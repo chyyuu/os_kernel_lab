@@ -3,11 +3,13 @@ mod switch;
 mod task;
 
 use crate::config::MAX_APP_NUM;
-use crate::loader::{get_num_app, init_app_cx};
+use crate::loader::{get_num_app, get_app_data};
+use crate::trap::TrapContext;
 use core::cell::RefCell;
 use lazy_static::*;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
+use alloc::vec::Vec;
 
 pub use context::TaskContext;
 
@@ -17,7 +19,7 @@ pub struct TaskManager {
 }
 
 struct TaskManagerInner {
-    tasks: [TaskControlBlock; MAX_APP_NUM],
+    tasks: Vec<TaskControlBlock>,
     current_task: usize,
 }
 
@@ -25,14 +27,16 @@ unsafe impl Sync for TaskManager {}
 
 lazy_static! {
     pub static ref TASK_MANAGER: TaskManager = {
+        println!("init TASK_MANAGER");
         let num_app = get_num_app();
-        let mut tasks = [
-            TaskControlBlock { task_cx_ptr: 0, task_status: TaskStatus::UnInit };
-            MAX_APP_NUM
-        ];
+        println!("num_app = {}", num_app);
+        let mut tasks: Vec<TaskControlBlock> = Vec::new();
         for i in 0..num_app {
-            tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
-            tasks[i].task_status = TaskStatus::Ready;
+            println!("creating TCB #{}", i);
+            tasks.push(TaskControlBlock::new(
+                get_app_data(i),
+                i,
+            ));
         }
         TaskManager {
             num_app,
@@ -46,11 +50,14 @@ lazy_static! {
 
 impl TaskManager {
     fn run_first_task(&self) {
+        println!("into TaskManager::run_first_task");
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
         let next_task_cx = self.inner.borrow().tasks[0].get_task_cx_ptr2();
+        println!("next_task_cx={:p} {:#x}", next_task_cx, unsafe { next_task_cx.read_volatile() });
+        let _unused: usize = 0;
         unsafe {
             __switch(
-                &0usize as *const _,
+                &_unused as *const _,
                 next_task_cx,
             );
         }
@@ -76,6 +83,18 @@ impl TaskManager {
             .find(|id| {
                 inner.tasks[*id].task_status == TaskStatus::Ready
             })
+    }
+
+    fn get_current_token(&self) -> usize {
+        let inner = self.inner.borrow();
+        let current = inner.current_task;
+        inner.tasks[current].get_user_token()
+    }
+
+    fn get_current_trap_cx(&self) -> &mut TrapContext {
+        let inner = self.inner.borrow();
+        let current = inner.current_task;
+        inner.tasks[current].get_trap_cx()
     }
 
     fn run_next_task(&self) {
@@ -123,4 +142,12 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next() {
     mark_current_exited();
     run_next_task();
+}
+
+pub fn current_user_token() -> usize {
+    TASK_MANAGER.get_current_token()
+}
+
+pub fn current_trap_cx() -> &'static mut TrapContext {
+    TASK_MANAGER.get_current_trap_cx()
 }

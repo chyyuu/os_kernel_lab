@@ -2,7 +2,7 @@ use std::io::{Result, Write};
 use std::fs::{File, read_dir};
 
 fn main() {
-    println!("cargo:rerun-if-changed=../user/src/bin/");
+    println!("cargo:rerun-if-changed=../user/src/");
     insert_app_data().unwrap();
 }
 

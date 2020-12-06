@@ -11,9 +11,11 @@ SECTIONS
         *(.text.entry)
         *(.text .text.*)
     }
+    . = ALIGN(4K);
     .rodata : {
         *(.rodata .rodata.*)
     }
+    . = ALIGN(4K);
     .data : {
         *(.data .data.*)
     }

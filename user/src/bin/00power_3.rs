@@ -6,12 +6,13 @@ extern crate user_lib;
 
 const LEN: usize = 100;
 
+static mut s: [u64; LEN] = [0u64; LEN];
+
 #[no_mangle]
-fn main() -> i32 {
+unsafe fn main() -> i32 {
     let p = 3u64;
     let m = 998244353u64;
     let iter: usize = 100000;
-    let mut s = [0u64; LEN];
     let mut cur = 0usize;
     s[cur] = 1;
     for i in 1..=iter {

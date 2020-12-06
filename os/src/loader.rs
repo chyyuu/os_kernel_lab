@@ -3,6 +3,7 @@ use crate::task::TaskContext;
 use crate::config::*;
 use xmas_elf::ElfFile;
 
+/*
 #[repr(align(4096))]
 struct KernelStack {
     data: [u8; KERNEL_STACK_SIZE],
@@ -43,7 +44,7 @@ impl UserStack {
         self.data.as_ptr() as usize + USER_STACK_SIZE
     }
 }
-
+*/
 fn get_base_i(app_id: usize) -> usize {
     APP_BASE_ADDRESS + app_id * APP_SIZE_LIMIT
 }
@@ -53,6 +54,23 @@ pub fn get_num_app() -> usize {
     unsafe { (_num_app as usize as *const usize).read_volatile() }
 }
 
+pub fn get_app_data(app_id: usize) -> &'static [u8] {
+    extern "C" { fn _num_app(); }
+    let num_app_ptr = _num_app as usize as *const usize;
+    let num_app = get_num_app();
+    let app_start = unsafe {
+        core::slice::from_raw_parts(num_app_ptr.add(1), num_app + 1)
+    };
+    assert!(app_id < num_app);
+    unsafe {
+        core::slice::from_raw_parts(
+            app_start[app_id] as *const u8,
+            app_start[app_id + 1] - app_start[app_id]
+        )
+    }
+}
+
+/*
 fn debug_elf(start_addr: usize, end_addr: usize) {
     let data_array = unsafe {
         core::slice::from_raw_parts(start_addr as *const u8, end_addr - start_addr)
@@ -67,14 +85,16 @@ fn debug_elf(start_addr: usize, end_addr: usize) {
         let ph = elf.program_header(i).unwrap();
         if ph.get_type().unwrap() == xmas_elf::program::Type::Load {
             println!(
-                "offset={:#x},va={:#x},pa={:#x},filesz={:#x},memsz={:#x},align={:#x}",
+                "offset={:#x},va={:#x},pa={:#x},filesz={:#x},memsz={:#x},align={:#x},flag={:?}",
                 ph.offset(),
                 ph.virtual_addr(),
                 ph.physical_addr(),
                 ph.file_size(),
                 ph.mem_size(),
                 ph.align(),
+                ph.flags(),
             );
+            //println!("len={:?}", ph.get_data(&elf).unwrap());
         }
     }
 }
@@ -124,3 +144,4 @@ pub fn init_app_cx(app_id: usize) -> &'static TaskContext {
         TaskContext::goto_restore(),
     )
 }
+*/

@@ -17,15 +17,17 @@ use crate::syscall::syscall;
 use crate::task::{
     exit_current_and_run_next,
     suspend_current_and_run_next,
+    current_user_token,
+    current_trap_cx,
 };
 use crate::timer::set_next_trigger;
+use crate::config::{TRAP_CONTEXT, TRAMPOLINE};
 
 global_asm!(include_str!("trap.S"));
 
 pub fn init() {
-    extern "C" { fn __alltraps(); }
     unsafe {
-        stvec::write(__alltraps as usize, TrapMode::Direct);
+        stvec::write(TRAMPOLINE, TrapMode::Direct);
     }
 }
 
@@ -38,11 +40,14 @@ pub fn enable_timer_interrupt() {
 }
 
 #[no_mangle]
-pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
+pub fn trap_handler() -> ! {
+    println!("into trap_handler!");
+    let cx = current_trap_cx();
     let scause = scause::read();
     let stval = stval::read();
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
+            println!("found UserEnvCall!");
             cx.sepc += 4;
             cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
@@ -63,7 +68,26 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }
-    cx
+    trap_return();
 }
 
-pub use context::TrapContext;
+#[no_mangle]
+pub fn trap_return() -> ! {
+    println!("into trap_return");
+    let trap_cx_ptr = TRAP_CONTEXT;
+    let user_satp = current_user_token();
+    println!("trap_cx_ptr={:#x}, user_satp={:#x}", trap_cx_ptr, user_satp);
+    extern "C" {
+        fn __alltraps();
+        fn __restore();
+    }
+    let restore_va = __restore as usize - __alltraps as usize + TRAMPOLINE;
+    println!("__alltraps={:#x},__restore={:#x}", __alltraps as usize, __restore as usize);
+    println!("restore_va={:#x}", restore_va);
+    unsafe {
+        llvm_asm!("jr $0" :: "r"(restore_va), "{a0}"(trap_cx_ptr), "{a1}"(user_satp) :: "volatile");
+    }
+    panic!("Unreachable in back_to_user!");
+}
+
+pub use context::{TrapContext};

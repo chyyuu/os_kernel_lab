@@ -71,6 +71,7 @@ impl VirtAddr {
     pub fn floor(&self) -> VirtPageNum { VirtPageNum(self.0 / PAGE_SIZE) }
     pub fn ceil(&self) -> VirtPageNum  { VirtPageNum((self.0 + PAGE_SIZE - 1) / PAGE_SIZE) }
     pub fn page_offset(&self) -> usize { self.0 & (PAGE_SIZE - 1) }
+    pub fn aligned(&self) -> bool { self.page_offset() == 0 }
 }
 impl From<VirtAddr> for VirtPageNum {
     fn from(v: VirtAddr) -> Self {
@@ -85,6 +86,7 @@ impl PhysAddr {
     pub fn floor(&self) -> PhysPageNum { PhysPageNum(self.0 / PAGE_SIZE) }
     pub fn ceil(&self) -> PhysPageNum { PhysPageNum((self.0 + PAGE_SIZE - 1) / PAGE_SIZE) }
     pub fn page_offset(&self) -> usize { self.0 & (PAGE_SIZE - 1) }
+    pub fn aligned(&self) -> bool { self.page_offset() == 0 }
 }
 impl From<PhysAddr> for PhysPageNum {
     fn from(v: PhysAddr) -> Self {
@@ -150,6 +152,8 @@ impl<T> SimpleRange<T> where
         assert!(start <= end, "start {:?} > end {:?}!", start, end);
         Self { l: start, r: end }
     }
+    pub fn get_start(&self) -> T { self.l }
+    pub fn get_end(&self) -> T { self.r }
 }
 impl<T> IntoIterator for SimpleRange<T> where
     T: StepByOne + Copy + PartialEq + PartialOrd + Debug, {

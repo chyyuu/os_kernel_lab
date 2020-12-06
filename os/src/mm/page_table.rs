@@ -68,7 +68,14 @@ impl PageTable {
             frames: vec![frame],
         }
     }
-    fn find_pte(&mut self, vpn: VirtPageNum, create: bool) -> Option<&mut PageTableEntry> {
+    /// Temporarily used to get arguments from user space.
+    pub fn from_root_ppn(root_ppn: PhysPageNum) -> Self {
+        Self {
+            root_ppn,
+            frames: Vec::new(),
+        }
+    }
+    fn find_pte_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
         let mut result: Option<&mut PageTableEntry> = None;
@@ -79,9 +86,6 @@ impl PageTable {
                 break;
             }
             if !pte.is_valid() {
-                if !create {
-                    return None;
-                }
                 let frame = frame_alloc().unwrap();
                 *pte = PageTableEntry::new(frame.ppn, PTEFlags::V);
                 self.frames.push(frame);
@@ -90,19 +94,36 @@ impl PageTable {
         }
         result
     }
+    fn find_pte(&self, vpn: VirtPageNum) -> Option<&PageTableEntry> {
+        let idxs = vpn.indexes();
+        let mut ppn = self.root_ppn;
+        let mut result: Option<&PageTableEntry> = None;
+        for i in 0..3 {
+            let pte = &ppn.get_pte_array()[idxs[i]];
+            if i == 2 {
+                result = Some(pte);
+                break;
+            }
+            if !pte.is_valid() {
+                return None;
+            }
+            ppn = pte.ppn();
+        }
+        result
+    }
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
         //println!("mapping {:?} {:?}", vpn, ppn);
-        let pte = self.find_pte(vpn, true).unwrap();
+        let pte = self.find_pte_create(vpn).unwrap();
         assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
         *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
     }
     pub fn unmap(&mut self, vpn: VirtPageNum) {
-        let pte = self.find_pte(vpn, false).unwrap();
+        let pte = self.find_pte_create(vpn).unwrap();
         assert!(pte.is_valid(), "vpn {:?} is invalid before unmapping", vpn);
         *pte = PageTableEntry::empty();
     }
-    pub fn translate(&mut self, vpn: VirtPageNum) -> Option<PageTableEntry> {
-        self.find_pte(vpn, false)
+    pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
+        self.find_pte(vpn)
             .map(|pte| {pte.clone()})
     }
     pub fn token(&self) -> usize {
