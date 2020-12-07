@@ -1,4 +1,4 @@
-use super::{frame_alloc, PhysPageNum, FrameTracker, VirtPageNum};
+use super::{frame_alloc, PhysPageNum, FrameTracker, VirtPageNum, VirtAddr, StepByOne};
 use alloc::vec::Vec;
 use alloc::vec;
 use bitflags::*;
@@ -69,9 +69,9 @@ impl PageTable {
         }
     }
     /// Temporarily used to get arguments from user space.
-    pub fn from_root_ppn(root_ppn: PhysPageNum) -> Self {
+    pub fn from_token(satp: usize) -> Self {
         Self {
-            root_ppn,
+            root_ppn: PhysPageNum::from(satp & ((1usize << 44) - 1)),
             frames: Vec::new(),
         }
     }
@@ -95,6 +95,8 @@ impl PageTable {
         result
     }
     fn find_pte(&self, vpn: VirtPageNum) -> Option<&PageTableEntry> {
+        //println!("into find_pte");
+        //println!("root_ppn = {:?}", self.root_ppn);
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
         let mut result: Option<&PageTableEntry> = None;
@@ -123,10 +125,37 @@ impl PageTable {
         *pte = PageTableEntry::empty();
     }
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
+        //println!("into PageTable::translate");
         self.find_pte(vpn)
             .map(|pte| {pte.clone()})
     }
     pub fn token(&self) -> usize {
         8usize << 60 | self.root_ppn.0
     }
+}
+
+pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static [u8]> {
+    //println!("into translated_byte_buffer!");
+    let page_table = PageTable::from_token(token);
+    let mut start = ptr as usize;
+    let end = start + len;
+    //println!("start={:#x},end={:#x}", start, end);
+    let mut v = Vec::new();
+    while start < end {
+        //println!("start={:#x}", start);
+        let start_va = VirtAddr::from(start);
+        let mut vpn = start_va.floor();
+        //println!("vpn={:?}", vpn);
+        let ppn = page_table
+            .translate(vpn)
+            .unwrap()
+            .ppn();
+        //println!("ppn={:?}", ppn);
+        vpn.step();
+        let mut end_va: VirtAddr = vpn.into();
+        end_va = end_va.min(VirtAddr::from(end));
+        v.push(&ppn.get_bytes_array()[start_va.page_offset()..end_va.page_offset()]);
+        start = end_va.into();
+    }
+    v
 }
