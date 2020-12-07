@@ -124,24 +124,19 @@ impl MemorySet {
     /// Include sections in elf and trampoline and TrapContext and user stack,
     /// also returns user_sp and entry point.
     pub fn from_elf(elf_data: &[u8]) -> (Self, usize, usize) {
-        //println!("into from_elf!");
         let mut memory_set = Self::new_bare();
         // map trampoline
-        //println!("mapping trampoline!");
         memory_set.map_trampoline();
         // map program headers of elf, with U flag
-        //println!("mapping elf!");
         let elf = xmas_elf::ElfFile::new(elf_data).unwrap();
         let elf_header = elf.header;
         let magic = elf_header.pt1.magic;
         assert_eq!(magic, [0x7f, 0x45, 0x4c, 0x46], "invalid elf!");
         let ph_count = elf_header.pt2.ph_count();
-        //println!("ph_count = {}", ph_count);
         let mut max_end_vpn = VirtPageNum(0);
         for i in 0..ph_count {
             let ph = elf.program_header(i).unwrap();
             if ph.get_type().unwrap() == xmas_elf::program::Type::Load {
-                //println!("ph#{},va={},memsz={}", i, ph.virtual_addr(), ph.mem_size());
                 let start_va: VirtAddr = (ph.virtual_addr() as usize).into();
                 let end_va: VirtAddr = ((ph.virtual_addr() + ph.mem_size()) as usize).into();
                 let mut map_perm = MapPermission::U;
@@ -149,16 +144,13 @@ impl MemorySet {
                 if ph_flags.is_read() { map_perm |= MapPermission::R; }
                 if ph_flags.is_write() { map_perm |= MapPermission::W; }
                 if ph_flags.is_execute() { map_perm |= MapPermission::X; }
-                //println!("creating MapArea!");
                 let map_area = MapArea::new(
                     start_va,
                     end_va,
                     MapType::Framed,
                     map_perm,
                 );
-                //println!("end_vpn = {:?}", map_area.vpn_range.get_end());
                 max_end_vpn = map_area.vpn_range.get_end();
-                //println!("pushing MapArea!");
                 memory_set.push(
                     map_area,
                     Some(&elf.input[ph.offset() as usize..(ph.offset() + ph.file_size()) as usize])
@@ -166,13 +158,11 @@ impl MemorySet {
             }
         }
         // map user stack with U flags
-        //println!("mapping user stack!");
         let max_end_va: VirtAddr = max_end_vpn.into();
         let mut user_stack_bottom: usize = max_end_va.into();
         // guard page
         user_stack_bottom += PAGE_SIZE;
         let user_stack_top = user_stack_bottom + USER_STACK_SIZE;
-        //println!("user stack={:#x},{:#x}", user_stack_bottom, user_stack_top);
         memory_set.push(MapArea::new(
             user_stack_bottom.into(),
             user_stack_top.into(),
@@ -180,7 +170,6 @@ impl MemorySet {
             MapPermission::R | MapPermission::W | MapPermission::U,
         ), None);
         // map TrapContext
-        //println!("mapping TrapContext {:#x},{:#x}", TRAP_CONTEXT, TRAMPOLINE);
         memory_set.push(MapArea::new(
             TRAP_CONTEXT.into(),
             TRAMPOLINE.into(),

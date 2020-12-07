@@ -11,14 +11,11 @@ pub struct FrameTracker {
 
 impl FrameTracker {
     pub fn new(ppn: PhysPageNum) -> Self {
-        //println!("into FrameTracker::new, ppn = {:?}", ppn);
         // page cleaning
         let bytes_array = ppn.get_bytes_array();
-        //println!("ptr = {:p}, len = {}", bytes_array.as_ptr(), bytes_array.len());
         for i in bytes_array {
             *i = 0;
         }
-        //println!("OK");
         Self { ppn }
     }
 }
@@ -62,12 +59,9 @@ impl FrameAllocator for StackFrameAllocator {
         }
     }
     fn alloc(&mut self) -> Option<PhysPageNum> {
-        //println!("into StackFrameAllocator::alloc()");
         if let Some(ppn) = self.recycled.pop() {
-            //println!("has recycled!");
             Some(ppn.into())
         } else {
-            //println!("run out recycled, current = {}, end = {}!", self.current, self.end);
             if self.current == self.end {
                 None
             } else {
@@ -107,7 +101,6 @@ pub fn init_frame_allocator() {
 }
 
 pub fn frame_alloc() -> Option<FrameTracker> {
-    //println!("into frame_alloc()");
     FRAME_ALLOCATOR
         .lock()
         .alloc()

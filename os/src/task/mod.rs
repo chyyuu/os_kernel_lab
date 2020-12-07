@@ -31,7 +31,6 @@ lazy_static! {
         println!("num_app = {}", num_app);
         let mut tasks: Vec<TaskControlBlock> = Vec::new();
         for i in 0..num_app {
-            println!("creating TCB #{}", i);
             tasks.push(TaskControlBlock::new(
                 get_app_data(i),
                 i,
@@ -49,10 +48,8 @@ lazy_static! {
 
 impl TaskManager {
     fn run_first_task(&self) {
-        println!("into TaskManager::run_first_task");
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
         let next_task_cx = self.inner.borrow().tasks[0].get_task_cx_ptr2();
-        println!("next_task_cx={:p} {:#x}", next_task_cx, unsafe { next_task_cx.read_volatile() });
         let _unused: usize = 0;
         unsafe {
             __switch(

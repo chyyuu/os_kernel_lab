@@ -61,7 +61,6 @@ pub struct PageTable {
 /// Assume that it won't oom when creating/mapping.
 impl PageTable {
     pub fn new() -> Self {
-        //println!("into PageTable::new()");
         let frame = frame_alloc().unwrap();
         PageTable {
             root_ppn: frame.ppn,
@@ -95,8 +94,6 @@ impl PageTable {
         result
     }
     fn find_pte(&self, vpn: VirtPageNum) -> Option<&PageTableEntry> {
-        //println!("into find_pte");
-        //println!("root_ppn = {:?}", self.root_ppn);
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
         let mut result: Option<&PageTableEntry> = None;
@@ -115,7 +112,6 @@ impl PageTable {
     }
     #[allow(unused)]
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
-        //println!("mapping {:?} {:?}", vpn, ppn);
         let pte = self.find_pte_create(vpn).unwrap();
         assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
         *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
@@ -127,7 +123,6 @@ impl PageTable {
         *pte = PageTableEntry::empty();
     }
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
-        //println!("into PageTable::translate");
         self.find_pte(vpn)
             .map(|pte| {pte.clone()})
     }
@@ -137,22 +132,17 @@ impl PageTable {
 }
 
 pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static [u8]> {
-    //println!("into translated_byte_buffer!");
     let page_table = PageTable::from_token(token);
     let mut start = ptr as usize;
     let end = start + len;
-    //println!("start={:#x},end={:#x}", start, end);
     let mut v = Vec::new();
     while start < end {
-        //println!("start={:#x}", start);
         let start_va = VirtAddr::from(start);
         let mut vpn = start_va.floor();
-        //println!("vpn={:?}", vpn);
         let ppn = page_table
             .translate(vpn)
             .unwrap()
             .ppn();
-        //println!("ppn={:?}", ppn);
         vpn.step();
         let mut end_va: VirtAddr = vpn.into();
         end_va = end_va.min(VirtAddr::from(end));

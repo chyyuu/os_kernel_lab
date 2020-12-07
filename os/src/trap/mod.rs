@@ -52,14 +52,12 @@ pub fn enable_timer_interrupt() {
 
 #[no_mangle]
 pub fn trap_handler() -> ! {
-    //println!("into trap_handler!");
     set_kernel_trap_entry();
     let cx = current_trap_cx();
     let scause = scause::read();
     let stval = stval::read();
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
-            //println!("found UserEnvCall!");
             cx.sepc += 4;
             cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
@@ -86,17 +84,13 @@ pub fn trap_handler() -> ! {
 #[no_mangle]
 pub fn trap_return() -> ! {
     set_user_trap_entry();
-    //println!("into trap_return");
     let trap_cx_ptr = TRAP_CONTEXT;
     let user_satp = current_user_token();
-    //println!("trap_cx_ptr={:#x}, user_satp={:#x}", trap_cx_ptr, user_satp);
     extern "C" {
         fn __alltraps();
         fn __restore();
     }
     let restore_va = __restore as usize - __alltraps as usize + TRAMPOLINE;
-    //println!("__alltraps={:#x},__restore={:#x}", __alltraps as usize, __restore as usize);
-    //println!("restore_va={:#x}", restore_va);
     unsafe {
         llvm_asm!("jr $0" :: "r"(restore_va), "{a0}"(trap_cx_ptr), "{a1}"(user_satp) :: "volatile");
     }
