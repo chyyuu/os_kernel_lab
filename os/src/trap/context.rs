@@ -21,11 +21,7 @@ impl TrapContext {
     ) -> Self {
         let mut sstatus = sstatus::read();
         sstatus.set_spp(SPP::User);
-        let mut temp_sstatus: usize;
-        unsafe {
-            llvm_asm!("csrr $0, sstatus" : "=r"(temp_sstatus) ::: "volatile");
-        }
-        println!("sstatus={:#x}", temp_sstatus);
+        sstatus.set_spie(true);
         let mut cx = Self {
             x: [0; 32],
             sstatus,

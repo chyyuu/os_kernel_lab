@@ -26,11 +26,22 @@ use crate::config::{TRAP_CONTEXT, TRAMPOLINE};
 global_asm!(include_str!("trap.S"));
 
 pub fn init() {
+    set_kernel_trap_entry();
+}
+
+fn set_kernel_trap_entry() {
     unsafe {
-        stvec::write(TRAMPOLINE, TrapMode::Direct);
+        stvec::write(trap_from_kernel as usize, TrapMode::Direct);
     }
 }
 
+fn set_user_trap_entry() {
+    unsafe {
+        stvec::write(TRAMPOLINE as usize, TrapMode::Direct);
+    }
+}
+
+#[allow(unused)]
 pub fn enable_interrupt() {
     unsafe { sstatus::set_sie(); }
 }
@@ -42,6 +53,7 @@ pub fn enable_timer_interrupt() {
 #[no_mangle]
 pub fn trap_handler() -> ! {
     //println!("into trap_handler!");
+    set_kernel_trap_entry();
     let cx = current_trap_cx();
     let scause = scause::read();
     let stval = stval::read();
@@ -73,6 +85,7 @@ pub fn trap_handler() -> ! {
 
 #[no_mangle]
 pub fn trap_return() -> ! {
+    set_user_trap_entry();
     //println!("into trap_return");
     let trap_cx_ptr = TRAP_CONTEXT;
     let user_satp = current_user_token();
@@ -88,6 +101,11 @@ pub fn trap_return() -> ! {
         llvm_asm!("jr $0" :: "r"(restore_va), "{a0}"(trap_cx_ptr), "{a1}"(user_satp) :: "volatile");
     }
     panic!("Unreachable in back_to_user!");
+}
+
+#[no_mangle]
+pub fn trap_from_kernel() -> ! {
+    panic!("a trap from kernel!");
 }
 
 pub use context::{TrapContext};

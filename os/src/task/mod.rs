@@ -2,7 +2,6 @@ mod context;
 mod switch;
 mod task;
 
-use crate::config::MAX_APP_NUM;
 use crate::loader::{get_num_app, get_app_data};
 use crate::trap::TrapContext;
 use core::cell::RefCell;

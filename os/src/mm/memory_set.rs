@@ -2,7 +2,6 @@ use super::{PageTable, PageTableEntry, PTEFlags};
 use super::{VirtPageNum, VirtAddr, PhysPageNum, PhysAddr};
 use super::{FrameTracker, frame_alloc};
 use super::{VPNRange, StepByOne};
-use core::ops::Range;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use riscv::register::satp;
@@ -16,7 +15,6 @@ use crate::config::{
     TRAP_CONTEXT,
     USER_STACK_SIZE
 };
-use xmas_elf::ElfFile;
 
 extern "C" {
     fn stext();
@@ -169,7 +167,7 @@ impl MemorySet {
         }
         // map user stack with U flags
         //println!("mapping user stack!");
-        let mut max_end_va: VirtAddr = max_end_vpn.into();
+        let max_end_va: VirtAddr = max_end_vpn.into();
         let mut user_stack_bottom: usize = max_end_va.into();
         // guard page
         user_stack_bottom += PAGE_SIZE;
@@ -227,8 +225,7 @@ impl MapArea {
         }
     }
     pub fn map_one(&mut self, page_table: &mut PageTable, vpn: VirtPageNum) {
-        let mut pte_flags = PTEFlags::from_bits(self.map_perm.bits).unwrap();
-        let mut ppn = PhysPageNum(0);
+        let ppn: PhysPageNum;
         match self.map_type {
             MapType::Identical => {
                 ppn = PhysPageNum(vpn.0);
@@ -239,8 +236,10 @@ impl MapArea {
                 self.data_frames.insert(vpn, frame);
             }
         }
+        let pte_flags = PTEFlags::from_bits(self.map_perm.bits).unwrap();
         page_table.map(vpn, ppn, pte_flags);
     }
+    #[allow(unused)]
     pub fn unmap_one(&mut self, page_table: &mut PageTable, vpn: VirtPageNum) {
         match self.map_type {
             MapType::Framed => {
@@ -255,6 +254,7 @@ impl MapArea {
             self.map_one(page_table, vpn);
         }
     }
+    #[allow(unused)]
     pub fn unmap(&mut self, page_table: &mut PageTable) {
         for vpn in self.vpn_range {
             self.unmap_one(page_table, vpn);
