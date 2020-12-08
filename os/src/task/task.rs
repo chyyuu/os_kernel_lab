@@ -2,12 +2,14 @@ use crate::mm::{MemorySet, MapPermission, PhysPageNum, KERNEL_SPACE, VirtAddr};
 use crate::trap::{TrapContext, trap_handler};
 use crate::config::{TRAP_CONTEXT, kernel_stack_position};
 use super::TaskContext;
+use super::{PidHandle, pid_alloc, KernelStack};
 
 pub struct TaskControlBlock {
     // immutable
     pub trap_cx_ppn: PhysPageNum,
     pub base_size: usize,
-    //pub pid: usize,
+    pub pid: PidHandle,
+    pub kernel_stack: KernelStack,
     // mutable
     pub task_cx_ptr: usize,
     pub task_status: TaskStatus,
@@ -32,23 +34,20 @@ impl TaskControlBlock {
             .unwrap()
             .ppn();
         let task_status = TaskStatus::Ready;
-        // map a kernel-stack in kernel space
-        let (kernel_stack_bottom, kernel_stack_top) = kernel_stack_position(app_id);
-        KERNEL_SPACE
-            .lock()
-            .insert_framed_area(
-                kernel_stack_bottom.into(),
-                kernel_stack_top.into(),
-                MapPermission::R | MapPermission::W,
-            );
-        let task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
-        unsafe { *task_cx_ptr = TaskContext::goto_trap_return(); }
+        // alloc a pid and a kernel stack in kernel space
+        let pid_handle = pid_alloc();
+        let kernel_stack = KernelStack::new(&pid_handle);
+        let kernel_stack_top = kernel_stack.get_top();
+        // push a task context which goes to trap_return to the top of kernel stack
+        let task_cx_ptr = kernel_stack.push_on_top(TaskContext::goto_trap_return());
         let task_control_block = Self {
+            trap_cx_ppn,
+            base_size: user_sp,
+            pid: pid_handle,
+            kernel_stack,
             task_cx_ptr: task_cx_ptr as usize,
             task_status,
             memory_set,
-            trap_cx_ppn,
-            base_size: user_sp,
         };
         // prepare TrapContext in user space
         let trap_cx = task_control_block.get_trap_cx();

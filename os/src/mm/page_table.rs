@@ -131,7 +131,7 @@ impl PageTable {
     }
 }
 
-pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static [u8]> {
+pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static mut [u8]> {
     let page_table = PageTable::from_token(token);
     let mut start = ptr as usize;
     let end = start + len;
@@ -146,7 +146,7 @@ pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&
         vpn.step();
         let mut end_va: VirtAddr = vpn.into();
         end_va = end_va.min(VirtAddr::from(end));
-        v.push(&ppn.get_bytes_array()[start_va.page_offset()..end_va.page_offset()]);
+        v.push(&mut ppn.get_bytes_array()[start_va.page_offset()..end_va.page_offset()]);
         start = end_va.into();
     }
     v

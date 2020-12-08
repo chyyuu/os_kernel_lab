@@ -3,6 +3,7 @@ mod switch;
 mod task;
 mod manager;
 mod processor;
+mod pid;
 
 use crate::loader::{get_num_app, get_app_data};
 use crate::trap::TrapContext;
@@ -14,6 +15,7 @@ use alloc::vec::Vec;
 use alloc::sync::Arc;
 use spin::Mutex;
 use manager::fetch_task;
+use pid::{PidHandle, pid_alloc, KernelStack};
 
 pub use context::TaskContext;
 pub use processor::{
