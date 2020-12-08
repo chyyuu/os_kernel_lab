@@ -4,11 +4,14 @@ use crate::config::{TRAP_CONTEXT, kernel_stack_position};
 use super::TaskContext;
 
 pub struct TaskControlBlock {
+    // immutable
+    pub trap_cx_ppn: PhysPageNum,
+    pub base_size: usize,
+    //pub pid: usize,
+    // mutable
     pub task_cx_ptr: usize,
     pub task_status: TaskStatus,
     pub memory_set: MemorySet,
-    pub trap_cx_ppn: PhysPageNum,
-    pub base_size: usize,
 }
 
 impl TaskControlBlock {
@@ -65,4 +68,5 @@ pub enum TaskStatus {
     Ready,
     Running,
     Exited,
+    Zombie,
 }
