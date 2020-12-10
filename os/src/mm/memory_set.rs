@@ -47,10 +47,6 @@ impl MemorySet {
             areas: Vec::new(),
         }
     }
-    #[allow(unused)]
-    pub fn dealloc_all_frames(&mut self) {
-        *self = Self::new_bare();
-    }
     pub fn token(&self) -> usize {
         self.page_table.token()
     }
@@ -217,7 +213,8 @@ impl MemorySet {
         self.page_table.translate(vpn)
     }
     pub fn clear(&mut self) {
-        *self = Self::new_bare();
+        //*self = Self::new_bare();
+        self.areas.clear();
     }
 }
 

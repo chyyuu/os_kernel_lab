@@ -51,19 +51,25 @@ pub fn exec(path: &str) -> isize { sys_exec(path) }
 pub fn wait(exit_code: &mut i32) -> isize {
     loop {
         match sys_waitpid(-1, exit_code as *mut _) {
-            -1 => { yield_(); }
+            -2 => { yield_(); }
+            // -1 or a real pid
             exit_pid => return exit_pid,
         }
     }
 }
-pub fn wait_once(exit_code: &mut i32) -> isize {
-    sys_waitpid(-1, exit_code as *mut _)
-}
+
 pub fn waitpid(pid: usize, exit_code: &mut i32) -> isize {
     loop {
         match sys_waitpid(pid as isize, exit_code as *mut _) {
-            -1 => { yield_(); }
+            -2 => { yield_(); }
+            // -1 or a real pid
             exit_pid => return exit_pid,
         }
+    }
+}
+pub fn sleep(period_ms: usize) {
+    let start = sys_get_time();
+    while sys_get_time() < start + period_ms as isize {
+        sys_yield();
     }
 }

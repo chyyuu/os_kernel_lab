@@ -4,9 +4,9 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{fork, wait, yield_, exit, getpid, get_time, wait_once};
+use user_lib::{fork, wait, yield_, exit, getpid, get_time};
 
-static NUM: usize = 13;
+static NUM: usize = 20;
 const N: usize = 10;
 static P: i32 = 10007;
 type Arr = [[i32; N]; N];
@@ -50,7 +50,7 @@ pub fn main() -> i32 {
         if pid == 0 {
             let current_time = get_time();
             let times = (current_time as i32 as isize) * (current_time as i32 as isize) % 1000;
-            work(times * 40);
+            work(times * 10);
         }
     }
 
@@ -62,7 +62,7 @@ pub fn main() -> i32 {
             panic!("wait failed.");
         }
     }
-    assert!(wait_once(&mut xstate) < 0);
+    assert!(wait(&mut xstate) < 0);
     println!("matrix passed.");
     0
 }

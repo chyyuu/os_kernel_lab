@@ -42,14 +42,17 @@ pub fn suspend_current_and_run_next() {
     schedule(task_cx_ptr);
 }
 
-pub fn exit_current_and_run_next() {
+pub fn exit_current_and_run_next(exit_code: i32) {
     // take from Processor
     let task = take_current_task().unwrap();
     // **** hold current PCB lock
     let mut inner = task.acquire_inner_lock();
     // Change status to Zombie
     inner.task_status = TaskStatus::Zombie;
+    // Record exit code
+    inner.exit_code = exit_code;
     // move any child to its parent
+    // TODO: do not move to its parent but under initproc
 
     // ++++++ hold parent PCB lock here
     {

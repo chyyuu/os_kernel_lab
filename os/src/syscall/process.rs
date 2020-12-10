@@ -5,7 +5,7 @@ use crate::task::{
     current_user_token,
     add_task,
 };
-use crate::timer::get_time;
+use crate::timer::get_time_ms;
 use crate::mm::{
     translated_str,
     translated_refmut,
@@ -14,18 +14,7 @@ use crate::loader::get_app_data_by_name;
 use alloc::sync::Arc;
 
 pub fn sys_exit(exit_code: i32) -> ! {
-    // save exit code
-    let task = current_task().unwrap();
-
-    // ---- hold current PCB lock
-    task.acquire_inner_lock().exit_code = exit_code;
-    // ---- release current PCB lock
-
-    // this function will not return
-    // drop task manually to maintain rc correctly
-    drop(task);
-
-    exit_current_and_run_next();
+    exit_current_and_run_next(exit_code);
     panic!("Unreachable in sys_exit!");
 }
 
@@ -35,7 +24,7 @@ pub fn sys_yield() -> isize {
 }
 
 pub fn sys_get_time() -> isize {
-    get_time() as isize
+    get_time_ms() as isize
 }
 
 pub fn sys_getpid() -> isize {
@@ -68,11 +57,21 @@ pub fn sys_exec(path: *const u8) -> isize {
     }
 }
 
+/// If there is not a child process whose pid is same as given, return -1.
+/// Else if there is a child process but it is still running, return -2.
 pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
     let task = current_task().unwrap();
     // find a child process
+
     // ---- hold current PCB lock
     let mut inner = task.acquire_inner_lock();
+    if inner.children
+        .iter()
+        .find(|p| {pid == -1 || pid as usize == p.getpid()})
+        .is_none() {
+        return -1;
+        // ---- release current PCB lock
+    }
     let pair = inner.children
         .iter()
         .enumerate()
@@ -92,7 +91,7 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         *translated_refmut(inner.memory_set.token(), exit_code_ptr) = exit_code;
         found_pid as isize
     } else {
-        -1
+        -2
     }
     // ---- release current PCB lock automatically
 }

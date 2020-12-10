@@ -53,7 +53,7 @@ pub fn main() -> i32 {
                 }
                 print!(">> ");
             }
-            DL => {
+            BS | DL => {
                 if !line.is_empty() {
                     print!("{}", BS as char);
                     print!(" ");
