@@ -48,7 +48,22 @@ pub fn get_time() -> isize { sys_get_time() }
 pub fn getpid() -> isize { sys_getpid() }
 pub fn fork() -> isize { sys_fork() }
 pub fn exec(path: &str) -> isize { sys_exec(path) }
-pub fn wait(xstate: &mut i32) -> isize { sys_waitpid(-1, xstate as *mut _) }
-pub fn waitpid(pid: usize, xstate: &mut i32) -> isize {
-    sys_waitpid(pid as isize, xstate as *mut _)
+pub fn wait(exit_code: &mut i32) -> isize {
+    loop {
+        match sys_waitpid(-1, exit_code as *mut _) {
+            -1 => { yield_(); }
+            exit_pid => return exit_pid,
+        }
+    }
+}
+pub fn wait_once(exit_code: &mut i32) -> isize {
+    sys_waitpid(-1, exit_code as *mut _)
+}
+pub fn waitpid(pid: usize, exit_code: &mut i32) -> isize {
+    loop {
+        match sys_waitpid(pid as isize, exit_code as *mut _) {
+            -1 => { yield_(); }
+            exit_pid => return exit_pid,
+        }
+    }
 }

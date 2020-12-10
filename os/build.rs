@@ -47,6 +47,7 @@ _app_names:"#)?;
     .section .data
     .global app_{0}_start
     .global app_{0}_end
+    .align 12
 app_{0}_start:
     .incbin "{2}{1}"
 app_{0}_end:"#, idx, app, TARGET_PATH)?;
