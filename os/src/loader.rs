@@ -51,3 +51,12 @@ fn app_names() -> Vec<&'static str> {
     }
     v
 }
+
+pub fn list_apps() {
+    let apps = app_names();
+    println!("/**** APPS ****");
+    for app in apps {
+        println!("{}", app);
+    }
+    println!("**************/")
+}

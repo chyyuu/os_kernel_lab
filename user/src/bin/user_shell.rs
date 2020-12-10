@@ -31,13 +31,13 @@ pub fn main() -> i32 {
                     if pid == 0 {
                         // child process
                         if exec(line.as_str()) == -1 {
-                            println!("Command not found!");
+                            println!("Error when executing!");
                             return 0;
                         }
                         unreachable!();
                     } else {
                         let mut xstate: i32 = 0;
-                        let mut exit_pid: isize = 0;
+                        let mut exit_pid: isize;
                         loop {
                             exit_pid = waitpid(pid as usize, &mut xstate);
                             if exit_pid == -1 {

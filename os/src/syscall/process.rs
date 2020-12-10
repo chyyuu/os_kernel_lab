@@ -59,10 +59,13 @@ pub fn sys_fork() -> isize {
 pub fn sys_exec(path: *const u8) -> isize {
     let token = current_user_token();
     let path = translated_str(token, path);
-    let data = get_app_data_by_name(path.as_str()).unwrap();
-    let task = current_task().unwrap();
-    task.exec(data);
-    0
+    if let Some(data) = get_app_data_by_name(path.as_str()) {
+        let task = current_task().unwrap();
+        task.exec(data);
+        0
+    } else {
+        -1
+    }
 }
 
 pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
