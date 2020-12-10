@@ -41,20 +41,11 @@ pub fn rust_main() -> ! {
     clear_bss();
     println!("[kernel] Hello, world!");
     mm::init();
-    println!("[kernel] back to world!");
     mm::remap_test();
-
-    // add apps
-    let num_app = loader::get_num_app();
-    println!("num_app={}", num_app);
-    for i in 0..num_app {
-        println!("i={}", i);
-        task::add_application(loader::get_app_data(i), i);
-    }
+    task::add_initproc();
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
-    println!("before task::run_tasks!");
     task::run_tasks();
     panic!("Unreachable in rust_main!");
 }

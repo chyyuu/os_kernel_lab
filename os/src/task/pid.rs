@@ -46,6 +46,7 @@ pub struct PidHandle(pub usize);
 
 impl Drop for PidHandle {
     fn drop(&mut self) {
+        //println!("drop pid {}", self.0);
         PID_ALLOCATOR.lock().dealloc(self.0);
     }
 }
@@ -82,7 +83,7 @@ impl KernelStack {
     }
     pub fn push_on_top<T>(&self, value: T) -> *mut T where
         T: Sized, {
-        let (_, kernel_stack_top) = kernel_stack_position(self.pid);
+        let kernel_stack_top = self.get_top();
         let ptr_mut = (kernel_stack_top - core::mem::size_of::<T>()) as *mut T;
         unsafe { *ptr_mut = value; }
         ptr_mut

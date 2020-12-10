@@ -45,7 +45,8 @@ fn app_names() -> Vec<&'static str> {
             let slice = core::slice::from_raw_parts(start, end as usize - start as usize);
             let str = core::str::from_utf8(slice).unwrap();
             v.push(str);
-            start = end.add(1);
+            // Mention that there is a extra char between names
+            start = end.add(2);
         }
     }
     v
