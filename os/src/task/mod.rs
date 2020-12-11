@@ -10,6 +10,7 @@ use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::sync::Arc;
 use manager::fetch_task;
+use lazy_static::*;
 
 pub use context::TaskContext;
 pub use processor::{
@@ -51,22 +52,20 @@ pub fn exit_current_and_run_next(exit_code: i32) {
     inner.task_status = TaskStatus::Zombie;
     // Record exit code
     inner.exit_code = exit_code;
-    // move any child to its parent
-    // TODO: do not move to its parent but under initproc
+    // do not move to its parent but under initproc
 
-    // ++++++ hold parent PCB lock here
+    // ++++++ hold initproc PCB lock here
     {
-        let parent = inner.parent.as_ref().unwrap().upgrade().unwrap();
-        let mut parent_inner = parent.acquire_inner_lock();
+        let mut initproc_inner = INITPROC.acquire_inner_lock();
         for child in inner.children.iter() {
-            parent_inner.children.push(child.clone());
+            initproc_inner.children.push(child.clone());
         }
     }
     // ++++++ release parent PCB lock here
 
     inner.children.clear();
     // deallocate user space
-    inner.memory_set.clear();
+    inner.memory_set.recycle_data_pages();
     drop(inner);
     // **** release current PCB lock
     // drop task manually to maintain rc correctly
@@ -76,7 +75,12 @@ pub fn exit_current_and_run_next(exit_code: i32) {
     schedule(&_unused as *const _);
 }
 
+lazy_static! {
+    pub static ref INITPROC: Arc<TaskControlBlock> = Arc::new(
+        TaskControlBlock::new(get_app_data_by_name("initproc").unwrap())
+    );
+}
+
 pub fn add_initproc() {
-    let data = get_app_data_by_name("initproc").unwrap();
-    add_task(Arc::new(TaskControlBlock::new(data)));
+    add_task(INITPROC.clone());
 }

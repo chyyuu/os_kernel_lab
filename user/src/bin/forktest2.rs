@@ -30,6 +30,6 @@ pub fn main() -> i32 {
         assert_eq!(xstate, 0);
     }
     assert!(wait(&mut xstate) < 0);
-    println!("r_forktest2 test passed!");
+    println!("forktest2 test passed!");
     0
 }

@@ -17,13 +17,17 @@ fn main() -> i32 {
         exec("user_shell\0");
     } else {
         loop {
-            let mut xstatus: i32 = 0;
-            let pid = wait(&mut xstatus);
+            let mut exit_code: i32 = 0;
+            let pid = wait(&mut exit_code);
             if pid == -1 {
                 yield_();
                 continue;
             }
-            println!("[initproc] Release a zombie process!");
+            println!(
+                "[initproc] Released a zombie process, pid={}, exit_code={}",
+                pid,
+                exit_code,
+            );
         }
     }
     0
