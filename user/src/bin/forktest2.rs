@@ -4,9 +4,9 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{fork, wait, get_time, getpid, exit, yield_,};
+use user_lib::{fork, wait, getpid, exit, sleep, get_time};
 
-static NUM: usize = 13;
+static NUM: usize = 30;
 
 #[no_mangle]
 pub fn main() -> i32 {
@@ -15,11 +15,9 @@ pub fn main() -> i32 {
         if pid == 0 {
             let current_time = get_time();
             let sleep_length = (current_time as i32 as isize) * (current_time as i32 as isize) % 1000 + 1000;
-            println!("Subprocess {} sleep for {} ms", getpid(), sleep_length);
-            while get_time() < current_time + sleep_length {
-                yield_();
-            }
-            println!("Subprocess {} OK!", getpid());
+            println!("pid {} sleep for {} ms", getpid(), sleep_length);
+            sleep(sleep_length as usize);
+            println!("pid {} OK!", getpid());
             exit(0);
         }
     }

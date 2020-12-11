@@ -32,7 +32,7 @@ pub fn main() -> i32 {
                         // child process
                         if exec(line.as_str()) == -1 {
                             println!("Error when executing!");
-                            return 0;
+                            return -4;
                         }
                         unreachable!();
                     } else {
