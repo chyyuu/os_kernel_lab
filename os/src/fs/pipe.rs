@@ -44,7 +44,7 @@ pub struct PipeRingBuffer {
     head: usize,
     tail: usize,
     status: RingBufferStatus,
-    write_end: Option<Weak<Mutex<Pipe>>>,
+    write_end: Option<Weak<Pipe>>,
 }
 
 impl PipeRingBuffer {
@@ -57,7 +57,7 @@ impl PipeRingBuffer {
             write_end: None,
         }
     }
-    pub fn set_write_end(&mut self, write_end: &Arc<Mutex<Pipe>>) {
+    pub fn set_write_end(&mut self, write_end: &Arc<Pipe>) {
         self.write_end = Some(Arc::downgrade(write_end));
     }
     pub fn write_byte(&mut self, byte: u8) {
@@ -101,14 +101,14 @@ impl PipeRingBuffer {
 }
 
 /// Return (read_end, write_end)
-pub fn make_pipe() -> (Arc<Mutex<Pipe>>, Arc<Mutex<Pipe>>) {
+pub fn make_pipe() -> (Arc<Pipe>, Arc<Pipe>) {
     let buffer = Arc::new(Mutex::new(PipeRingBuffer::new()));
-    let read_end = Arc::new(Mutex::new(
+    let read_end = Arc::new(
         Pipe::read_end_with_buffer(buffer.clone())
-    ));
-    let write_end = Arc::new(Mutex::new(
+    );
+    let write_end = Arc::new(
         Pipe::write_end_with_buffer(buffer.clone())
-    ));
+    );
     buffer.lock().set_write_end(&write_end);
     (read_end, write_end)
 }

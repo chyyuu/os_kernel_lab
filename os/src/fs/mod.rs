@@ -11,10 +11,11 @@ pub trait File : Any + Send + Sync {
 }
 
 impl dyn File {
+    #[allow(unused)]
     pub fn downcast_ref<T: File>(&self) -> Option<&T> {
         self.as_any_ref().downcast_ref::<T>()
     }
 }
 
-pub use pipe::{Pipe};
+pub use pipe::{Pipe, make_pipe};
 pub use stdio::{Stdin, Stdout};
