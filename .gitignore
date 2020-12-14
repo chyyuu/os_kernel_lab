@@ -1,3 +1,5 @@
 .idea/*
 os/target/*
 os/.idea/*
+os/src/link_app.S
+user/
