@@ -44,7 +44,6 @@ pub fn rust_main() -> ! {
     println!("[kernel] Hello, world!");
     mm::init();
     mm::remap_test();
-    drivers::block_device_test();
     task::add_initproc();
     trap::init();
     trap::enable_timer_interrupt();
