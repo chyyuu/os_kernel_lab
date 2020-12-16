@@ -23,6 +23,7 @@ mod task;
 mod timer;
 mod mm;
 mod fs;
+mod drivers;
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("link_app.S"));
@@ -43,6 +44,7 @@ pub fn rust_main() -> ! {
     println!("[kernel] Hello, world!");
     mm::init();
     mm::remap_test();
+    drivers::block_device_test();
     task::add_initproc();
     println!("after initproc!");
     trap::init();

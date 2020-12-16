@@ -5,9 +5,9 @@ mod page_table;
 mod memory_set;
 
 use page_table::{PageTable, PTEFlags};
-use address::{VPNRange, StepByOne};
-pub use address::{PhysAddr, VirtAddr, PhysPageNum, VirtPageNum};
-pub use frame_allocator::{FrameTracker, frame_alloc};
+use address::VPNRange;
+pub use address::{PhysAddr, VirtAddr, PhysPageNum, VirtPageNum, StepByOne};
+pub use frame_allocator::{FrameTracker, frame_alloc, frame_dealloc,};
 pub use page_table::{
     PageTableEntry,
     translated_byte_buffer,

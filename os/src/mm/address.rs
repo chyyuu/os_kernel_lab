@@ -3,15 +3,19 @@ use super::PageTableEntry;
 use core::fmt::{self, Debug, Formatter};
 
 /// Definitions
+#[repr(C)]
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct PhysAddr(pub usize);
 
+#[repr(C)]
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct VirtAddr(pub usize);
 
+#[repr(C)]
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct PhysPageNum(pub usize);
 
+#[repr(C)]
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct VirtPageNum(pub usize);
 
@@ -140,6 +144,11 @@ pub trait StepByOne {
     fn step(&mut self);
 }
 impl StepByOne for VirtPageNum {
+    fn step(&mut self) {
+        self.0 += 1;
+    }
+}
+impl StepByOne for PhysPageNum {
     fn step(&mut self) {
         self.0 += 1;
     }
