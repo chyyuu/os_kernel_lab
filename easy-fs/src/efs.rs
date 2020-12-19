@@ -1,4 +1,5 @@
 use alloc::sync::Arc;
+use spin::Mutex;
 use super::{
     BlockDevice,
     Bitmap,
@@ -6,6 +7,7 @@ use super::{
     DiskInode,
     DiskInodeType,
     Dirty,
+    Inode,
 };
 use crate::BLOCK_SZ;
 
@@ -24,7 +26,7 @@ impl EasyFileSystem {
         block_device: Arc<dyn BlockDevice>,
         total_blocks: u32,
         inode_bitmap_blocks: u32,
-    ) -> Self {
+    ) -> Arc<Mutex<Self>> {
         // calculate block size of areas & create bitmaps
         let inode_bitmap = Bitmap::new(1, inode_bitmap_blocks as usize);
         let inode_num = inode_bitmap.maximum();
@@ -38,7 +40,7 @@ impl EasyFileSystem {
             (1 + inode_bitmap_blocks + inode_area_blocks) as usize,
             data_bitmap_blocks as usize,
         );
-        let efs = Self {
+        let mut efs = Self {
             block_device,
             inode_bitmap,
             data_bitmap,
@@ -65,17 +67,20 @@ impl EasyFileSystem {
         });
         // write back immediately
         // create a inode for root node "/"
-        assert_eq!(efs.inode_bitmap.alloc(&efs.block_device).unwrap(), 0);
+        assert_eq!(efs.alloc_inode(), 0);
         efs.get_disk_inode(0).modify(|disk_inode| {
-            disk_inode.initialize(DiskInodeType::Directory);
+            disk_inode.initialize(
+                DiskInodeType::Directory,
+                efs.alloc_data(),
+            );
         });
-        efs
+        Arc::new(Mutex::new(efs))
     }
 
-    pub fn open(block_device: Arc<dyn BlockDevice>) -> Self {
+    pub fn open(block_device: Arc<dyn BlockDevice>) -> Arc<Mutex<Self>> {
         // read SuperBlock
         let super_block_dirty: Dirty<SuperBlock> = Dirty::new(0, 0, block_device.clone());
-        let super_block = super_block_dirty.read();
+        let super_block = super_block_dirty.get_ref();
         assert!(super_block.is_valid(), "Error loading EFS!");
         println!("{:?}", super_block);
         let inode_total_blocks =
@@ -93,14 +98,22 @@ impl EasyFileSystem {
             inode_area_start_block: 1 + super_block.inode_bitmap_blocks,
             data_area_start_block: 1 + inode_total_blocks + super_block.data_bitmap_blocks,
         };
-        efs
+        Arc::new(Mutex::new(efs))
+    }
+
+    pub fn root_inode(efs: &Arc<Mutex<Self>>) -> Inode {
+        Inode::new(
+            0,
+            efs.clone(),
+            efs.lock().block_device.clone(),
+        )
     }
 
     fn get_super_block(&self) -> Dirty<SuperBlock> {
         Dirty::new(0, 0, self.block_device.clone())
     }
 
-    fn get_disk_inode(&self, inode_id: u32) -> Dirty<DiskInode> {
+    pub fn get_disk_inode(&self, inode_id: u32) -> Dirty<DiskInode> {
         let inode_size = core::mem::size_of::<DiskInode>();
         let inodes_per_block = (BLOCK_SZ / inode_size) as u32;
         let block_id = self.inode_area_start_block + inode_id / inodes_per_block;
@@ -111,12 +124,8 @@ impl EasyFileSystem {
         )
     }
 
-    fn get_data_block(&self, data_block_id: u32) -> Dirty<DataBlock> {
-        Dirty::new(
-            (self.data_area_start_block + data_block_id) as usize,
-            0,
-            self.block_device.clone(),
-        )
+    pub fn get_data_block(&self, data_block_id: u32) -> Dirty<DataBlock> {
+        self.get_block(self.data_area_start_block + data_block_id)
     }
 
     fn get_block(&self, block_id: u32) -> Dirty<DataBlock> {
@@ -124,6 +133,22 @@ impl EasyFileSystem {
             block_id as usize,
             0,
             self.block_device.clone(),
+        )
+    }
+
+    pub fn alloc_inode(&mut self) -> u32 {
+        self.inode_bitmap.alloc(&self.block_device).unwrap() as u32
+    }
+
+    /// Return a block ID not ID in the data area.
+    pub fn alloc_data(&mut self) -> u32 {
+        self.data_bitmap.alloc(&self.block_device).unwrap() as u32 + self.data_area_start_block
+    }
+
+    fn dealloc_data(&mut self, block_id: u32) {
+        self.data_bitmap.dealloc(
+            &self.block_device,
+            (block_id - self.data_area_start_block) as usize
         )
     }
 

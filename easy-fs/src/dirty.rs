@@ -7,6 +7,7 @@ pub struct Dirty<T> {
     block_id: usize,
     block_cache: [u8; BLOCK_SZ],
     offset: usize,
+    dirty: bool,
     block_device: Arc<dyn BlockDevice>,
     phantom: PhantomData<T>,
 }
@@ -21,29 +22,37 @@ impl<T> Dirty<T> where T: Sized {
                 cache
             },
             offset,
+            dirty: false,
             block_device,
             phantom: PhantomData,
         }
     }
     pub fn get_mut(&mut self) -> &mut T {
+        self.dirty = true;
         let type_size = core::mem::size_of::<T>();
         // assert that the struct is inside a block
         assert!(self.offset + type_size <= BLOCK_SZ);
         let start_addr = &self.block_cache[self.offset] as *const _ as usize;
         unsafe { &mut *(start_addr as *mut T) }
     }
-    pub fn read(&self) -> &T {
+    pub fn get_ref(&self) -> &T {
         let type_size = core::mem::size_of::<T>();
         // assert that the struct is inside a block
         assert!(self.offset + type_size <= BLOCK_SZ);
         let start_addr = &self.block_cache[self.offset] as *const _ as usize;
         unsafe { &*(start_addr as *const T) }
     }
-    pub fn modify(&mut self, f: impl Fn(&mut T)) {
+    pub fn read<V>(&self, f: impl FnOnce(&T) -> V) -> V {
+        f(self.get_ref())
+    }
+    pub fn modify(&mut self, f: impl FnOnce(&mut T)) {
         f(self.get_mut());
     }
     pub fn write_back(&mut self) {
-        self.block_device.write_block(self.block_id as usize, &self.block_cache);
+        if self.dirty {
+            self.block_device
+                .write_block(self.block_id as usize, &self.block_cache);
+        }
     }
 }
 
