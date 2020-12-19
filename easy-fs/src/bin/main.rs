@@ -5,7 +5,7 @@ use easy_fs::{
     BlockDevice,
     EasyFileSystem,
 };
-use std::fs::{File, OpenOptions};
+use std::fs::{File, OpenOptions, read_dir};
 use std::io::{Read, Write, Seek, SeekFrom};
 use std::sync::Mutex;
 use alloc::sync::Arc;
@@ -37,7 +37,48 @@ fn main() {
     easy_fs_pack().expect("Error when packing easy-fs!");
 }
 
+static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
+
 fn easy_fs_pack() -> std::io::Result<()> {
+    let block_file = Arc::new(BlockFile(Mutex::new({
+        let f = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(format!("{}{}", TARGET_PATH, "fs.img"))?;
+        f.set_len(8192 * 512);
+        f
+    })));
+    // 4MiB, at most 4095 files
+    let efs = EasyFileSystem::create(
+        block_file.clone(),
+        8192,
+        1,
+    );
+    let mut root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
+    let apps: Vec<_> = read_dir("../user/src/bin")
+        .unwrap()
+        .into_iter()
+        .map(|dir_entry| {
+            let mut name_with_ext = dir_entry.unwrap().file_name().into_string().unwrap();
+            name_with_ext.drain(name_with_ext.find('.').unwrap()..name_with_ext.len());
+            name_with_ext
+        })
+        .collect();
+    for app in apps {
+        // load app data from host file system
+        let mut host_file = File::open(format!("{}{}", TARGET_PATH, app)).unwrap();
+        let mut all_data: Vec<u8> = Vec::new();
+        let app_size = host_file.read_to_end(&mut all_data).unwrap();
+        // create a file in easy-fs
+        let inode = root_inode.create(app.as_str()).unwrap();
+        // write data to easy-fs
+        inode.write_at(0, all_data.as_slice());
+    }
+    // list apps
+    for app in root_inode.ls() {
+        println!("{}", app);
+    }
     Ok(())
 }
 

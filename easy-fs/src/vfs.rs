@@ -104,7 +104,7 @@ impl Inode {
         });
     }
 
-    pub fn create(&mut self, name: &str) -> Option<Arc<Inode>> {
+    pub fn create(&self, name: &str) -> Option<Arc<Inode>> {
         let mut fs = self.fs.lock();
         println!("creating name {}", name);
         let mut inode = self.get_disk_inode(&mut fs);

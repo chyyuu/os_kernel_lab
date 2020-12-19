@@ -8,7 +8,7 @@ use alloc::sync::Arc;
 use alloc::vec::Vec;
 
 const EFS_MAGIC: u32 = 0x3b800001;
-const INODE_DIRECT_COUNT: usize = 12;
+const INODE_DIRECT_COUNT: usize = 60;
 const NAME_LENGTH_LIMIT: usize = 27;
 
 #[repr(C)]
