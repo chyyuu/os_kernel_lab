@@ -247,7 +247,7 @@ pub struct DirEntry {
 
 pub const DIRENT_SZ: usize = 32;
 
-pub type DirentBlock = [DirEntry; BLOCK_SZ / DIRENT_SZ];
+//pub type DirentBlock = [DirEntry; BLOCK_SZ / DIRENT_SZ];
 pub type DirentBytes = [u8; DIRENT_SZ];
 
 impl DirEntry {

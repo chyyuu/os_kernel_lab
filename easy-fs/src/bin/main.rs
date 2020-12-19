@@ -4,7 +4,6 @@ extern crate alloc;
 use easy_fs::{
     BlockDevice,
     EasyFileSystem,
-    Inode,
 };
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write, Seek, SeekFrom};
@@ -54,7 +53,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
     root_inode.create("filea");
     root_inode.create("fileb");
     for name in root_inode.ls() {
-        println!("name");
+        println!("{}", name);
     }
     Ok(())
 }

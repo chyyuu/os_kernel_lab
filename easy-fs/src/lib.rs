@@ -6,6 +6,7 @@ mod efs;
 mod dirty;
 mod bitmap;
 mod vfs;
+mod block_cache;
 
 pub const BLOCK_SZ: usize = 512;
 pub use block_dev::BlockDevice;
@@ -14,3 +15,4 @@ pub use vfs::Inode;
 use layout::*;
 use dirty::Dirty;
 use bitmap::Bitmap;
+use block_cache::{BlockCache, get_block_cache};

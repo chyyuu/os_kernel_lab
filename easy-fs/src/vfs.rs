@@ -6,13 +6,11 @@ use super::{
     DirEntry,
     DirentBytes,
     EasyFileSystem,
-    BLOCK_SZ,
     DIRENT_SZ,
 };
 use alloc::sync::Arc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::layout::DiskInodeType::Directory;
 use spin::{Mutex, MutexGuard};
 
 pub struct Inode {
