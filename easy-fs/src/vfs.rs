@@ -12,6 +12,7 @@ use alloc::sync::Arc;
 use alloc::string::String;
 use alloc::vec::Vec;
 use spin::{Mutex, MutexGuard};
+use crate::layout::DiskInodeType::Directory;
 
 pub struct Inode {
     inode_id: u32,
@@ -41,11 +42,13 @@ impl Inode {
         name: &str,
         inode: &Dirty<DiskInode>,
     ) -> Option<u32> {
+        println!("into find_inode_id");
         // assert it is a directory
         assert!(inode.read(|inode| inode.is_dir()));
         let file_count = inode.read(|inode| {
             inode.size as usize
         }) / DIRENT_SZ;
+        println!("file_count = {}", file_count);
         let mut dirent_space: DirentBytes = Default::default();
         for i in 0..file_count {
             assert_eq!(
@@ -58,8 +61,9 @@ impl Inode {
                 }),
                 DIRENT_SZ,
             );
-            if DirEntry::from_bytes(&dirent_space).name() == name {
-                return Some(i as u32);
+            let dirent = DirEntry::from_bytes(&dirent_space);
+            if dirent.name() == name {
+                return Some(dirent.inode_number() as u32);
             }
         }
         None
@@ -184,7 +188,7 @@ impl Inode {
         })
     }
 
-    pub fn write_at(&self, offset: usize, buf: &mut [u8]) -> usize {
+    pub fn write_at(&self, offset: usize, buf: &[u8]) -> usize {
         let mut fs = self.fs.lock();
         let mut inode = self.get_disk_inode(&mut fs);
         self.increase_size((offset + buf.len()) as u32, &mut inode, &mut fs);

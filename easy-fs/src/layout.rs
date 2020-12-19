@@ -276,4 +276,7 @@ impl DirEntry {
         let len = (0usize..).find(|i| self.name[*i] == 0).unwrap();
         core::str::from_utf8(&self.name[..len]).unwrap()
     }
+    pub fn inode_number(&self) -> u32 {
+        self.inode_number
+    }
 }

@@ -55,5 +55,16 @@ fn easy_fs_pack() -> std::io::Result<()> {
     for name in root_inode.ls() {
         println!("{}", name);
     }
+    {
+        let filea = root_inode.find("filea").unwrap();
+        println!("writing filea!");
+        filea.write_at(0, "Hello, world!".as_bytes());
+    }
+    {
+        let filea = root_inode.find("filea").unwrap();
+        let mut buffer = [0u8; 512];
+        let len = filea.read_at(0, &mut buffer);
+        println!("{}", core::str::from_utf8(&buffer[..len]).unwrap());
+    }
     Ok(())
 }
