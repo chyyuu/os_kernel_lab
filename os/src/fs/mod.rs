@@ -1,10 +1,13 @@
 mod pipe;
 mod stdio;
+mod inode;
 
 use crate::mm::UserBuffer;
 use core::any::Any;
 
 pub trait File : Any + Send + Sync {
+    fn readable(&self) -> bool;
+    fn writable(&self) -> bool;
     fn read(&self, buf: UserBuffer) -> usize;
     fn write(&self, buf: UserBuffer) -> usize;
     fn as_any_ref(&self) -> &dyn Any;
@@ -19,3 +22,4 @@ impl dyn File {
 
 pub use pipe::{Pipe, make_pipe};
 pub use stdio::{Stdin, Stdout};
+pub use inode::{OSInode, open_file, OpenFlags, list_apps};

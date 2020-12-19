@@ -17,7 +17,6 @@ mod lang_items;
 mod sbi;
 mod syscall;
 mod trap;
-mod loader;
 mod config;
 mod task;
 mod timer;
@@ -26,7 +25,6 @@ mod fs;
 mod drivers;
 
 global_asm!(include_str!("entry.asm"));
-global_asm!(include_str!("link_app.S"));
 
 fn clear_bss() {
     extern "C" {
@@ -44,11 +42,21 @@ pub fn rust_main() -> ! {
     println!("[kernel] Hello, world!");
     mm::init();
     mm::remap_test();
-    task::add_initproc();
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
-    loader::list_apps();
+    fs::list_apps();
+    //println!("after listing apps");
+    task::add_initproc();
+    /*
+    println!("after adding initproc!");
+    println!("list apps again!");
+    fs::list_apps();
+    println!("test user_shell now!");
+    let user_shell = fs::open_file("user_shell", fs::OpenFlags::RDONLY).unwrap();
+    println!("user_shell size = {}", user_shell.read_all().len());
+    println!("before running tasks!");
+     */
     task::run_tasks();
     panic!("Unreachable in rust_main!");
 }

@@ -79,6 +79,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
     Ok(())
 }
 
+/*
 #[test]
 fn efs_test() -> std::io::Result<()> {
     let block_file = Arc::new(BlockFile(Mutex::new(
@@ -146,3 +147,4 @@ fn efs_test() -> std::io::Result<()> {
 
     Ok(())
 }
+ */

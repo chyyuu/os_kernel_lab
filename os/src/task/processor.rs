@@ -61,6 +61,7 @@ lazy_static! {
 }
 
 pub fn run_tasks() {
+    println!("into Processor::run_tasks!");
     PROCESSOR.run();
 }
 

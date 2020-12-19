@@ -717,7 +717,7 @@ lazy_static! {
 fn init_sdcard() -> SDCard<SPIImpl<SPI0>> {
     // wait previous output
     usleep(100000);
-    let peripherals = Peripherals::take().unwrap();
+    let peripherals = unsafe { Peripherals::steal() };
     sysctl::pll_set_freq(sysctl::pll::PLL0, 800_000_000).unwrap();
     sysctl::pll_set_freq(sysctl::pll::PLL1, 300_000_000).unwrap();
     sysctl::pll_set_freq(sysctl::pll::PLL2, 45_158_400).unwrap();

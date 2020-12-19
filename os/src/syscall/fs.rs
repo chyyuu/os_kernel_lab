@@ -10,6 +10,9 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
         return -1;
     }
     if let Some(file) = &inner.fd_table[fd] {
+        if !file.writable() {
+            return -1;
+        }
         let file = file.clone();
         // release Task lock manually to avoid deadlock
         drop(inner);
@@ -30,6 +33,9 @@ pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
     }
     if let Some(file) = &inner.fd_table[fd] {
         let file = file.clone();
+        if !file.readable() {
+            return -1;
+        }
         // release Task lock manually to avoid deadlock
         drop(inner);
         file.read(

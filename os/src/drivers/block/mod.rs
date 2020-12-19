@@ -4,11 +4,7 @@ mod sdcard;
 use lazy_static::*;
 use alloc::sync::Arc;
 use core::any::Any;
-
-pub trait BlockDevice : Send + Sync + Any {
-    fn read_block(&self, block_id: usize, buf: &mut [u8]);
-    fn write_block(&self, block_id: usize, buf: &[u8]);
-}
+use easy_fs::BlockDevice;
 
 #[cfg(feature = "board_qemu")]
 type BlockDeviceImpl = virtio_blk::VirtIOBlock;

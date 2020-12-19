@@ -23,9 +23,12 @@ lazy_static! {
 
 impl BlockDevice for VirtIOBlock {
     fn read_block(&self, block_id: usize, buf: &mut [u8]) {
+        //println!("read block {}", block_id);
         self.0.lock().read_block(block_id, buf).expect("Error when reading VirtIOBlk");
+        //println!("read block OK!");
     }
     fn write_block(&self, block_id: usize, buf: &[u8]) {
+        //println!("write block {}", block_id);
         self.0.lock().write_block(block_id, buf).expect("Error when writing VirtIOBlk");
     }
 }
@@ -44,6 +47,7 @@ pub extern "C" fn virtio_dma_alloc(pages: usize) -> PhysAddr {
     for i in 0..pages {
         let frame = frame_alloc().unwrap();
         if i == 0 { ppn_base = frame.ppn; }
+        println!("virtio_dma_alloc {:?}", frame.ppn);
         assert_eq!(frame.ppn.0, ppn_base.0 + i);
         QUEUE_FRAMES.lock().push(frame);
     }
