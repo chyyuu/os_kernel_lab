@@ -145,7 +145,7 @@ impl EasyFileSystem {
         self.data_bitmap.alloc(&self.block_device).unwrap() as u32 + self.data_area_start_block
     }
 
-    fn dealloc_data(&mut self, block_id: u32) {
+    pub fn dealloc_data(&mut self, block_id: u32) {
         self.data_bitmap.dealloc(
             &self.block_device,
             (block_id - self.data_area_start_block) as usize

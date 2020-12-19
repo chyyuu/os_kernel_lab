@@ -16,7 +16,7 @@ pub struct Bitmap {
 fn decomposition(mut bit: usize) -> (usize, usize, usize) {
     let block_pos = bit / BLOCK_BITS;
     bit = bit % BLOCK_BITS;
-    (block_pos, bit/64, bit % 64)
+    (block_pos, bit / 64, bit % 64)
 }
 
 impl Bitmap {
@@ -52,7 +52,7 @@ impl Bitmap {
     pub fn dealloc(&self, block_device: &Arc<dyn BlockDevice>, bit: usize) {
         let (block_pos, bits64_pos, inner_pos) = decomposition(bit);
         let mut dirty_bitmap_block: Dirty<BitmapBlock> = Dirty::new(
-            block_pos,
+            block_pos + self.start_block_id,
             0,
             block_device.clone(),
         );

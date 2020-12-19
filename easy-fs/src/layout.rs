@@ -267,6 +267,7 @@ impl DirEntry {
     pub fn from_bytes(bytes: &DirentBytes) -> &Self {
         unsafe { &*(bytes.as_ptr() as usize as *const Self) }
     }
+    #[allow(unused)]
     pub fn from_bytes_mut(bytes: &mut DirentBytes) -> &mut Self {
         unsafe {
             &mut *(bytes.as_mut_ptr() as usize as *mut Self)

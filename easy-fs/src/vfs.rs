@@ -12,7 +12,6 @@ use alloc::sync::Arc;
 use alloc::string::String;
 use alloc::vec::Vec;
 use spin::{Mutex, MutexGuard};
-use crate::layout::DiskInodeType::Directory;
 
 pub struct Inode {
     inode_id: u32,
@@ -195,5 +194,16 @@ impl Inode {
         inode.modify(|disk_inode| {
             disk_inode.write_at(offset, buf, &self.block_device)
         })
+    }
+
+    pub fn clear(&self) {
+        let mut fs = self.fs.lock();
+        let mut inode = self.get_disk_inode(&mut fs);
+        let data_blocks_dealloc = inode.modify(|disk_inode| {
+            disk_inode.clear_size(&self.block_device)
+        });
+        for data_block in data_blocks_dealloc.into_iter() {
+            fs.dealloc_data(data_block);
+        }
     }
 }
