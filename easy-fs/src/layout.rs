@@ -122,7 +122,6 @@ impl DiskInode {
         new_blocks: Vec<u32>,
         block_device: &Arc<dyn BlockDevice>,
     ) {
-        println!("increase_size new_size={}, new_blocks={:?}", new_size, new_blocks);
         assert_eq!(new_blocks.len() as u32, self.blocks_num_needed(new_size));
         let last_blocks = self.blocks();
         self.size = new_size;

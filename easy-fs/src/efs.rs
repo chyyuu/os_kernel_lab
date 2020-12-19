@@ -82,7 +82,6 @@ impl EasyFileSystem {
         let super_block_dirty: Dirty<SuperBlock> = Dirty::new(0, 0, block_device.clone());
         let super_block = super_block_dirty.get_ref();
         assert!(super_block.is_valid(), "Error loading EFS!");
-        println!("{:?}", super_block);
         let inode_total_blocks =
             super_block.inode_bitmap_blocks + super_block.inode_area_blocks;
         let efs = Self {

@@ -9,7 +9,6 @@ use std::fs::{File, OpenOptions, read_dir};
 use std::io::{Read, Write, Seek, SeekFrom};
 use std::sync::Mutex;
 use alloc::sync::Arc;
-use rand;
 
 const BLOCK_SZ: usize = 512;
 
@@ -17,7 +16,6 @@ struct BlockFile(Mutex<File>);
 
 impl BlockDevice for BlockFile {
     fn read_block(&self, block_id: usize, buf: &mut [u8]) {
-        println!("reading block {}", block_id);
         let mut file = self.0.lock().unwrap();
         file.seek(SeekFrom::Start((block_id * BLOCK_SZ) as u64))
             .expect("Error when seeking!");
@@ -25,7 +23,6 @@ impl BlockDevice for BlockFile {
     }
 
     fn write_block(&self, block_id: usize, buf: &[u8]) {
-        println!("writing block {}", block_id);
         let mut file = self.0.lock().unwrap();
         file.seek(SeekFrom::Start((block_id * BLOCK_SZ) as u64))
             .expect("Error when seeking!");
@@ -46,7 +43,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
             .write(true)
             .create(true)
             .open(format!("{}{}", TARGET_PATH, "fs.img"))?;
-        f.set_len(8192 * 512);
+        f.set_len(8192 * 512).unwrap();
         f
     })));
     // 4MiB, at most 4095 files
@@ -55,7 +52,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
         8192,
         1,
     );
-    let mut root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
+    let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
     let apps: Vec<_> = read_dir("../user/src/bin")
         .unwrap()
         .into_iter()
@@ -69,7 +66,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
         // load app data from host file system
         let mut host_file = File::open(format!("{}{}", TARGET_PATH, app)).unwrap();
         let mut all_data: Vec<u8> = Vec::new();
-        let app_size = host_file.read_to_end(&mut all_data).unwrap();
+        host_file.read_to_end(&mut all_data).unwrap();
         // create a file in easy-fs
         let inode = root_inode.create(app.as_str()).unwrap();
         // write data to easy-fs
@@ -119,6 +116,7 @@ fn efs_test() -> std::io::Result<()> {
             0,
         );
         let mut str = String::new();
+        use rand;
         // random digit
         for _ in 0..len {
             str.push(char::from('0' as u8 + rand::random::<u8>() % 10));

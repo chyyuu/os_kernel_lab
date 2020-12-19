@@ -41,13 +41,11 @@ impl Inode {
         name: &str,
         inode: &Dirty<DiskInode>,
     ) -> Option<u32> {
-        println!("into find_inode_id");
         // assert it is a directory
         assert!(inode.read(|inode| inode.is_dir()));
         let file_count = inode.read(|inode| {
             inode.size as usize
         }) / DIRENT_SZ;
-        println!("file_count = {}", file_count);
         let mut dirent_space: DirentBytes = Default::default();
         for i in 0..file_count {
             assert_eq!(
@@ -94,7 +92,6 @@ impl Inode {
         let blocks_needed = inode.read(|inode| {
             inode.blocks_num_needed(new_size)
         });
-        println!("blocks_num_needed = {}", blocks_needed);
         let mut v: Vec<u32> = Vec::new();
         for _ in 0..blocks_needed {
             v.push(fs.alloc_data());
@@ -106,7 +103,6 @@ impl Inode {
 
     pub fn create(&self, name: &str) -> Option<Arc<Inode>> {
         let mut fs = self.fs.lock();
-        println!("creating name {}", name);
         let mut inode = self.get_disk_inode(&mut fs);
         // assert it is a directory
         assert!(inode.read(|inode| inode.is_dir()));
@@ -114,13 +110,11 @@ impl Inode {
         if let Some(_) = self.find_inode_id(name, &inode) {
             return None;
         }
-        println!("stop1");
 
         // create a new file
         // alloc a inode with an indirect block
         let new_inode_id = fs.alloc_inode();
         let indirect1 = fs.alloc_data();
-        println!("creating new file, new_inode_id={}, indirect={}", new_inode_id, indirect1);
         // initialize inode
         fs.get_disk_inode(new_inode_id).modify(|inode| {
             inode.initialize(
@@ -133,7 +127,6 @@ impl Inode {
         let file_count =
             inode.read(|inode| inode.size as usize) / DIRENT_SZ;
         let new_size = (file_count + 1) * DIRENT_SZ;
-        println!("expected new_size={}", new_size);
         // increase size
         self.increase_size(new_size as u32, &mut inode, &mut fs);
         // write dirent
@@ -155,13 +148,11 @@ impl Inode {
     }
 
     pub fn ls(&self) -> Vec<String> {
-        println!("into ls!");
         let mut fs = self.fs.lock();
         let inode = self.get_disk_inode(&mut fs);
         let file_count = inode.read(|inode| {
             (inode.size as usize) / DIRENT_SZ
         });
-        println!("file_count = {}", file_count);
         let mut v: Vec<String> = Vec::new();
         for i in 0..file_count {
             let mut dirent_bytes: DirentBytes = Default::default();
