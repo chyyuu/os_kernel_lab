@@ -38,7 +38,7 @@ impl<T> Dirty<T> where T: Sized {
     pub fn read<V>(&self, f: impl FnOnce(&T) -> V) -> V {
         f(self.get_ref())
     }
-    pub fn modify(&mut self, f: impl FnOnce(&mut T)) {
-        f(self.get_mut());
+    pub fn modify<V>(&mut self, f: impl FnOnce(&mut T) -> V) -> V {
+        f(self.get_mut())
     }
 }

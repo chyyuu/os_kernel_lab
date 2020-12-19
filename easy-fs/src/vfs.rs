@@ -31,12 +31,16 @@ impl Inode {
             block_device,
         }
     }
-    fn get_disk_inode(&self) -> Dirty<DiskInode> {
-        self.fs.lock().get_disk_inode(self.inode_id)
+
+    fn get_disk_inode(&self, fs: &mut MutexGuard<EasyFileSystem>) -> Dirty<DiskInode> {
+        fs.get_disk_inode(self.inode_id)
     }
 
-    fn find_inode_id(&self, name: &str) -> Option<u32> {
-        let inode = self.get_disk_inode();
+    fn find_inode_id(
+        &self,
+        name: &str,
+        inode: &Dirty<DiskInode>,
+    ) -> Option<u32> {
         // assert it is a directory
         assert!(inode.read(|inode| inode.is_dir()));
         let file_count = inode.read(|inode| {
@@ -61,8 +65,29 @@ impl Inode {
         None
     }
 
-    fn increase_size(&self, new_size: u32, fs: &mut MutexGuard<EasyFileSystem>) {
-        let mut inode = fs.get_disk_inode(self.inode_id);
+    pub fn find(&self, name: &str) -> Option<Arc<Inode>> {
+        let mut fs = self.fs.lock();
+        let inode = self.get_disk_inode(&mut fs);
+        self.find_inode_id(name, &inode)
+            .map(|inode_id| {
+                Arc::new(Self::new(
+                    inode_id,
+                    self.fs.clone(),
+                    self.block_device.clone(),
+                ))
+            })
+    }
+
+    fn increase_size(
+        &self,
+        new_size: u32,
+        inode: &mut Dirty<DiskInode>,
+        fs: &mut MutexGuard<EasyFileSystem>,
+    ) {
+        let size = inode.read(|inode| inode.size);
+        if new_size < size {
+            return;
+        }
         let blocks_needed = inode.read(|inode| {
             inode.blocks_num_needed(new_size)
         });
@@ -77,19 +102,19 @@ impl Inode {
     }
 
     pub fn create(&mut self, name: &str) -> Option<Arc<Inode>> {
+        let mut fs = self.fs.lock();
         println!("creating name {}", name);
-        let mut inode = self.get_disk_inode();
+        let mut inode = self.get_disk_inode(&mut fs);
         // assert it is a directory
         assert!(inode.read(|inode| inode.is_dir()));
         // has the file been created?
-        if let Some(_) = self.find_inode_id(name) {
+        if let Some(_) = self.find_inode_id(name, &inode) {
             return None;
         }
         println!("stop1");
 
         // create a new file
         // alloc a inode with an indirect block
-        let mut fs = self.fs.lock();
         let new_inode_id = fs.alloc_inode();
         let indirect1 = fs.alloc_data();
         println!("creating new file, new_inode_id={}, indirect={}", new_inode_id, indirect1);
@@ -107,7 +132,7 @@ impl Inode {
         let new_size = (file_count + 1) * DIRENT_SZ;
         println!("expected new_size={}", new_size);
         // increase size
-        self.increase_size(new_size as u32, &mut fs);
+        self.increase_size(new_size as u32, &mut inode, &mut fs);
         // write dirent
         let dirent = DirEntry::new(name, new_inode_id);
         inode.modify(|inode| {
@@ -128,8 +153,8 @@ impl Inode {
 
     pub fn ls(&self) -> Vec<String> {
         println!("into ls!");
-        let fs = self.fs.lock();
-        let inode = fs.get_disk_inode(self.inode_id);
+        let mut fs = self.fs.lock();
+        let inode = self.get_disk_inode(&mut fs);
         let file_count = inode.read(|inode| {
             (inode.size as usize) / DIRENT_SZ
         });
@@ -150,5 +175,21 @@ impl Inode {
             v.push(String::from(DirEntry::from_bytes(&dirent_bytes).name()));
         }
         v
+    }
+
+    pub fn read_at(&self, offset: usize, buf: &mut [u8]) -> usize {
+        let mut fs = self.fs.lock();
+        self.get_disk_inode(&mut fs).modify(|disk_inode| {
+            disk_inode.read_at(offset, buf, &self.block_device)
+        })
+    }
+
+    pub fn write_at(&self, offset: usize, buf: &mut [u8]) -> usize {
+        let mut fs = self.fs.lock();
+        let mut inode = self.get_disk_inode(&mut fs);
+        self.increase_size((offset + buf.len()) as u32, &mut inode, &mut fs);
+        inode.modify(|disk_inode| {
+            disk_inode.write_at(offset, buf, &self.block_device)
+        })
     }
 }
