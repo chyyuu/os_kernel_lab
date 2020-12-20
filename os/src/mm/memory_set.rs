@@ -36,6 +36,10 @@ lazy_static! {
     ));
 }
 
+pub fn kernel_token() -> usize {
+    KERNEL_SPACE.lock().token()
+}
+
 pub struct MemorySet {
     page_table: PageTable,
     areas: Vec<MapArea>,
