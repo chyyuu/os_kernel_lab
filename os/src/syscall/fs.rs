@@ -1,6 +1,11 @@
-use crate::mm::{UserBuffer, translated_byte_buffer, translated_refmut};
+use crate::mm::{
+    UserBuffer,
+    translated_byte_buffer,
+    translated_refmut,
+    translated_str,
+};
 use crate::task::{current_user_token, current_task};
-use crate::fs::{make_pipe};
+use crate::fs::{make_pipe, OpenFlags, open_file};
 
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     let token = current_user_token();
@@ -41,6 +46,23 @@ pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
         file.read(
             UserBuffer::new(translated_byte_buffer(token, buf, len))
         ) as isize
+    } else {
+        -1
+    }
+}
+
+pub fn sys_open(path: *const u8, flags: u32) -> isize {
+    let task = current_task().unwrap();
+    let token = current_user_token();
+    let path = translated_str(token, path);
+    if let Some(inode) = open_file(
+        path.as_str(),
+        OpenFlags::from_bits(flags).unwrap()
+    ) {
+        let mut inner = task.acquire_inner_lock();
+        let fd = inner.alloc_fd();
+        inner.fd_table[fd] = Some(inode);
+        fd as isize
     } else {
         -1
     }

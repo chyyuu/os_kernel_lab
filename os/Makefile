@@ -7,6 +7,7 @@ KERNEL_ENTRY_PA := 0x80020000
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
 FS_IMG := ../user/target/$(TARGET)/$(MODE)/fs.img
 SDCARD := /dev/sdb
+APPS := ../user/src/bin
 
 # BOARD
 BOARD		?= qemu
@@ -33,12 +34,13 @@ sdcard: $(FS_IMG)
 $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
 
-$(FS_IMG):
-	@echo "hello, world!"
+$(FS_IMG): $(APPS)
+	@cd ../user && make build
 	@cd ../easy-fs && cargo run --release
 
+$(APPS):
+
 kernel:
-	@cd ../user && make build
 	@cargo build --release --features "board_$(BOARD)"
 
 clean:

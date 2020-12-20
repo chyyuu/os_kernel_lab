@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 buddy_system_allocator = "0.6"
+bitflags = "1.2.1"
