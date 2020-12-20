@@ -3,7 +3,6 @@ mod sdcard;
 
 use lazy_static::*;
 use alloc::sync::Arc;
-use core::any::Any;
 use easy_fs::BlockDevice;
 
 #[cfg(feature = "board_qemu")]

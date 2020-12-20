@@ -1,3 +1,4 @@
+
 use virtio_drivers::{VirtIOBlk, VirtIOHeader};
 use crate::mm::{
     PhysAddr,
@@ -15,6 +16,7 @@ use spin::Mutex;
 use alloc::vec::Vec;
 use lazy_static::*;
 
+#[allow(unused)]
 const VIRTIO0: usize = 0x10001000;
 
 pub struct VirtIOBlock(Mutex<VirtIOBlk<'static>>);
@@ -33,6 +35,7 @@ impl BlockDevice for VirtIOBlock {
 }
 
 impl VirtIOBlock {
+    #[allow(unused)]
     pub fn new() -> Self {
         Self(Mutex::new(VirtIOBlk::new(
             unsafe { &mut *(VIRTIO0 as *mut VirtIOHeader) }
