@@ -18,7 +18,7 @@ fn clear_bss() {
 
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
-    clear_bss();
+    clear_bss(); //in QEMU, this isn't necessary, but in K210 or other real HW, this is necessary.
     println!("Hello, world!");
     loop {}
 }
