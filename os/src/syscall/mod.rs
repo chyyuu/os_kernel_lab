@@ -1,3 +1,5 @@
+use crate::batch::run_next_app;
+
 const SYSCALL_WRITE: usize = 64;
 const SYSCALL_EXIT: usize = 93;
 
@@ -20,7 +22,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
 
 pub fn sys_exit(xstate: i32) -> ! {
     println!("[kernel] Application exited with code {}", xstate);
-    panic!("Shutdown App!");
+    run_next_app()
 }
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {

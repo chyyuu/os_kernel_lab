@@ -26,22 +26,10 @@ fn clear_bss() {
 }
 
 #[no_mangle]
-pub extern "C" fn rust_main() -> ! {
-    extern "C" {
-        fn app_0_start();
-        fn app_0_end();
-        fn app_1_start();
-        fn app_1_end();
-        fn app_2_start();
-        fn app_2_end();
-    }
+pub fn rust_main() -> ! {
     clear_bss(); //in QEMU, this isn't necessary, but in K210 or other real HW, this is necessary.
     println!("[kernel] Hello, world!");
-    // println!("app_0 [{:#x}, {:#x})", app_0_start as usize, app_0_end as usize);
-    // println!("app_1 [{:#x}, {:#x})", app_1_start as usize, app_1_end as usize);
-    // println!("app_2 [{:#x}, {:#x})", app_2_start as usize, app_2_end as usize);
     trap::init();
-    unsafe { batch::load_app(2); }
-    batch::run_app(2);
-    //panic!("Shutdown machine!");
+    batch::init();
+    batch::run_next_app();
 }
