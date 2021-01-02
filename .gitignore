@@ -1,4 +1,6 @@
 .idea/*
 os/target/*
 os/.idea/*
+user/target/*
+user/.idea/*
 Cargo.lock
