@@ -1,12 +1,12 @@
 use crate::task::{
-    mark_current_suspended,
-    mark_current_exited,
-    run_next_task
+    suspend_current_and_run_next,
+    exit_current_and_run_next,
 };
 
 const SYSCALL_WRITE: usize = 64;
 const SYSCALL_EXIT: usize = 93;
 const SYSCALL_YIELD: usize = 124;
+const SYSCALL_GET_TIME: usize = 169;
 
 const FD_STDOUT: usize = 1;
 
@@ -26,15 +26,18 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
 
 pub fn sys_exit(xstate: i32) -> ! {
     println!("[kernel] Application exited with code {}", xstate);
-    mark_current_exited();
-    run_next_task();
+    exit_current_and_run_next();
     panic!("Unreachable in sys_exit!");
 }
 
 pub fn sys_yield() -> isize {
-    mark_current_suspended();
-    run_next_task();
+    suspend_current_and_run_next();
     0
+}
+
+use crate::timer::get_time;
+pub fn sys_get_time() -> isize {
+    get_time() as isize
 }
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
@@ -42,6 +45,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_WRITE => sys_write(args[0], args[1] as *const u8, args[2]),
         SYSCALL_EXIT => sys_exit(args[0] as i32),
         SYSCALL_YIELD => sys_yield(),
+        SYSCALL_GET_TIME => sys_get_time(),
         _ => panic!("Unsupported syscall_id: {}", syscall_id),
     }
 }

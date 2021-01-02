@@ -4,19 +4,15 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::sys_yield;
-
-const WIDTH: usize = 10;
-const HEIGHT: usize = 3;
+use user_lib::{sys_get_time, sys_yield};
 
 #[no_mangle]
 fn main() -> i32 {
-    println!("Test write_b Begin!");
-    for i in 0..HEIGHT {
-        for _ in 0..WIDTH { print!("C"); }
-        println!(" [{}/{}]", i + 1, HEIGHT);
+    let current_timer = sys_get_time();
+    let wait_for = current_timer + 10000000;
+    while sys_get_time() < wait_for {
         sys_yield();
     }
-    println!("Test write_c OK!");
+    println!("Test sleep OK!");
     0
 }
