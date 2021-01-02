@@ -33,6 +33,7 @@ kernel:
 
 allclean:
 	@cd ../user && make clean
+	rm src/link_app.S
 	@cargo clean
 
 clean:
