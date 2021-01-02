@@ -10,6 +10,7 @@ mod lang_items;
 mod sbi;
 mod syscall;
 mod trap;
+mod batch;
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("link_app.S"));
@@ -40,5 +41,7 @@ pub extern "C" fn rust_main() -> ! {
     // println!("app_1 [{:#x}, {:#x})", app_1_start as usize, app_1_end as usize);
     // println!("app_2 [{:#x}, {:#x})", app_2_start as usize, app_2_end as usize);
     trap::init();
-    panic!("Shutdown machine!");
+    unsafe { batch::load_app(2); }
+    batch::run_app(2);
+    //panic!("Shutdown machine!");
 }
