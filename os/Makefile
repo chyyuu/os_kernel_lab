@@ -31,6 +31,10 @@ kernel:
 	@cd ../user && make build
 	@cargo build --release
 
+allclean:
+	@cd ../user && make clean
+	@cargo clean
+
 clean:
 	@cargo clean
 
