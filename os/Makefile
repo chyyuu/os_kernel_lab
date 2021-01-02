@@ -22,7 +22,13 @@ OBJCOPY := rust-objcopy --binary-architecture=riscv64
 # Disassembly
 DISASM ?= -x
 
-build: $(KERNEL_BIN)
+build: env $(KERNEL_BIN)
+
+env:
+	rustup component add rust-src
+	rustup component add llvm-tools-preview
+	cargo install cargo-binutils
+	rustup target add riscv64gc-unknown-none-elf
 
 $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
@@ -66,4 +72,4 @@ debug: build
 		tmux split-window -h "riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'" && \
 		tmux -2 attach-session -d
 
-.PHONY: build kernel clean disasm disasm-vim run-inner
+.PHONY: build env kernel clean disasm disasm-vim run-inner
