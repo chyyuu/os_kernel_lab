@@ -31,3 +31,5 @@ fn clear_bss() {
         unsafe { (addr as *mut u8).write_volatile(0); }
     });
 }
+
+pub use syscall::*;

@@ -4,24 +4,19 @@
 #[macro_use]
 extern crate user_lib;
 
-const SIZE: usize = 10;
-const P: u32 = 3;
-const STEP: usize = 100000;
-const MOD: u32 = 10007;
+use user_lib::sys_yield;
+
+const WIDTH: usize = 10;
+const HEIGHT: usize = 3;
 
 #[no_mangle]
 fn main() -> i32 {
-    let mut pow = [0u32; SIZE];
-    let mut index: usize = 0;
-    pow[index] = 1;
-    for i in 1..=STEP {
-        let last = pow[index];
-        index = (index + 1) % SIZE;
-        pow[index] = last * P % MOD;
-        if i % 10000 == 0 {
-            println!("{}^{}={}", P, i, pow[index]);
-        }
+    println!("Test write_b Begin!");
+    for i in 0..HEIGHT {
+        for _ in 0..WIDTH { print!("C"); }
+        println!(" [{}/{}]", i + 1, HEIGHT);
+        sys_yield();
     }
-    println!("Test power OK!");
+    println!("Test write_c OK!");
     0
 }
