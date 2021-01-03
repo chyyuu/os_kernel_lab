@@ -10,7 +10,6 @@ use riscv::register::{
         Interrupt,
     },
     stval,
-    sstatus,
     sie,
 };
 use crate::syscall::syscall;
@@ -39,11 +38,6 @@ fn set_user_trap_entry() {
     unsafe {
         stvec::write(TRAMPOLINE as usize, TrapMode::Direct);
     }
-}
-
-#[allow(unused)]
-pub fn enable_interrupt() {
-    unsafe { sstatus::set_sie(); }
 }
 
 pub fn enable_timer_interrupt() {
