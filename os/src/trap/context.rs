@@ -22,8 +22,6 @@ impl TrapContext {
         let mut sstatus = sstatus::read();
         // set CPU privilege to User after trapping back
         sstatus.set_spp(SPP::User);
-        // enable Supervisor mode interrupt after trapping back
-        sstatus.set_spie(true);
         let mut cx = Self {
             x: [0; 32],
             sstatus,
