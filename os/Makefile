@@ -5,6 +5,9 @@ KERNEL_ELF := target/$(TARGET)/$(MODE)/os
 KERNEL_BIN := $(KERNEL_ELF).bin
 KERNEL_ENTRY_PA := 0x80020000
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
+FS_IMG := ../user/target/$(TARGET)/$(MODE)/fs.img
+SDCARD := /dev/sdb
+APPS := ../user/src/bin
 
 # BOARD
 BOARD		?= qemu
@@ -22,19 +25,23 @@ OBJCOPY := rust-objcopy --binary-architecture=riscv64
 # Disassembly
 DISASM ?= -x
 
-build: $(KERNEL_BIN)
+build: $(KERNEL_BIN) $(FS_IMG)
+
+sdcard: $(FS_IMG)
+	@sudo dd if=/dev/zero of=$(SDCARD) bs=1M count=16
+	@sudo dd if=$(FS_IMG) of=$(SDCARD)
 
 $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
 
-kernel:
+$(FS_IMG): $(APPS)
 	@cd ../user && make build
-	@cargo build --release
+	@cd ../easy-fs && cargo run --release
 
-allclean:
-	@cd ../user && make clean
-	rm src/link_app.S
-	@cargo clean
+$(APPS):
+
+kernel:
+	@cargo build --release
 
 clean:
 	@cargo clean
@@ -55,7 +62,9 @@ ifeq ($(BOARD),qemu)
 		-machine virt \
 		-nographic \
 		-bios $(BOOTLOADER) \
-		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA)
+		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
+		-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
+        -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 else
 	@cp $(BOOTLOADER) $(BOOTLOADER).copy
 	@dd if=$(KERNEL_BIN) of=$(BOOTLOADER).copy bs=128K seek=1
