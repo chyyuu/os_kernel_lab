@@ -5,6 +5,12 @@
 #![feature(panic_info_message)]
 #![feature(const_in_array_repeat_expressions)]
 
+#![feature(alloc_error_handler)]
+extern crate alloc;
+
+#[macro_use]
+extern crate bitflags;
+
 #[macro_use]
 mod console;
 mod lang_items;
@@ -15,6 +21,7 @@ mod loader;
 mod config;
 mod task;
 mod timer;
+mod mm;
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("link_app.S"));
@@ -33,9 +40,10 @@ fn clear_bss() {
 pub fn rust_main() -> ! {
     clear_bss(); //in QEMU, this isn't necessary, but in K210 or other real HW, this is necessary.
     println!("[kernel] Hello, world!");
+    mm::init();
+    mm::remap_test();
     trap::init();
-    loader::load_apps();
-    trap::enable_interrupt();
+    //trap::enable_interrupt();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     task::run_first_task();
