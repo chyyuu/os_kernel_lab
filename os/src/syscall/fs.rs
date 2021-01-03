@@ -1,46 +1,68 @@
-use crate::mm::translated_byte_buffer;
-use crate::task::{current_user_token, suspend_current_and_run_next};
-use crate::sbi::console_getchar;
-
-const FD_STDIN: usize = 0;
-const FD_STDOUT: usize = 1;
+use crate::mm::{UserBuffer, translated_byte_buffer, translated_refmut};
+use crate::task::{current_user_token, current_task};
+use crate::fs::{make_pipe};
 
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
-    match fd {
-        FD_STDOUT => {
-            let buffers = translated_byte_buffer(current_user_token(), buf, len);
-            for buffer in buffers {
-                print!("{}", core::str::from_utf8(buffer).unwrap());
-            }
-            len as isize
-        },
-        _ => {
-            panic!("Unsupported fd in sys_write!");
-        }
+    let token = current_user_token();
+    let task = current_task().unwrap();
+    let inner = task.acquire_inner_lock();
+    if fd >= inner.fd_table.len() {
+        return -1;
+    }
+    if let Some(file) = &inner.fd_table[fd] {
+        let file = file.clone();
+        // release Task lock manually to avoid deadlock
+        drop(inner);
+        file.write(
+            UserBuffer::new(translated_byte_buffer(token, buf, len))
+        ) as isize
+    } else {
+        -1
     }
 }
 
 pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
-    match fd {
-        FD_STDIN => {
-            assert_eq!(len, 1, "Only support len = 1 in sys_read!");
-            let mut c: usize;
-            loop {
-                c = console_getchar();
-                if c == 0 {
-                    suspend_current_and_run_next();
-                    continue;
-                } else {
-                    break;
-                }
-            }
-            let ch = c as u8;
-            let mut buffers = translated_byte_buffer(current_user_token(), buf, len);
-            unsafe { buffers[0].as_mut_ptr().write_volatile(ch); }
-            1
-        }
-        _ => {
-            panic!("Unsupported fd in sys_read!");
-        }
+    let token = current_user_token();
+    let task = current_task().unwrap();
+    let inner = task.acquire_inner_lock();
+    if fd >= inner.fd_table.len() {
+        return -1;
     }
+    if let Some(file) = &inner.fd_table[fd] {
+        let file = file.clone();
+        // release Task lock manually to avoid deadlock
+        drop(inner);
+        file.read(
+            UserBuffer::new(translated_byte_buffer(token, buf, len))
+        ) as isize
+    } else {
+        -1
+    }
+}
+
+pub fn sys_close(fd: usize) -> isize {
+    let task = current_task().unwrap();
+    let mut inner = task.acquire_inner_lock();
+    if fd >= inner.fd_table.len() {
+        return -1;
+    }
+    if inner.fd_table[fd].is_none() {
+        return -1;
+    }
+    inner.fd_table[fd].take();
+    0
+}
+
+pub fn sys_pipe(pipe: *mut usize) -> isize {
+    let task = current_task().unwrap();
+    let token = current_user_token();
+    let mut inner = task.acquire_inner_lock();
+    let (pipe_read, pipe_write) = make_pipe();
+    let read_fd = inner.alloc_fd();
+    inner.fd_table[read_fd] = Some(pipe_read);
+    let write_fd = inner.alloc_fd();
+    inner.fd_table[write_fd] = Some(pipe_write);
+    *translated_refmut(token, pipe) = read_fd;
+    *translated_refmut(token, unsafe { pipe.add(1) }) = write_fd;
+    0
 }
