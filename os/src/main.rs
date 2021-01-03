@@ -4,8 +4,8 @@
 #![feature(llvm_asm)]
 #![feature(panic_info_message)]
 #![feature(const_in_array_repeat_expressions)]
-
 #![feature(alloc_error_handler)]
+
 extern crate alloc;
 
 #[macro_use]
@@ -38,14 +38,16 @@ fn clear_bss() {
 
 #[no_mangle]
 pub fn rust_main() -> ! {
-    clear_bss(); //in QEMU, this isn't necessary, but in K210 or other real HW, this is necessary.
+    clear_bss();
     println!("[kernel] Hello, world!");
     mm::init();
     mm::remap_test();
+    task::add_initproc();
+    println!("after initproc!");
     trap::init();
-    //trap::enable_interrupt();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
-    task::run_first_task();
+    loader::list_apps();
+    task::run_tasks();
     panic!("Unreachable in rust_main!");
 }

@@ -7,7 +7,6 @@ SECTIONS
     . = BASE_ADDRESS;
     skernel = .;
 
-   . = ALIGN(4K);
     stext = .;
     .text : {
         *(.text.entry)
