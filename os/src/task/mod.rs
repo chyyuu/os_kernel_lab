@@ -47,11 +47,11 @@ lazy_static! {
 impl TaskManager {
     fn run_first_task(&self) {
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
-        let next_task_cx = self.inner.borrow().tasks[0].get_task_cx_ptr2();
+        let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2();
         unsafe {
             __switch(
                 &0usize as *const _,
-                next_task_cx,
+                next_task_cx_ptr2,
             );
         }
     }
@@ -84,13 +84,13 @@ impl TaskManager {
             let current = inner.current_task;
             inner.tasks[next].task_status = TaskStatus::Running;
             inner.current_task = next;
-            let current_task_cx = inner.tasks[current].get_task_cx_ptr2();
-            let next_task_cx = inner.tasks[next].get_task_cx_ptr2();
+            let current_task_cx_ptr2 = inner.tasks[current].get_task_cx_ptr2();
+            let next_task_cx_ptr2 = inner.tasks[next].get_task_cx_ptr2();
             core::mem::drop(inner);
             unsafe {
                 __switch(
-                    current_task_cx,
-                    next_task_cx,
+                    current_task_cx_ptr2,
+                    next_task_cx_ptr2,
                 );
             }
         } else {
