@@ -33,16 +33,16 @@ impl Processor {
     pub fn run(&self) {
         loop {
             if let Some(task) = fetch_task() {
-                let idle_task_cx_ptr = self.get_idle_task_cx_ptr2();
+                let idle_task_cx_ptr2 = self.get_idle_task_cx_ptr2();
                 // acquire
-                let next_task_cx_ptr = task.acquire_inner_lock().get_task_cx_ptr2();
+                let next_task_cx_ptr2 = task.acquire_inner_lock().get_task_cx_ptr2();
                 task.acquire_inner_lock().task_status = TaskStatus::Running;
                 // release
                 self.inner.lock().current = Some(task);
                 unsafe {
                     __switch(
-                        idle_task_cx_ptr,
-                        next_task_cx_ptr,
+                        idle_task_cx_ptr2,
+                        next_task_cx_ptr2,
                     );
                 }
             }
