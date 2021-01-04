@@ -29,7 +29,7 @@ pub fn suspend_current_and_run_next() {
     let task = take_current_task().unwrap();
 
     // ---- temporarily hold current PCB lock
-    let task_cx_ptr = task.acquire_inner_lock().get_task_cx_ptr2();
+    let task_cx_ptr2 = task.acquire_inner_lock().get_task_cx_ptr2();
     // ---- release current PCB lock
 
     // ++++ temporarily hold current PCB lock
@@ -40,7 +40,7 @@ pub fn suspend_current_and_run_next() {
     // push back to ready queue.
     add_task(task);
     // jump to scheduling cycle
-    schedule(task_cx_ptr);
+    schedule(task_cx_ptr2);
 }
 
 pub fn exit_current_and_run_next(exit_code: i32) {
