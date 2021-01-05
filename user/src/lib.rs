@@ -12,7 +12,7 @@ mod lang_items;
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
     clear_bss();
-    syscall::sys_exit(main());
+    exit(main());
     panic!("unreachable after sys_exit!");
 }
 
@@ -32,4 +32,9 @@ fn clear_bss() {
     });
 }
 
-pub use syscall::*;
+use syscall::*;
+
+pub fn write(fd: usize, buf: &[u8]) -> isize { sys_write(fd, buf) }
+pub fn exit(exit_code: i32) -> isize { sys_exit(exit_code) }
+pub fn yield_() -> isize { sys_yield() }
+pub fn get_time() -> isize { sys_get_time() }
