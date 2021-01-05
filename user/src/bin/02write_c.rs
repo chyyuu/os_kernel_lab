@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::sys_yield;
+use user_lib::yield_;
 
 const WIDTH: usize = 10;
 const HEIGHT: usize = 3;
@@ -14,7 +14,7 @@ fn main() -> i32 {
     for i in 0..HEIGHT {
         for _ in 0..WIDTH { print!("C"); }
         println!(" [{}/{}]", i + 1, HEIGHT);
-        sys_yield();
+        yield_();
     }
     println!("Test write_c OK!");
     0

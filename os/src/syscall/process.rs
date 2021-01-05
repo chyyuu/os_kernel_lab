@@ -4,7 +4,7 @@ use crate::task::{
     run_next_task
 };
 
-pub fn sys_exit(xstate: i32) -> ! {
+pub fn sys_exit(exit_code: i32) -> ! {
     println!("[kernel] Application exited with code {}", xstate);
     mark_current_exited();
     run_next_task();
