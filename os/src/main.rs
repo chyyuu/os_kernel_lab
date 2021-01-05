@@ -30,6 +30,8 @@ fn frame_allocating_test() {
     dealloc_frame(f.unwrap());
     println!("alloc {:x?}", alloc_frame());
     println!("alloc {:x?}", alloc_frame());
+    println!("frame allocating test PASSED");
+
 }
 
 fn clear_bss() {
