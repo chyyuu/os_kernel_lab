@@ -5,6 +5,7 @@ _start:
     call rust_main
 
     .section .bss.stack
+    .align 12
     .globl boot_stack
 boot_stack:
     .space 4096 * 16
