@@ -12,7 +12,7 @@ mod lang_items;
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
     clear_bss();
-    syscall::sys_exit(main());
+    exit(main());
     panic!("unreachable after sys_exit!");
 }
 
@@ -31,3 +31,8 @@ fn clear_bss() {
         unsafe { (addr as *mut u8).write_volatile(0); }
     });
 }
+
+use syscall::*;
+
+pub fn write(fd: usize, buf: &[u8]) -> isize { sys_write(fd, buf) }
+pub fn exit(exit_code: i32) -> isize { sys_exit(exit_code) }
