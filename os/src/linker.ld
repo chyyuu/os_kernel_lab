@@ -31,7 +31,9 @@ SECTIONS
     edata = .;
     sbss = .;
     .bss : {
+        start_bss = .;
         *(.bss)
+        end_bss = .;
     }
 
     . = ALIGN(4K);
@@ -44,5 +46,6 @@ SECTIONS
 
     /DISCARD/ : {
         *(.eh_frame)
+        *(.debug*)
     }
 }
