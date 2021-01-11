@@ -8,6 +8,9 @@
 extern crate alloc;
 
 #[macro_use]
+extern crate bitflags;
+
+#[macro_use]
 mod console;
 mod lang_items;
 mod sbi;
@@ -33,5 +36,7 @@ pub extern "C" fn rust_main() -> ! {
     mm::init();
     mm::heap_allocator::heap_test();
     mm::frame_allocator::frame_allocator_test();
+    println!("[kernel] back to world!");
+    mm::remap_test();
     panic!("Shutdown machine!");
 }
