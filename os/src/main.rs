@@ -30,7 +30,8 @@ fn clear_bss() {
 pub extern "C" fn rust_main() -> ! {
     clear_bss(); //in QEMU, this isn't necessary, but in K210 or other real HW, this is necessary.
     println!("Hello, world!");
-    mm::init_heap();
-    mm::heap_test();
+    mm::init();
+    mm::heap_allocator::heap_test();
+    mm::frame_allocator::frame_allocator_test();
     panic!("Shutdown machine!");
 }
