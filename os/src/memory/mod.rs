@@ -1,3 +1,7 @@
+mod frame_allocator;
+pub mod paging;
+pub mod memory_set;
+
 use buddy_system_allocator::LockedHeap;
 use frame_allocator::SEGMENT_TREE_ALLOCATOR as FRAME_ALLOCATOR;
 use riscv::addr::{
@@ -8,12 +12,16 @@ use riscv::addr::{
 };
 
 use crate::consts::*;
-
-mod frame_allocator;
+use memory_set::{
+    MemorySet,
+    attr::MemoryAttr,
+    handler::Linear
+};
 
 pub fn init(l: usize, r: usize) {
     FRAME_ALLOCATOR.lock().init(l, r);
     init_heap();
+    kernel_remap();
     println!("++++ setup memory!    ++++");
 }
 
@@ -32,6 +40,29 @@ fn init_heap() {
         DYNAMIC_ALLOCATOR
             .lock()
             .init(HEAP.as_ptr() as usize, KERNEL_HEAP_SIZE);
+    }
+}
+
+pub fn access_pa_via_va(pa: usize) -> usize {
+    pa + PHYSICAL_MEMORY_OFFSET
+}
+
+pub fn kernel_remap() {
+    let mut memory_set = MemorySet::new();
+
+    extern "C" {
+        fn boot_stack();
+        fn boot_stack_top();
+    }
+    memory_set.push(
+        boot_stack as usize,
+        boot_stack_top as usize,
+        MemoryAttr::new(),
+        Linear::new(PHYSICAL_MEMORY_OFFSET),
+    );
+
+    unsafe {
+        memory_set.activate();
     }
 }
 
