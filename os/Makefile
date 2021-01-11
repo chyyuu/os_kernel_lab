@@ -5,6 +5,7 @@ KERNEL_ELF := target/$(TARGET)/$(MODE)/os
 KERNEL_BIN := $(KERNEL_ELF).bin
 KERNEL_ENTRY_PA := 0x80020000
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
+IMG := target/$(TARGET)/$(MODE)/img
 
 # BOARD
 BOARD		?= qemu
@@ -22,7 +23,7 @@ OBJCOPY := rust-objcopy --binary-architecture=riscv64
 # Disassembly
 DISASM ?= -x
 
-build: $(KERNEL_BIN)
+build: $(KERNEL_BIN) $(IMG)
 
 $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
@@ -49,7 +50,9 @@ ifeq ($(BOARD),qemu)
 		-machine virt \
 		-nographic \
 		-bios $(BOOTLOADER) \
-		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA)
+		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
+				-drive file=$(IMG),if=none,format=raw,id=x0 \
+				-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 else
 	@cp $(BOOTLOADER) $(BOOTLOADER).copy
 	@dd if=$(KERNEL_BIN) of=$(BOOTLOADER).copy bs=128K seek=1
@@ -64,5 +67,8 @@ debug: build
 		"qemu-system-riscv64 -machine virt -nographic -bios $(BOOTLOADER) -device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) -s -S" && \
 		tmux split-window -h "riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'" && \
 		tmux -2 attach-session -d
+
+$(IMG):
+	dd if=/dev/zero of=$@ bs=512 count=32
 
 .PHONY: build kernel clean disasm disasm-vim run-inner

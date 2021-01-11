@@ -8,6 +8,8 @@
 mod console;
 mod lang_items;
 mod sbi;
+mod config;
+mod drivers;
 
 global_asm!(include_str!("entry.asm"));
 
@@ -24,6 +26,8 @@ fn clear_bss() {
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
     clear_bss(); //in QEMU, this isn't necessary, but in K210 or other real HW, this is necessary.
-    println!("Hello, world!");
+    println!("Hello, world begin!");
+    drivers::block_device_test();
+    println!("Hello, world end!");
     panic!("Shutdown machine!");
 }
