@@ -5,7 +5,7 @@ KERNEL_ELF := target/$(TARGET)/$(MODE)/os
 KERNEL_BIN := $(KERNEL_ELF).bin
 KERNEL_ENTRY_PA := 0x80020000
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
-IMG := target/$(TARGET)/$(MODE)/img
+IMG := ../fs.img
 
 # BOARD
 BOARD		?= qemu
@@ -69,6 +69,6 @@ debug: build
 		tmux -2 attach-session -d
 
 $(IMG):
-	dd if=/dev/zero of=$@ bs=512 count=32
+	dd if=/dev/zero of=$@ bs=512 count=8192
 
 .PHONY: build kernel clean disasm disasm-vim run-inner

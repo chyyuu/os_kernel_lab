@@ -1,12 +1,19 @@
 mod virtio_blk;
 
+use lazy_static::*;
+use alloc::sync::Arc;
+
+type BlockDeviceImpl = virtio_blk::VirtIOBlock;
+
+lazy_static! {
+    pub static ref BLOCK_DEVICE: Arc<dyn BlockDevice> = Arc::new(BlockDeviceImpl::new());
+}
 
 pub trait BlockDevice {
     fn read_block(&mut self, block_id: usize, buf: &mut [u8]);
     fn write_block(&mut self, block_id: usize, buf: &[u8]);
 }
 
-type BlockDeviceImpl = virtio_blk::VirtIOBlock;
 
 pub fn block_device_test() {
     let mut block_device = BlockDeviceImpl::new();
