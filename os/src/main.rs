@@ -32,6 +32,7 @@ fn clear_bss() {
 pub extern "C" fn rust_main() -> ! {
     clear_bss(); //in QEMU, this isn't necessary, but in K210 or other real HW, this is necessary.
     println!("Hello, world begin!");
+    mm::init();
     drivers::block_device_test();
     //fs::list_apps();
     println!("Hello, world end!");
