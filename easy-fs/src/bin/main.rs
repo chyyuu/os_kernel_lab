@@ -53,52 +53,13 @@ fn easy_fs_pack() -> std::io::Result<()> {
         1,
     );
     let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
-    let apps: Vec<_> = read_dir("../user/src/bin")
-        .unwrap()
-        .into_iter()
-        .map(|dir_entry| {
-            let mut name_with_ext = dir_entry.unwrap().file_name().into_string().unwrap();
-            name_with_ext.drain(name_with_ext.find('.').unwrap()..name_with_ext.len());
-            name_with_ext
-        })
-        .collect();
-    for app in apps {
-        // load app data from host file system
-        let mut host_file = File::open(format!("{}{}", TARGET_PATH, app)).unwrap();
-        let mut all_data: Vec<u8> = Vec::new();
-        host_file.read_to_end(&mut all_data).unwrap();
-        // create a file in easy-fs
-        let inode = root_inode.create(app.as_str()).unwrap();
-        // write data to easy-fs
-        inode.write_at(0, all_data.as_slice());
-    }
-    // list apps
-    for app in root_inode.ls() {
-        println!("{}", app);
-    }
-    Ok(())
-}
-/*
-#[test]
-fn efs_test() -> std::io::Result<()> {
-    let block_file = Arc::new(BlockFile(Mutex::new(
-        OpenOptions::new()
-            .read(true)
-            .write(true)
-            .open("../fs.img")?
-    )));
-    EasyFileSystem::create(
-        block_file.clone(),
-        4096,
-        1,
-    );
-    let efs = EasyFileSystem::open(block_file.clone());
-    let mut root_inode = EasyFileSystem::root_inode(&efs);
+
     root_inode.create("filea");
     root_inode.create("fileb");
     for name in root_inode.ls() {
         println!("{}", name);
     }
+
     let filea = root_inode.find("filea").unwrap();
     let greet_str = "Hello, world!";
     filea.write_at(0, greet_str.as_bytes());
@@ -108,7 +69,7 @@ fn efs_test() -> std::io::Result<()> {
         greet_str,
         core::str::from_utf8(&buffer[..len]).unwrap(),
     );
-
+/*
     let mut random_str_test = |len: usize| {
         filea.clear();
         assert_eq!(
@@ -143,7 +104,10 @@ fn efs_test() -> std::io::Result<()> {
     random_str_test(100 * BLOCK_SZ);
     random_str_test(70 * BLOCK_SZ + BLOCK_SZ / 7);
     random_str_test((12 + 128) * BLOCK_SZ);
-
+*/
+    // list apps
+    for app in root_inode.ls() {
+        println!("{}", app);
+    }
     Ok(())
 }
-*/
