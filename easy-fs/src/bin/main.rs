@@ -31,10 +31,31 @@ impl BlockDevice for BlockFile {
 }
 
 fn main() {
-    easy_fs_pack().expect("Error when packing easy-fs!");
+    easy_fs_list().expect("Error when packing easy-fs!");
+    //easy_fs_pack().expect("Error when packing easy-fs!");
 }
 
 static TARGET_PATH: &str = "../";
+
+fn easy_fs_list() -> std::io::Result<()> {
+    let block_file = Arc::new(BlockFile(Mutex::new({
+        let f = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(format!("{}{}", TARGET_PATH, "fs.img"))?;
+        f.set_len(8192 * 512).unwrap();
+        f
+    })));
+    let efs=EasyFileSystem::open(block_file);
+    let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
+
+    // list apps
+    for app in root_inode.ls() {
+        println!("{}", app);
+    }
+    Ok(())
+}
 
 fn easy_fs_pack() -> std::io::Result<()> {
     let block_file = Arc::new(BlockFile(Mutex::new({
