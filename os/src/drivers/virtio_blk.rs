@@ -1,55 +1,74 @@
-use virtio_drivers::{VirtIOBlk, VirtIOHeader};
-use super::BlockDevice;
-use crate::config::MEMORY_DMA;
 
+use virtio_drivers::{VirtIOBlk, VirtIOHeader};
+use crate::mm::{
+    PhysAddr,
+    VirtAddr,
+    frame_alloc,
+    frame_dealloc,
+    PhysPageNum,
+    FrameTracker,
+    StepByOne,
+};
+use super::BlockDevice;
+use spin::Mutex;
+use alloc::vec::Vec;
+use lazy_static::*;
+
+#[allow(unused)]
 const VIRTIO0: usize = 0x10001000;
 
-pub struct VirtIOBlock(VirtIOBlk<'static>);
+pub struct VirtIOBlock(Mutex<VirtIOBlk<'static>>);
 
+lazy_static! {
+    static ref QUEUE_FRAMES: Mutex<Vec<FrameTracker>> = Mutex::new(Vec::new());
+}
 
 impl BlockDevice for VirtIOBlock {
-    fn read_block(&mut self, block_id: usize, buf: &mut [u8]) {
-        self.0.read_block(block_id, buf).expect("Error when reading VirtIOBlk");
+    fn read_block(&self, block_id: usize, buf: &mut [u8]) {
+        self.0.lock().read_block(block_id, buf).expect("Error when reading VirtIOBlk");
     }
-    fn write_block(&mut self, block_id: usize, buf: &[u8]) {
-        self.0.write_block(block_id, buf).expect("Error when writing VirtIOBlk");
+    fn write_block(&self, block_id: usize, buf: &[u8]) {
+        self.0.lock().write_block(block_id, buf).expect("Error when writing VirtIOBlk");
     }
 }
 
 impl VirtIOBlock {
+    #[allow(unused)]
     pub fn new() -> Self {
-        Self(VirtIOBlk::new(
+        Self(Mutex::new(VirtIOBlk::new(
             unsafe { &mut *(VIRTIO0 as *mut VirtIOHeader) }
-        ).expect("failed to create blk driver"))
+        ).unwrap()))
     }
 }
 
-use core::sync::atomic::*;
-
-static DMA_PADDR: AtomicUsize = AtomicUsize::new(MEMORY_DMA);
-
 #[no_mangle]
-extern "C" fn virtio_dma_alloc(pages: usize) -> PhysAddr {
-    let paddr = DMA_PADDR.fetch_add(0x1000 * pages, Ordering::SeqCst);
-    println!("alloc DMA: paddr={:#x}, pages={}", paddr, pages);
-    paddr
+pub extern "C" fn virtio_dma_alloc(pages: usize) -> PhysAddr {
+    let mut ppn_base = PhysPageNum(0);
+    for i in 0..pages {
+        let frame = frame_alloc().unwrap();
+        if i == 0 { ppn_base = frame.ppn; }
+        assert_eq!(frame.ppn.0, ppn_base.0 + i);
+        QUEUE_FRAMES.lock().push(frame);
+    }
+    ppn_base.into()
 }
 
 #[no_mangle]
-extern "C" fn virtio_dma_dealloc(paddr: PhysAddr, pages: usize) -> i32 {
-    println!("dealloc DMA: paddr={:#x}, pages={}", paddr, pages);
+pub extern "C" fn virtio_dma_dealloc(pa: PhysAddr, pages: usize) -> i32 {
+    let mut ppn_base: PhysPageNum = pa.into();
+    for _ in 0..pages {
+        frame_dealloc(ppn_base);
+        ppn_base.step();
+    }
     0
 }
 
 #[no_mangle]
-extern "C" fn virtio_phys_to_virt(paddr: PhysAddr) -> VirtAddr {
-    paddr
+pub extern "C" fn virtio_phys_to_virt(paddr: PhysAddr) -> VirtAddr {
+    VirtAddr(paddr.0)
 }
 
 #[no_mangle]
-extern "C" fn virtio_virt_to_phys(vaddr: VirtAddr) -> PhysAddr {
-    vaddr
+pub extern "C" fn virtio_virt_to_phys(vaddr: VirtAddr) -> PhysAddr {
+    PhysAddr(vaddr.0)
 }
-
-type VirtAddr = usize;
-type PhysAddr = usize;

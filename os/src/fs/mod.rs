@@ -1,5 +1,6 @@
 mod inode;
 
+use crate::mm::UserBuffer;
 use core::any::Any;
 
 pub trait File : Any + Send + Sync {

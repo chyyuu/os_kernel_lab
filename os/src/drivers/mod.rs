@@ -1,7 +1,9 @@
 mod virtio_blk;
 
 use lazy_static::*;
+// use alloc::rc::Rc;
 use alloc::sync::Arc;
+use easy_fs::BlockDevice;
 
 type BlockDeviceImpl = virtio_blk::VirtIOBlock;
 
@@ -9,22 +11,36 @@ lazy_static! {
     pub static ref BLOCK_DEVICE: Arc<dyn BlockDevice> = Arc::new(BlockDeviceImpl::new());
 }
 
-pub trait BlockDevice {
-    fn read_block(&mut self, block_id: usize, buf: &mut [u8]);
-    fn write_block(&mut self, block_id: usize, buf: &[u8]);
-}
-
-
+#[allow(unused)]
 pub fn block_device_test() {
-    let mut block_device = BlockDeviceImpl::new();
+    let block_device = BLOCK_DEVICE.clone();
     let mut write_buffer = [0u8; 512];
-    let mut read_buffer =  [0u8; 512];
+    let mut read_buffer = [0u8; 512];
     for i in 0..512 {
         for byte in write_buffer.iter_mut() { *byte = i as u8; }
+        block_device.write_block(i as usize, &write_buffer);
+        block_device.read_block(i as usize, &mut read_buffer);
+        assert_eq!(write_buffer, read_buffer);
     }
-    block_device.write_block(0 as usize, &write_buffer);
-    block_device.read_block(0 as usize, &mut read_buffer);
-    assert_eq!(write_buffer, read_buffer);
-
     println!("block device test passed!");
 }
+
+// pub trait BlockDevice {
+//     fn read_block(&mut self, block_id: usize, buf: &mut [u8]);
+//     fn write_block(&mut self, block_id: usize, buf: &[u8]);
+// }
+//
+//
+// pub fn block_device_test() {
+//     let mut block_device = BlockDeviceImpl::new();
+//     let mut write_buffer = [0u8; 512];
+//     let mut read_buffer =  [0u8; 512];
+//     for i in 0..512 {
+//         for byte in write_buffer.iter_mut() { *byte = i as u8; }
+//     }
+//     block_device.write_block(0 as usize, &write_buffer);
+//     block_device.read_block(0 as usize, &mut read_buffer);
+//     assert_eq!(write_buffer, read_buffer);
+//
+//     println!("block device test passed!");
+// }

@@ -11,4 +11,5 @@ virtio-drivers = { git = "https://github.com/rcore-os/virtio-drivers" }
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 spin = "0.7.0"
 bitflags = "1.2.1"
+buddy_system_allocator = "0.6"
 easy-fs = { path = "../easy-fs" }

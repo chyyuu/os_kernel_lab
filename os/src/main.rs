@@ -3,6 +3,9 @@
 #![feature(global_asm)]
 #![feature(llvm_asm)]
 #![feature(panic_info_message)]
+#![feature(alloc_error_handler)]
+
+extern crate alloc;
 
 #[macro_use]
 mod console;
@@ -10,6 +13,7 @@ mod lang_items;
 mod sbi;
 mod config;
 mod drivers;
+mod mm;
 mod fs;
 
 global_asm!(include_str!("entry.asm"));
@@ -29,7 +33,7 @@ pub extern "C" fn rust_main() -> ! {
     clear_bss(); //in QEMU, this isn't necessary, but in K210 or other real HW, this is necessary.
     println!("Hello, world begin!");
     drivers::block_device_test();
-    fs::list_apps();
+    //fs::list_apps();
     println!("Hello, world end!");
     panic!("Shutdown machine!");
 }

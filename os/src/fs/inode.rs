@@ -8,6 +8,7 @@ use lazy_static::*;
 use bitflags::*;
 use alloc::vec::Vec;
 use spin::Mutex;
+use crate::mm::UserBuffer;
 use super::File;
 use core::any::Any;
 
