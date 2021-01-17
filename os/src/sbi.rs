@@ -36,4 +36,3 @@ pub fn shutdown() -> ! {
     sbi_call(SBI_SHUTDOWN, 0, 0, 0);
     panic!("It should shutdown!");
 }
-
