@@ -2,6 +2,7 @@
 TARGET := riscv64gc-unknown-none-elf
 MODE := release
 KERNEL_ELF := target/$(TARGET)/$(MODE)/os
+KERNEL_ELF_DBG := target/$(TARGET)/debug/os
 KERNEL_BIN := $(KERNEL_ELF).bin
 KERNEL_ENTRY_PA := 0x80020000
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
@@ -23,10 +24,14 @@ OBJCOPY := rust-objcopy --binary-architecture=riscv64
 DISASM ?= -x
 
 build: $(KERNEL_BIN)
+build-dbg: kernel-dbg
+	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
 
 $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
 
+kernel-dbg:
+	@cargo build
 kernel:
 	@cargo build --release
 
@@ -59,10 +64,10 @@ else
 	miniterm --eol LF --dtr 0 --rts 0 --filter direct $(K210-SERIALPORT) 115200
 endif
 
-debug: build
+debug: build-dbg
 	@tmux new-session -d \
 		"qemu-system-riscv64 -machine virt -nographic -bios $(BOOTLOADER) -device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) -s -S" && \
-		tmux split-window -h "riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'" && \
+		tmux split-window -h "riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF_DBG)' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'" && \
 		tmux -2 attach-session -d
 
 .PHONY: build kernel clean disasm disasm-vim run-inner
