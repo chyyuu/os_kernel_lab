@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 #![feature(llvm_asm)]
+#![feature(global_asm)]
+global_asm!(include_str!("entry.asm"));
 
 use core::panic::PanicInfo;
 
@@ -36,7 +38,7 @@ pub fn sys_exit(xstate: i32) -> isize {
 
 #[no_mangle]
 #[link_section=".text.entry"]
-extern "C" fn _start() {
+extern "C" fn rust_main() {
     //sys_exit(9);
     shutdown();
 }
