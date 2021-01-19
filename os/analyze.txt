@@ -1,0 +1,6 @@
+# 分析文件信息
+rust-readobj -h target/riscv64gc-unknown-none-elf/release/os
+rust-readobj --all target/riscv64gc-unknown-none-elf/release/os|less
+
+# 反汇编文件
+rust-objdump -S target/riscv64gc-unknown-none-elf/release/os|less
