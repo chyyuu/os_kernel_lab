@@ -1,1 +1,2 @@
 cargo build --target riscv64gc-unknown-none-elf
+cargo build --release --target riscv64gc-unknown-none-elf
