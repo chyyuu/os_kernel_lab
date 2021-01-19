@@ -9,6 +9,7 @@ SECTIONS
 
     stext = .;
     .text : {
+        *(.text.entry)
         *(.text)
     }
 
@@ -29,19 +30,15 @@ SECTIONS
 
     . = ALIGN(4K);
     edata = .;
-    sbss = .;
+    sbss_with_stack = .;
     .bss : {
-        start_bss = .;
-        *(.bss)
-        end_bss = .;
+        *(.bss.stack)
+        sbss = .;
+        *(.bss .bss.*)
     }
 
     . = ALIGN(4K);
     ebss = .;
-    .stack : {
-        *(.bss.stack)
-    }
-
     ekernel = .;
 
     /DISCARD/ : {

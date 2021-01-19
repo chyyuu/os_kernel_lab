@@ -1,6 +1,9 @@
 #![no_std]
 #![no_main]
 #![feature(llvm_asm)]
+#![feature(global_asm)]
+
+global_asm!(include_str!("entry.asm"));
 
 use core::panic::PanicInfo;
 use core::fmt::{self, Write};
@@ -64,9 +67,17 @@ macro_rules! println {
 }
 
 
+const SBI_SHUTDOWN: usize = 8;
+
+pub fn shutdown() -> ! {
+    syscall(SBI_SHUTDOWN, [0, 0, 0]);
+    panic!("It should shutdown!");
+}
+
 #[no_mangle]
-extern "C" fn _start() {
-    println!("Hello, world!");
-    sys_exit(0);
+extern "C" fn rust_main() {
+    //println!("Hello, world!");
+    //sys_exit(0);
+    shutdown();
     //loop{};
 }
