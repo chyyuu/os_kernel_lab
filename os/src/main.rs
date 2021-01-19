@@ -15,7 +15,12 @@ fn panic(_: &PanicInfo) -> ! {
 const STDOUT: usize = 1;
 const SYSCALL_WRITE: usize = 64;
 const SYSCALL_EXIT: usize = 93;
+const SBI_CONSOLE_PUTCHAR: usize = 1;
 const SBI_SHUTDOWN: usize = 8;
+
+pub fn console_putchar(c: usize) {
+    syscall(SBI_CONSOLE_PUTCHAR, [c, 0, 0]);
+}
 
 pub fn shutdown() -> ! {
     syscall(SBI_SHUTDOWN, [0, 0, 0]);
@@ -47,7 +52,10 @@ struct Stdout;
 
 impl Write for Stdout {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        sys_write(STDOUT, s.as_bytes());
+        //sys_write(STDOUT, s.as_bytes());
+        for c in s.chars() {
+            console_putchar(c as usize);
+        }
         Ok(())
     }
 }
@@ -75,6 +83,6 @@ macro_rules! println {
 extern "C" fn rust_main() {
 //extern "C" fn _start() {
     println!("Hello, world!");
-    sys_exit(9);
-    //shutdown();
+    //sys_exit(9);
+    shutdown();
 }
