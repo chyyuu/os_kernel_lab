@@ -2,7 +2,7 @@
 #![no_main]
 #![feature(llvm_asm)]
 #![feature(global_asm)]
-//global_asm!(include_str!("entry.asm"));
+global_asm!(include_str!("entry.asm"));
 
 use core::panic::PanicInfo;
 use core::fmt::{self, Write};
@@ -72,9 +72,9 @@ macro_rules! println {
 
 #[no_mangle]
 #[link_section=".text.entry"]
-//extern "C" fn rust_main() {
-extern "C" fn _start() {
-    //println!("Hello, world!");
+extern "C" fn rust_main() {
+//extern "C" fn _start() {
+    println!("Hello, world!");
     sys_exit(9);
     //shutdown();
 }
