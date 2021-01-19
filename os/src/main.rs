@@ -10,5 +10,5 @@ fn panic(_: &PanicInfo) -> ! {
 
 #[no_mangle]
 extern "C" fn _start() {
-    loop {}
+//    loop {}
 }
