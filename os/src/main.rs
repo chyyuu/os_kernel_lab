@@ -8,3 +8,7 @@ fn panic(_: &PanicInfo) -> ! {
     loop {}
 }
 
+#[no_mangle]
+extern "C" fn _start() {
+    loop {}
+}
