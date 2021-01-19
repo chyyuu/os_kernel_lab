@@ -10,6 +10,12 @@ fn panic(_: &PanicInfo) -> ! {
 }
 
 const SYSCALL_EXIT: usize = 93;
+const SBI_SHUTDOWN: usize = 8;
+
+pub fn shutdown() -> ! {
+    syscall(SBI_SHUTDOWN, [0, 0, 0]);
+    panic!("It should shutdown!");
+}
 
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
@@ -29,6 +35,8 @@ pub fn sys_exit(xstate: i32) -> isize {
 }
 
 #[no_mangle]
+#[link_section=".text.entry"]
 extern "C" fn _start() {
-    sys_exit(9);
+    //sys_exit(9);
+    shutdown();
 }
