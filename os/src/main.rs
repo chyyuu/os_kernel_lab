@@ -3,7 +3,7 @@
 #![feature(llvm_asm)]
 #![feature(global_asm)]
 
-//global_asm!(include_str!("entry.asm"));
+global_asm!(include_str!("entry.asm"));
 
 use core::panic::PanicInfo;
 use core::fmt::{self, Write};
@@ -76,7 +76,7 @@ pub fn shutdown() -> ! {
 
 #[no_mangle]
 #[link_section = ".text.entry"]
-extern "C" fn _start() {
+extern "C" fn rust_main() {
     //println!("Hello, world!");
     //sys_exit(0);
     shutdown();
