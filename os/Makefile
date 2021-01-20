@@ -28,13 +28,14 @@ DISASM ?= -x
 build: env $(KERNEL_BIN) $(FS_IMG)
 
 env:
-	rustup component add rust-src
-	rustup component add llvm-tools-preview
-	cargo install cargo-binutils
-	rustup target add riscv64gc-unknown-none-elf
+	(rustup component list | grep "rust-src") || rustup component add rust-src
+	(rustup component list | grep "llvm-tools-preview") || rustup component add llvm-tools-preview
+	(which rust-objdump) || cargo install cargo-binutils
+	(rustup target list | grep "riscv64gc-unknown-none-elf") || rustup target add riscv64gc-unknown-none-elf
 
 sdcard: $(FS_IMG)
-	@sudo dd if=/dev/zero of=$(SDCARD) bs=1M count=16
+	@echo "Are you sure write to $(SDCARD) ? [y/N] " && read ans && [ $${ans:-N} = y ]
+	@sudo dd if=/dev/zero of=$(SDCARD) bs=1048576 count=16
 	@sudo dd if=$(FS_IMG) of=$(SDCARD)
 
 $(KERNEL_BIN): kernel
@@ -73,11 +74,11 @@ ifeq ($(BOARD),qemu)
         -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 else
 	@cp $(BOOTLOADER) $(BOOTLOADER).copy
-	@dd if=$(KERNEL_BIN) of=$(BOOTLOADER).copy bs=128K seek=1
+	@dd if=$(KERNEL_BIN) of=$(BOOTLOADER).copy bs=131072 seek=1
 	@mv $(BOOTLOADER).copy $(KERNEL_BIN)
 	@sudo chmod 777 $(K210-SERIALPORT)
 	python3 $(K210-BURNER) -p $(K210-SERIALPORT) -b 1500000 $(KERNEL_BIN)
-	miniterm --eol LF --dtr 0 --rts 0 --filter direct $(K210-SERIALPORT) 115200
+	python3 -m serial.tools.miniterm --eol LF --dtr 0 --rts 0 --filter direct $(K210-SERIALPORT) 115200
 endif
 
 debug: build
