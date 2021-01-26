@@ -20,5 +20,5 @@ pub use memory_set::remap_test;
 pub fn init() {
     heap_allocator::init_heap();
     frame_allocator::init_frame_allocator();
-    KERNEL_SPACE.clone().lock().activate();
+    KERNEL_SPACE.lock().activate();
 }
