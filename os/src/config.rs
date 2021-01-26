@@ -9,7 +9,7 @@ pub const TRAMPOLINE: usize = usize::MAX - PAGE_SIZE + 1;
 pub const TRAP_CONTEXT: usize = TRAMPOLINE - PAGE_SIZE;
 
 #[cfg(feature = "board_k210")]
-pub const CPU_FREQ: usize = 10000000;
+pub const CLOCK_FREQ: usize = 403000000 / 62;
 
 #[cfg(feature = "board_qemu")]
 pub const CPU_FREQ: usize = 12500000;
