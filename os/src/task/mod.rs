@@ -48,9 +48,10 @@ impl TaskManager {
     fn run_first_task(&self) {
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
         let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2();
+        let _unused: usize = 0;
         unsafe {
             __switch(
-                &0usize as *const _,
+                &_unused as *const _,
                 next_task_cx_ptr2,
             );
         }
