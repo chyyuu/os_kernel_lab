@@ -10,13 +10,13 @@ SDCARD := /dev/sdb
 APPS := ../user/src/bin
 
 # BOARD
-BOARD		?= qemu
-SBI			?= rustsbi
-BOOTLOADER	:= ../bootloader/$(SBI)-$(BOARD).bin
+BOARD ?= qemu
+SBI ?= rustsbi
+BOOTLOADER := ../bootloader/$(SBI)-$(BOARD).bin
 
 # Run K210
 K210-SERIALPORT	= /dev/ttyUSB0
-K210-BURNER		= ../tools/kflash.py
+K210-BURNER	= ../tools/kflash.py
 
 # Binutils
 OBJDUMP := rust-objdump --arch-name=riscv64
@@ -28,10 +28,17 @@ DISASM ?= -x
 build: env $(KERNEL_BIN) $(FS_IMG)
 
 env:
+<<<<<<< HEAD
 	(rustup component list | grep "rust-src") || rustup component add rust-src
 	(rustup component list | grep "llvm-tools-preview") || rustup component add llvm-tools-preview
 	(which rust-objdump) || cargo install cargo-binutils
 	(rustup target list | grep "riscv64gc-unknown-none-elf") || rustup target add riscv64gc-unknown-none-elf
+=======
+	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add $(TARGET)
+	cargo install cargo-binutils
+	rustup component add rust-src
+	rustup component add llvm-tools-preview
+>>>>>>> dev
 
 sdcard: $(FS_IMG)
 	@echo "Are you sure write to $(SDCARD) ? [y/N] " && read ans && [ $${ans:-N} = y ]
