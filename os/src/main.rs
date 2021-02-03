@@ -158,9 +158,12 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
     match scause.cause() {
         // timer interrupt
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
-            kprintln!("clock");
+            //kprintln!("clock");
             set_next_trigger();
-            //unsafe {CLOCKNUM+=1;}
+            unsafe {
+                CLOCKNUM+=1;
+                kprintln!("clock num is {}",CLOCKNUM);
+            }
         }
         _ => {
             panic!(

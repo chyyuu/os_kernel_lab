@@ -74,10 +74,10 @@
     # IF stvec.mode == Direct THEN; PC = (stvec.Base & ~0xF) + (I/E * 4)
 
 __alltraps:
-    # case1: from  U  to K
-    # now sp -> user stack ,sscratch ->kernel stack
-    csrrw sp, sscratch, sp
-    # now sp->kernel stack, sscratch->user stack
+    # case1: from  K to K  sscratch==0
+    # case2: from  U to K  sscratch==kernel stack
+    # now sp = kernel stack ,sscratch = 0, because cpu is always in S mode
+    # csrrw sp, sscratch, sp  # now sp->kernel stack, sscratch->user stack
     # allocate a TrapContext on kernel stack
     addi sp, sp, -34*8
     # save general-purpose registers
