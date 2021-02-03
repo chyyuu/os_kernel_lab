@@ -74,10 +74,7 @@
     # IF stvec.mode == Direct THEN; PC = (stvec.Base & ~0xF) + (I/E * 4)
 
 __alltraps:
-    # case1: from  K to K  sscratch==0
-    # case2: from  U to K  sscratch==kernel stack
-    # now sp = kernel stack ,sscratch = 0, because cpu is always in S mode
-    # csrrw sp, sscratch, sp  # now sp->kernel stack, sscratch->user stack
+    # ONLY S to S. now sp = kernel stack ,sscratch = 0
     # allocate a TrapContext on kernel stack
     addi sp, sp, -34*8
     # save general-purpose register x1
@@ -86,11 +83,9 @@ __alltraps:
     addi x1, sp, 34*8
     sd x1, 2*8(sp)
     # save other general-purpose registers
-    sd x3, 3*8(sp)
-    # skip tp(x4), application does not use it
-    # save x5~x31
-    .set n, 5
-    .rept 27
+    # save x3~x31
+    .set n, 3
+    .rept 29
         SAVE_GP %n
         .set n, n+1
     .endr
@@ -106,9 +101,7 @@ __alltraps:
     call trap_handler
 
 __restore:
-    # case1: back to U after handling trap
-    # case2: start running app by __restore
-    # now, no case1/2, just K to K
+    # just K to K. NO U mode
     # a0 is the return value: pointer of TrapContext
     mv sp, a0
     # now sp->kernel stack(after allocated), sscratch->user stack
@@ -117,26 +110,19 @@ __restore:
     csrw sstatus, t0
     ld t1, 33*8(sp)
     csrw sepc, t1
-
-    #ld t2, 2*8(sp)
-    #csrw sscratch, t2
-    # restore general-purpuse registers except sp/tp
+    # restore general-purpuse registers 1,3~31
     ld x1, 1*8(sp)
-    ld x3, 3*8(sp)
-    .set n, 5
-    .rept 27
+    .set n, 3
+    .rept 29
         LOAD_GP %n
         .set n, n+1
     .endr
     # release TrapContext on kernel stack
     addi sp, sp, 34*8
-    # now sp->kernel stack, sscratch->user stack
-    #csrrw sp, sscratch, sp
+
     # The exit procedure for a supervisor interrupt/exception when sret is executed.
     # sstatus.sie = sstatus.spie, restore interrupt enable
     # Privilege mode = sstatus.spp, restore privilege
     # sstatus.spp = sstatus.spie = 0
     # PC = sepc
     sret
-
-

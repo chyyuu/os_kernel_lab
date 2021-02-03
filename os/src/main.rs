@@ -96,7 +96,7 @@ macro_rules! kprintln {
 use riscv::register::{
     mtvec::TrapMode,
     scause::{self, Trap, Interrupt},
-    sstatus::{self, Sstatus, SPP},
+    sstatus::{self, Sstatus},
     stval, stvec,sie, sepc,
     time,
 };
