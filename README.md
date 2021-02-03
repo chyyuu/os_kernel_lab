@@ -75,4 +75,5 @@ Detailed documentation can be found in docs directory.
 - Yong, Xiang: xyong@tsinghua.edu.cn
 - Mao, Junjie: eternal.n08@gmail.com
 - Wei Zhang:  zhangwei15 AT mails.tsinghua.edu.cn
-
+  - https://github.com/ring00/bbl-ucore
+  - https://ring00.github.io/bbl-ucore/#/
