@@ -9,6 +9,7 @@ const STDOUT: usize = 1;
 const SYSCALL_WRITE: usize = 64;
 const SYSCALL_EXIT: usize = 93;
 
+static mut CLOCKNUM:u64=0;
 //======================= SUPERVISOR MODE =========================
 
 //================== entry point ====================
@@ -36,6 +37,7 @@ fn panic(info: &PanicInfo) -> ! {
 // ================== SBI call ===============
 const SBI_CONSOLE_PUTCHAR: usize = 1;
 const SBI_SHUTDOWN: usize = 8;
+const SBI_SET_TIMER: usize = 0;
 
 pub fn console_putchar(c: usize) {
     sbicall(SBI_CONSOLE_PUTCHAR, [c, 0, 0]);
@@ -44,6 +46,10 @@ pub fn console_putchar(c: usize) {
 pub fn shutdown() -> ! {
     sbicall(SBI_SHUTDOWN, [0, 0, 0]);
     panic!("It should shutdown!");
+}
+
+pub fn set_timer(timer: usize) {
+    sbicall(SBI_SET_TIMER, [timer, 0, 0]);
 }
 
 fn sbicall(id: usize, args: [usize; 3]) -> isize {
@@ -89,6 +95,15 @@ macro_rules! kprintln {
     }
 }
 
+//===============rv registers======================
+use riscv::register::{
+    mtvec::TrapMode,
+    scause::{self, Exception, Trap,Interrupt},
+    sstatus::{self, Sstatus, SPP},
+    stval, stvec,sie, sepc,
+    time,
+};
+
 // =============== do syscall =========================
 const FD_STDOUT: usize = 1;
 
@@ -118,13 +133,32 @@ pub fn do_syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         _ => panic!("Unsupported syscall_id: {}", syscall_id),
     }
 }
+
+//========= timer device =========================
+pub fn enable_timer_interrupt() {
+    unsafe {
+        sie::set_stimer();
+        sstatus::set_sie();
+    }
+}
+
+const TICKS_PER_SEC: usize = 100;
+const MSEC_PER_SEC: usize = 1000;
+const CLOCK_FREQ: usize = 12500000;
+
+pub fn get_time() -> usize {
+    time::read()
+}
+
+pub fn get_time_ms() -> usize {
+    time::read() / (CLOCK_FREQ / MSEC_PER_SEC)
+}
+
+pub fn set_next_trigger() {
+    set_timer(get_time() + CLOCK_FREQ / TICKS_PER_SEC);
+}
+
 //================= for trap ===============================
-use riscv::register::{
-    mtvec::TrapMode,
-    scause::{self, Exception, Trap},
-    sstatus::{self, Sstatus, SPP},
-    stval, stvec,
-};
 
 // TrapContext needs 34*8 bytes
 #[repr(C)]
@@ -167,17 +201,27 @@ pub fn trap_init() {
 pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
     let scause = scause::read();
     let stval = stval::read();
+    let sepc = sepc::read();
 
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
             cx.sepc += 4;
             cx.x[10] = do_syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
+        // timer interrupt
+        Trap::Interrupt(Interrupt::SupervisorTimer) => {
+            //kprintln!("clock");
+            set_next_trigger();
+            unsafe {
+                CLOCKNUM+=1;
+                kprintln!("clock num is {}",CLOCKNUM);
+            }
+        }
         _ => {
             panic!(
-                "Unsupported trap {:?}, stval = {:#x}!",
+                "Unsupported trap {:?}, stval = {:#x}, sepc = {:#x}",
                 scause.cause(),
-                stval
+                stval, sepc
             );
         }
     }
@@ -242,7 +286,23 @@ pub fn run_usrapp() -> ! {
 extern "C" fn rust_main() {
     kprintln!("Kernel: Hello, world!");
     trap_init();
-    run_usrapp();
+    set_next_trigger();
+    enable_timer_interrupt();
+    //test2: uncomment below line
+    //run_usrapp();
+    //test2:=========================
+    // test1: uncomment below code
+    let mut i:u32=0;
+    loop{
+        while i <1000000 {
+            i+=1;
+        }
+        i=0;
+        unsafe {
+            kprintln!("Kernel: Hello, world! {}", CLOCKNUM);
+        }
+    };
+    //test1================================
 }
 
 //======================= USR MODE =========================
@@ -300,6 +360,19 @@ macro_rules! uprintln {
 #[no_mangle]
 #[link_section = ".text.entry"]
 extern "C" fn usr_app_main() {
+
     uprintln!("Usrapp: Hello, world!");
-    sys_exit(9);
+    //test2: uncomment below lines
+    // let mut i:u32=0;
+    // loop{
+    //     while i <1000000 {
+    //         i+=1;
+    //     }
+    //     i=0;
+    //     unsafe {
+    //         uprintln!("Usrapp: Hello, world! {}", CLOCKNUM);
+    //     }
+    // };
+    // sys_exit(9);
+    //test2========================================
 }
