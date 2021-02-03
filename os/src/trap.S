@@ -80,9 +80,12 @@ __alltraps:
     # csrrw sp, sscratch, sp  # now sp->kernel stack, sscratch->user stack
     # allocate a TrapContext on kernel stack
     addi sp, sp, -34*8
-    # save general-purpose registers
+    # save general-purpose register x1
     sd x1, 1*8(sp)
-    # skip sp(x2), we will save it later
+    # save old sp (x2)
+    addi x1, sp, 34*8
+    sd x1, 2*8(sp)
+    # save other general-purpose registers
     sd x3, 3*8(sp)
     # skip tp(x4), application does not use it
     # save x5~x31
@@ -97,9 +100,6 @@ __alltraps:
     csrr t1, sepc
     sd t1, 33*8(sp)
     # now TrapContext.sstatus ->sstatus CSR, TrapContext.sepc ->sepc CSR
-    # read user stack from sscratch and save it on the kernel stack
-    csrr t2, sscratch
-    sd t2, 2*8(sp)
     # now TrapContext was filled (34*8 bytes)
     # set input argument of trap_handler(cx: &mut TrapContext)
     mv a0, sp
@@ -108,6 +108,8 @@ __alltraps:
 __restore:
     # case1: back to U after handling trap
     # case2: start running app by __restore
+    # now, no case1/2, just K to K
+    # a0 is the return value: pointer of TrapContext
     mv sp, a0
     # now sp->kernel stack(after allocated), sscratch->user stack
     # restore sstatus/sepc
@@ -116,8 +118,8 @@ __restore:
     ld t1, 33*8(sp)
     csrw sepc, t1
 
-    ld t2, 2*8(sp)
-    csrw sscratch, t2
+    #ld t2, 2*8(sp)
+    #csrw sscratch, t2
     # restore general-purpuse registers except sp/tp
     ld x1, 1*8(sp)
     ld x3, 3*8(sp)
@@ -129,7 +131,7 @@ __restore:
     # release TrapContext on kernel stack
     addi sp, sp, 34*8
     # now sp->kernel stack, sscratch->user stack
-    csrrw sp, sscratch, sp
+    #csrrw sp, sscratch, sp
     # The exit procedure for a supervisor interrupt/exception when sret is executed.
     # sstatus.sie = sstatus.spie, restore interrupt enable
     # Privilege mode = sstatus.spp, restore privilege
