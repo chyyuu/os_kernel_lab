@@ -4,24 +4,36 @@
 #![feature(global_asm)]
 #![feature(panic_info_message)]
 
+//=====================SHARE PARTS============================
+const STDOUT: usize = 1;
+const SYSCALL_WRITE: usize = 64;
+const SYSCALL_EXIT: usize = 93;
+
+//======================= SUPERVISOR MODE =========================
+
+//================== entry point ====================
 global_asm!(include_str!("entry.asm"));
 
-use core::panic::PanicInfo;
+// ================ panic  handler ==================
 use core::fmt::{self, Write};
+use core::panic::PanicInfo;
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
-        kprintln!("Panicked at {}:{} {}", location.file(), location.line(), info.message().unwrap());
+        kprintln!(
+            "Panicked at {}:{} {}",
+            location.file(),
+            location.line(),
+            info.message().unwrap()
+        );
     } else {
         kprintln!("Panicked: {}", info.message().unwrap());
     }
     shutdown()
 }
 
-const STDOUT: usize = 1;
-const SYSCALL_WRITE: usize = 64;
-const SYSCALL_EXIT: usize = 93;
+// ================== SBI call ===============
 const SBI_CONSOLE_PUTCHAR: usize = 1;
 const SBI_SHUTDOWN: usize = 8;
 
@@ -47,30 +59,8 @@ fn sbicall(id: usize, args: [usize; 3]) -> isize {
     ret
 }
 
-fn syscall(id: usize, args: [usize; 3]) -> isize {
-    let mut ret: isize;
-    unsafe {
-        llvm_asm!("ecall"
-            : "={x10}" (ret)
-            : "{x10}" (args[0]), "{x11}" (args[1]), "{x12}" (args[2]), "{x17}" (id)
-            : "memory"
-            : "volatile"
-        );
-    }
-    ret
-}
-
-pub fn sys_exit(xstate: i32) -> isize {
-    syscall(SYSCALL_EXIT, [xstate as usize, 0, 0])
-}
-
-pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
-    syscall(SYSCALL_WRITE, [fd, buffer.as_ptr() as usize, buffer.len()])
-}
-
+//===============kernel mode console ========================
 struct Kstdout;
-
-struct Ustdout;
 
 impl Write for Kstdout {
     fn write_str(&mut self, s: &str) -> fmt::Result {
@@ -81,19 +71,8 @@ impl Write for Kstdout {
     }
 }
 
-impl Write for Ustdout {
-    fn write_str(&mut self, s: &str) -> fmt::Result {
-        sys_write(STDOUT, s.as_bytes());
-        Ok(())
-    }
-}
-
 pub fn kconsole_print(args: fmt::Arguments) {
     Kstdout.write_fmt(args).unwrap();
-}
-
-pub fn uconsole_print(args: fmt::Arguments) {
-    Ustdout.write_fmt(args).unwrap();
 }
 
 #[macro_export]
@@ -104,27 +83,13 @@ macro_rules! kprint {
 }
 
 #[macro_export]
-macro_rules! uprint {
-    ($fmt: literal $(, $($arg: tt)+)?) => {
-        uconsole_print(format_args!($fmt $(, $($arg)+)?));
-    }
-}
-
-#[macro_export]
 macro_rules! kprintln {
     ($fmt: literal $(, $($arg: tt)+)?) => {
         kconsole_print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
     }
 }
 
-#[macro_export]
-macro_rules! uprintln {
-    ($fmt: literal $(, $($arg: tt)+)?) => {
-        uconsole_print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
-    }
-}
-
-
+// =============== do syscall =========================
 const FD_STDOUT: usize = 1;
 
 pub fn do_write(fd: usize, buf: *const u8, len: usize) -> isize {
@@ -134,7 +99,7 @@ pub fn do_write(fd: usize, buf: *const u8, len: usize) -> isize {
             let str = core::str::from_utf8(slice).unwrap();
             kprint!("{}", str);
             len as isize
-        },
+        }
         _ => {
             panic!("Unsupported fd in sys_write!");
         }
@@ -156,16 +121,12 @@ pub fn do_syscall(syscall_id: usize, args: [usize; 3]) -> isize {
 //================= for trap ===============================
 use riscv::register::{
     mtvec::TrapMode,
-    stvec,
-    scause::{
-        self,
-        Trap,
-        Exception,
-    },
-    stval,
-    sstatus::{Sstatus, self, SPP},
+    scause::{self, Exception, Trap},
+    sstatus::{self, Sstatus, SPP},
+    stval, stvec,
 };
 
+// TrapContext needs 34*8 bytes
 #[repr(C)]
 pub struct TrapContext {
     pub x: [usize; 32],
@@ -174,7 +135,9 @@ pub struct TrapContext {
 }
 
 impl TrapContext {
-    pub fn set_sp(&mut self, sp: usize) { self.x[2] = sp; }
+    pub fn set_sp(&mut self, sp: usize) {
+        self.x[2] = sp;  //x2 reg is sp reg
+    }
     pub fn app_init_context(entry: usize, sp: usize) -> Self {
         let mut sstatus = sstatus::read();
         sstatus.set_spp(SPP::User);
@@ -188,10 +151,13 @@ impl TrapContext {
     }
 }
 
+// __alltraps & __restore functions
 global_asm!(include_str!("trap.S"));
 
 pub fn trap_init() {
-    extern "C" { fn __alltraps(); }
+    extern "C" {
+        fn __alltraps(); //in trap.S
+    }
     unsafe {
         stvec::write(__alltraps as usize, TrapMode::Direct);
     }
@@ -201,32 +167,26 @@ pub fn trap_init() {
 pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
     let scause = scause::read();
     let stval = stval::read();
+
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
             cx.sepc += 4;
             cx.x[10] = do_syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
-        Trap::Exception(Exception::StoreFault) |
-        Trap::Exception(Exception::StorePageFault) => {
-            kprintln!("[kernel] PageFault in application, core dumped.");
-
-        }
-        Trap::Exception(Exception::IllegalInstruction) => {
-            kprintln!("[kernel] IllegalInstruction in application, core dumped.");
-        }
         _ => {
-            panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
+            panic!(
+                "Unsupported trap {:?}, stval = {:#x}!",
+                scause.cause(),
+                stval
+            );
         }
     }
     cx
 }
 
-//================  load userapp ===================================
+//================  run userapp ===================================
 const USER_STACK_SIZE: usize = 4096 * 2;
 const KERNEL_STACK_SIZE: usize = 4096 * 2;
-const MAX_APP_NUM: usize = 16;
-const APP_BASE_ADDRESS: usize = 0x80040000;
-const APP_SIZE_LIMIT: usize = 0x20000;
 
 #[repr(align(4096))]
 struct KernelStack {
@@ -238,8 +198,12 @@ struct UserStack {
     data: [u8; USER_STACK_SIZE],
 }
 
-static KERNEL_STACK: KernelStack = KernelStack { data: [0; KERNEL_STACK_SIZE] };
-static USER_STACK: UserStack = UserStack { data: [0; USER_STACK_SIZE] };
+static KERNEL_STACK: KernelStack = KernelStack {
+    data: [0; KERNEL_STACK_SIZE],
+};
+static USER_STACK: UserStack = UserStack {
+    data: [0; USER_STACK_SIZE],
+};
 
 impl KernelStack {
     fn get_sp(&self) -> usize {
@@ -247,7 +211,9 @@ impl KernelStack {
     }
     pub fn push_context(&self, cx: TrapContext) -> &'static mut TrapContext {
         let cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
-        unsafe { *cx_ptr = cx; }
+        unsafe {
+            *cx_ptr = cx;
+        }
         unsafe { cx_ptr.as_mut().unwrap() }
     }
 }
@@ -259,32 +225,81 @@ impl UserStack {
 }
 
 pub fn run_usrapp() -> ! {
-
-    extern "C" { fn __restore(cx_addr: usize); }
+    extern "C" {
+        fn __restore(cx_addr: usize); //in trap.S
+    }
     unsafe {
-        __restore(KERNEL_STACK.push_context(
-            TrapContext::app_init_context(usr_app_main as usize, USER_STACK.get_sp())
-        ) as *const _ as usize);
+        __restore(KERNEL_STACK.push_context(TrapContext::app_init_context(
+            usr_app_main as usize,
+            USER_STACK.get_sp(),
+        )) as *const _ as usize);
     }
     panic!("Unreachable in batch::run_current_app!");
 }
 //================ kernel main =============================
 #[no_mangle]
-#[link_section=".text.entry"]
+#[link_section = ".text.entry"]
 extern "C" fn rust_main() {
     kprintln!("Kernel: Hello, world!");
     trap_init();
     run_usrapp();
-    //shutdown();
-    panic!("It should shutdown!");
+}
+
+//======================= USR MODE =========================
+//========= usr mode syscall ==============
+fn syscall(id: usize, args: [usize; 3]) -> isize {
+    let mut ret: isize;
+    unsafe {
+        llvm_asm!("ecall"
+            : "={x10}" (ret)
+            : "{x10}" (args[0]), "{x11}" (args[1]), "{x12}" (args[2]), "{x17}" (id)
+            : "memory"
+            : "volatile"
+        );
+    }
+    ret
+}
+
+pub fn sys_exit(xstate: i32) -> isize {
+    syscall(SYSCALL_EXIT, [xstate as usize, 0, 0])
+}
+
+pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
+    syscall(SYSCALL_WRITE, [fd, buffer.as_ptr() as usize, buffer.len()])
+}
+
+//=============== usr mode console ==================
+struct Ustdout;
+
+impl Write for Ustdout {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        sys_write(STDOUT, s.as_bytes());
+        Ok(())
+    }
+}
+
+pub fn uconsole_print(args: fmt::Arguments) {
+    Ustdout.write_fmt(args).unwrap();
+}
+
+#[macro_export]
+macro_rules! uprint {
+    ($fmt: literal $(, $($arg: tt)+)?) => {
+        uconsole_print(format_args!($fmt $(, $($arg)+)?));
+    }
+}
+
+#[macro_export]
+macro_rules! uprintln {
+    ($fmt: literal $(, $($arg: tt)+)?) => {
+        uconsole_print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
+    }
 }
 
 //================ userapp main =============================
 #[no_mangle]
-#[link_section=".text.entry"]
+#[link_section = ".text.entry"]
 extern "C" fn usr_app_main() {
-     uprintln!("Usrapp: Hello, world!");
-     sys_exit(9);
-    //shutdown();
-    //panic!("It should shutdown!");
+    uprintln!("Usrapp: Hello, world!");
+    sys_exit(9);
 }
