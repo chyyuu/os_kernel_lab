@@ -902,7 +902,28 @@ fn clear_bss() {
     });
 }
 
+/// Identity map range
+/// Takes a contiguous allocation of memory and maps it using PAGE_SIZE
+/// This assumes that start <= end
+pub fn id_map_range(root: &mut Table,
+                    start: usize,
+                    end: usize,
+                    bits: i64)
+{
+    let mut memaddr = start & !(PAGE_SIZE - 1);
+    let num_kb_pages = (align_val(end, 12)
+        - memaddr)
+        / PAGE_SIZE;
 
+    // I named this num_kb_pages for future expansion when
+    // I decide to allow for GiB (2^30) and 2MiB (2^21) page
+    // sizes. However, the overlapping memory regions are causing
+    // nightmares.
+    for _ in 0..num_kb_pages {
+        map(root, memaddr, memaddr, bits, 0);
+        memaddr += 1 << 12;
+    }
+}
 
 #[no_mangle]
 #[link_section=".text.entry"]
@@ -930,8 +951,23 @@ extern "C" fn rust_main() {
 
     //atcive paging
 
+    // id_map_range(
+    //     &mut root,
+    //     kheap_head,
+    //     kheap_head + total_pages * 4096,
+    //     EntryBits::ReadWrite.val(),
+    // );
+
+    id_map_range(
+        &mut root,
+        0x80000000,
+        0x80600000,
+        EntryBits::ReadWriteExecute.val(),
+    );
+
     use riscv::register::satp;
-    let satp = root_ptr as *const Table  as usize;
+    // satp= table / 4096  |  Sv39 mode
+    let satp = root_ptr as *const Table  as usize >>12 |(8 << 60);
     unsafe {
         satp::write(satp);
         llvm_asm!("sfence.vma" :::: "volatile");
