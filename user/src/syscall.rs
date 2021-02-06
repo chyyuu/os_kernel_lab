@@ -54,6 +54,6 @@ pub fn sys_exec(path: &str) -> isize {
     syscall(SYSCALL_EXEC, [path.as_ptr() as usize, 0, 0])
 }
 
-pub fn sys_waitpid(pid: isize, xstatus: *mut i32) -> isize {
-    syscall(SYSCALL_WAITPID, [pid as usize, xstatus as usize, 0])
+pub fn sys_waitpid(pid: isize, exit_code: *mut i32) -> isize {
+    syscall(SYSCALL_WAITPID, [pid as usize, exit_code as usize, 0])
 }
