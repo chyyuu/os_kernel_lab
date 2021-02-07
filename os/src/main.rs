@@ -87,7 +87,34 @@ fn clear_bss() {
 #[no_mangle]
 #[link_section=".text.entry"]
 extern "C" fn rust_main() {
+    extern "C" {
+        fn stext();
+        fn etext();
+        fn srodata();
+        fn erodata();
+        fn sdata();
+        fn edata();
+        fn sbss();
+        fn ebss();
+        fn boot_stack();
+        fn boot_stack_top();
+        fn stack_begin();
+        fn stack_end();
+        fn ekernel();
+        fn user_begin();
+    }
     clear_bss();
     println!("Hello, world!");
+    println!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
+    println!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
+    println!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
+    println!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
+    println!(
+        "boot_stack [{:#x}, {:#x})",
+        boot_stack as usize, boot_stack_top as usize
+    );
+    println!(".stack [{:#x}, {:#x})", stack_begin as usize, stack_end as usize);
+    println!(".ekernel [{:#x})", ekernel as usize);
+    println!("user_begin [{:#x})", user_begin as usize);
     panic!("It should shutdown!");
 }

@@ -1,7 +1,7 @@
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 BASE_ADDRESS = 0x80020000;
-
+USER_ADDR = 0x80100000;
 SECTIONS
 {
     . = ALIGN(4K);
@@ -31,23 +31,25 @@ SECTIONS
     . = ALIGN(4K);
     edata = .;
     sbss = .;
-    sbss_with_stack = .;
     .bss : {
         start_bss = .;
         *(.bss)
         end_bss = .;
-        *(.bss.stack)
-        sbss = .;
-        *(.bss .bss.*)
     }
 
     . = ALIGN(4K);
     ebss = .;
+    stack_begin = .;
     .stack : {
         *(.bss.stack)
     }
-
+    stack_end = .;
     ekernel = .;
+
+
+    . = ALIGN(4K);
+    . = USER_ADDR;
+    user_begin = .;
 
     /DISCARD/ : {
         *(.eh_frame)
