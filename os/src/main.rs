@@ -772,11 +772,18 @@ extern "C" fn rust_main() {
     paging_init();
 
     trap_init();
+    //------------- test trap handler ----------------------
     unsafe {
         llvm_asm!("ebreak"
             : : : :
         );
     }
+    //------------- test trap handler ----------------------
+    
+    //--------------- test paging code -------------------
+    // let ptr = 0x80600000 as *const u8;
+    // unsafe{ let c = *ptr; println!("{}",c); }
+    //--------------- test paging code -------------------
 
-    panic!("It should shutdown!");
+    panic!("\n[kernel] END: It should shutdown!");
 }
