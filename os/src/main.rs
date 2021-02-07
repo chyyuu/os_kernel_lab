@@ -3,6 +3,7 @@
 #![feature(llvm_asm)]
 #![feature(global_asm)]
 #![feature(panic_info_message)]
+#![feature(const_raw_ptr_to_usize_cast)]
 
 //=====================SHARE PARTS============================
 const STDOUT: usize = 1;
@@ -718,11 +719,12 @@ impl TrapContext {
 
 // __alltraps & __restore functions
 global_asm!(include_str!("trap.S"));
+extern "C" {
+    fn __alltraps(); //in trap.S
+}
 
 pub fn trap_init() {
-    extern "C" {
-        fn __alltraps(); //in trap.S
-    }
+
     unsafe {
         stvec::write(__alltraps as usize, TrapMode::Direct);
     }
@@ -810,7 +812,11 @@ struct UserStack {
     data: [u8; USER_STACK_SIZE],
 }
 
-static KERNEL_STACK: KernelStack = KernelStack {
+static KERNEL1_STACK: KernelStack = KernelStack {
+    data: [0; KERNEL_STACK_SIZE],
+};
+
+static KERNEL2_STACK: KernelStack = KernelStack {
     data: [0; KERNEL_STACK_SIZE],
 };
 
@@ -830,12 +836,14 @@ impl KernelStack {
     fn get_sp(&self) -> usize {
         self.data.as_ptr() as usize + KERNEL_STACK_SIZE
     }
-    pub fn push_context(&self, cx: TrapContext) -> &'static mut TrapContext {
-        let cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
+    pub fn push_context(&self, trap_cx: TrapContext, task_cx: TaskContext) -> &'static mut TaskContext {
         unsafe {
-            *cx_ptr = cx;
+            let trap_cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
+            *trap_cx_ptr = trap_cx;
+            let task_cx_ptr = (trap_cx_ptr as usize - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
+            *task_cx_ptr = task_cx;
+            task_cx_ptr.as_mut().unwrap()
         }
-        unsafe { cx_ptr.as_mut().unwrap() }
     }
 }
 
@@ -844,33 +852,117 @@ impl UserStack {
         self.data.as_ptr() as usize + USER_STACK_SIZE
     }
 }
-
-pub fn run_usrapp1() -> ! {
-    extern "C" {
-        fn __restore(cx_addr: usize); //in trap.S
-    }
-    unsafe {
-        __restore(KERNEL_STACK.push_context(TrapContext::app_init_context(
-            usr_app1_main as usize,
-            USER1_STACK.get_sp(),
-        )) as *const _ as usize);
-    }
-    panic!("Unreachable in run_usrapp1!");
+extern "C" {
+    fn __restore(cx_addr: usize); //in trap.S
 }
+
+// pub fn run_usrapp1() -> ! {
+//     extern "C" {
+//         fn __restore(cx_addr: usize); //in trap.S
+//     }
+//     unsafe {
+//         __restore(KERNEL1_STACK.push_context(TrapContext::app_init_context(
+//             usr_app1_main as usize,
+//             USER1_STACK.get_sp(),
+//         ),TaskContext::goto_restore(),) as *const _ as usize);
+//     }
+//     panic!("Unreachable in run_usrapp1!");
+// }
 
 pub fn run_usrapp2() -> ! {
-    extern "C" {
-        fn __restore(cx_addr: usize); //in trap.S
-    }
+    // extern "C" {
+    //     fn __restore(cx_addr: usize); //in trap.S
+    // }
+    let _unused: usize = 0;
+    //let tcx=TaskContext::goto_restore();
+    //println!("tcx {:?}", tcx);
+    let tptr= KERNEL2_STACK.push_context(TrapContext::app_init_context(
+        usr_app2_main as usize,
+        USER2_STACK.get_sp(),
+    ),TaskContext::goto_restore());
+    let mptr= tptr as * const _ as * const usize;
+    let mmptr= &mptr as  &* const usize;
+    println!("mptr {:#x}",mptr as usize);
+    println!("mmptr {:#x}",mmptr as * const _ as * const usize as usize);
+    println!("tptr.ra {:#x}",tptr.ra);
+
     unsafe {
-        __restore(KERNEL_STACK.push_context(TrapContext::app_init_context(
-            usr_app2_main as usize,
-            USER2_STACK.get_sp(),
-        )) as *const _ as usize);
+        __switch(&_unused as *const _,
+                 mmptr as * const _ as * const usize);
     }
-    panic!("Unreachable in run_usrapp1!");
+    panic!("Unreachable in run_usrapp2!");
 }
 
+
+//--------------------task manage -----------------------
+global_asm!(include_str!("switch.S"));
+
+extern "C" {
+    pub fn __switch(
+        current_task_cx_ptr2: *const usize,
+        next_task_cx_ptr2: *const usize
+    );
+}
+
+#[repr(C)]
+pub struct TaskContext {
+    ra: usize,
+    s: [usize; 12],
+}
+
+impl TaskContext {
+    pub fn goto_restore() -> Self {
+        //extern "C" { fn __restore(); }
+        Self {
+            ra: __restore as usize,
+            s: [0; 12],
+        }
+    }
+}
+
+static mut tctx1:TaskContext=unsafe {TaskContext{ra:0x80020610 as usize,s:[0;12]}};
+static mut tctx2:TaskContext=unsafe {TaskContext{ra:0x80020610 as usize,s:[0;12]}};
+//static mut tctx2:TaskContext=TaskContext{ra:__restore as usize,s:[0;12]};
+// static mut tctx2:TaskContext=TaskContext::goto_restore();
+
+// lazy_static! {
+//     pub mut static ref TK1:  TaskContext = KERNEL1_STACK.push_context(
+//         TrapContext::app_init_context(usr_app1_main as usize, USER1_STACK.get_sp()),
+//         TaskContext::goto_restore(),
+//     );
+//     pub mut static ref TK2:  TaskContext = KERNEL2_STACK.push_context(
+//         TrapContext::app_init_context(usr_app2_main as usize, USER2_STACK.get_sp()),
+//         TaskContext::goto_restore(),
+//     );
+// }
+
+pub fn suspend_current_and_run_next() {
+    // mark_current_suspended();
+    // run_next_task();
+}
+
+// pub fn init_app_cx() ->[&'static mut TaskContext;2]{
+//     let tk_ctx1=KERNEL1_STACK.push_context(
+//         TrapContext::app_init_context(usr_app1_main as usize, USER1_STACK.get_sp()),
+//         TaskContext::goto_restore(),
+//     );
+//     let tk_ctx2= KERNEL2_STACK.push_context(
+//         TrapContext::app_init_context(usr_app2_main as usize, USER2_STACK.get_sp()),
+//         TaskContext::goto_restore(),
+//     );
+// //
+// }
+
+// fn run_first_task() {
+//     let next_task_cx_ptr2:usize = 0;
+//     let _unused: usize = 0;
+//     unsafe {
+//         __switch(
+//             &_unused as *const _,
+//             & next_task_cx_ptr2 as *const _,
+//         );
+//     }
+// }
 //========= timer device =========================
 static mut CLOCKNUM:u64=0;
 
@@ -897,11 +989,7 @@ pub fn set_next_trigger() {
     set_timer(get_time() + CLOCK_FREQ / TICKS_PER_SEC);
 }
 
-//--------------------task manage -----------------------
-pub fn suspend_current_and_run_next() {
-    // mark_current_suspended();
-    // run_next_task();
-}
+
 //-------------------------------------------------------
 
 fn clear_bss() {
@@ -944,7 +1032,7 @@ extern "C" fn rust_main() {
         boot_stack as usize, boot_stack_top as usize
     );
     println!(".stack [{:#x}, {:#x})", stack_begin as usize, stack_end as usize);
-    println!(".ekernel {:#x}", ekernel as usize);
+    println!("__restore {:#x}", __restore as usize);
     println!("user_begin {:#x}", user_begin as usize);
     println!("syscall-fn {:#x}", syscall as usize);
     println!("sys_exit-fn {:#x}", sys_exit as usize);
@@ -952,6 +1040,8 @@ extern "C" fn rust_main() {
     println!("usrapp2 entry {:#x}", usr_app2_main as usize);
     println!("usrapp1 stack {:#x}", USER1_STACK.data.as_ptr() as usize);
     println!("usrapp2 stack {:#x}", USER2_STACK.data.as_ptr() as usize);
+    println!("kernel1 stack {:#x}", KERNEL1_STACK.data.as_ptr() as usize);
+    println!("kernel2 stack {:#x}", KERNEL2_STACK.data.as_ptr() as usize);
     //----page-grained allocation-------------------
     unsafe {
         HEAP_START=ekernel as usize +4096;
