@@ -4,6 +4,12 @@
 #![feature(global_asm)]
 #![feature(panic_info_message)]
 
+//=====================SHARE PARTS============================
+const STDOUT: usize = 1;
+const SYSCALL_WRITE: usize = 64;
+const SYSCALL_EXIT: usize = 93;
+
+//======================= SUPERVISOR MODE =========================
 global_asm!(include_str!("entry.asm"));
 
 use core::panic::PanicInfo;
@@ -760,6 +766,8 @@ extern "C" fn rust_main() {
     println!(".stack [{:#x}, {:#x})", stack_begin as usize, stack_end as usize);
     println!(".ekernel {:#x}", ekernel as usize);
     println!("user_begin {:#x}", user_begin as usize);
+    println!("syscall-fn {:#x}", syscall as usize);
+    println!("sys_exit-fn {:#x}", sys_exit as usize);
     //----page-grained allocation-------------------
     unsafe {
         HEAP_START=ekernel as usize +4096;
@@ -787,3 +795,73 @@ extern "C" fn rust_main() {
 
     panic!("\n[kernel] END: It should shutdown!");
 }
+
+//======================= USR MODE APP =========================
+//========= usr mode syscall ==============
+#[no_mangle]
+#[link_section=".usrapp.entry"]
+fn syscall(id: usize, args: [usize; 3]) -> isize {
+    let mut ret: isize;
+    unsafe {
+        llvm_asm!("ecall"
+            : "={x10}" (ret)
+            : "{x10}" (args[0]), "{x11}" (args[1]), "{x12}" (args[2]), "{x17}" (id)
+            : "memory"
+            : "volatile"
+        );
+    }
+    ret
+}
+
+#[no_mangle]
+#[link_section=".usrapp.entry"]
+pub fn sys_exit(xstate: i32) -> isize {
+    syscall(SYSCALL_EXIT, [xstate as usize, 0, 0])
+}
+
+#[no_mangle]
+#[link_section=".usrapp.entry"]
+pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
+    syscall(SYSCALL_WRITE, [fd, buffer.as_ptr() as usize, buffer.len()])
+}
+
+//=============== usr mode console ==================
+struct Ustdout;
+
+#[no_mangle]
+#[link_section=".usrapp.entry"]
+impl Write for Ustdout {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        sys_write(STDOUT, s.as_bytes());
+        Ok(())
+    }
+}
+
+#[no_mangle]
+#[link_section=".usrapp.entry"]
+pub fn uconsole_print(args: fmt::Arguments) {
+    Ustdout.write_fmt(args).unwrap();
+}
+
+#[macro_export]
+macro_rules! uprint {
+    ($fmt: literal $(, $($arg: tt)+)?) => {
+        uconsole_print(format_args!($fmt $(, $($arg)+)?));
+    }
+}
+
+#[macro_export]
+macro_rules! uprintln {
+    ($fmt: literal $(, $($arg: tt)+)?) => {
+        uconsole_print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
+    }
+}
+
+//================ userapp main =============================
+#[no_mangle]
+#[link_section = ".usrapp.entry"]
+extern "C" fn usr_app_main() {
+    uprintln!("Usrapp: Hello, world!");
+    sys_exit(9);
+}
+

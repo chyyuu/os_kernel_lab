@@ -50,7 +50,10 @@ SECTIONS
     . = ALIGN(4K);
     . = USER_ADDR;
     user_begin = .;
-
+    .text : {
+        *(.usrapp.entry)
+        *(.usrapp)
+    }
     /DISCARD/ : {
         *(.eh_frame)
         *(.debug*)
