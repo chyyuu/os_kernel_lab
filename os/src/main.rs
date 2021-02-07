@@ -658,8 +658,15 @@ pub fn paging_init() {
     id_map_range(
         &mut root,
         0x80000000,
-        0x80800000,
+        0x80600000,
         EntryBits::ReadWriteExecute.val(),
+    );
+
+    id_map_range(
+        &mut root,
+        0x80600000,
+        0x80800000,
+        EntryBits::UserReadWriteExecute.val(),
     );
 
     use riscv::register::satp;
@@ -937,9 +944,12 @@ pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
 }
 
 //=============== usr mode console ==================
+#[no_mangle]
+#[link_section=".usrapp.entry"]
 struct Ustdout;
 
-
+#[no_mangle]
+#[link_section=".usrapp.entry"]
 impl Write for Ustdout {
 #[no_mangle]
 #[link_section=".usrapp.entry"]
@@ -955,6 +965,8 @@ pub fn uconsole_print(args: fmt::Arguments) {
     Ustdout.write_fmt(args).unwrap();
 }
 
+#[no_mangle]
+#[link_section=".usrapp.entry"]
 #[macro_export]
 macro_rules! uprint {
     ($fmt: literal $(, $($arg: tt)+)?) => {
@@ -962,6 +974,8 @@ macro_rules! uprint {
     }
 }
 
+#[no_mangle]
+#[link_section=".usrapp.entry"]
 #[macro_export]
 macro_rules! uprintln {
     ($fmt: literal $(, $($arg: tt)+)?) => {
