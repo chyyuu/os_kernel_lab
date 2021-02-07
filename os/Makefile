@@ -3,13 +3,20 @@ TARGET := riscv64gc-unknown-none-elf
 MODE := release
 KERNEL_ELF := target/$(TARGET)/$(MODE)/os
 KERNEL_BIN := $(KERNEL_ELF).bin
-KERNEL_ENTRY_PA := 0x80020000
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
 
 # BOARD
 BOARD ?= qemu
 SBI ?= rustsbi
 BOOTLOADER := ../bootloader/$(SBI)-$(BOARD).bin
+K210_BOOTLOADER_SIZE := 131072
+
+# KERNEL ENTRY
+ifeq ($(BOARD), qemu)
+	KERNEL_ENTRY_PA := 0x80200000
+else ifeq ($(BOARD), k210)
+	KERNEL_ENTRY_PA := 0x80020000
+endif
 
 # Run K210
 K210-SERIALPORT	= /dev/ttyUSB0
@@ -35,7 +42,10 @@ $(KERNEL_BIN): kernel
 
 kernel:
 	@cd ../user && make build
+	@echo Platform: $(BOARD)
+	@cp src/linker-$(BOARD).ld src/linker.ld
 	@cargo build --release --features "board_$(BOARD)"
+	@rm src/linker.ld
 
 clean:
 	@cargo clean
@@ -59,7 +69,7 @@ ifeq ($(BOARD),qemu)
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA)
 else
 	@cp $(BOOTLOADER) $(BOOTLOADER).copy
-	@dd if=$(KERNEL_BIN) of=$(BOOTLOADER).copy bs=131072 seek=1
+	@dd if=$(KERNEL_BIN) of=$(BOOTLOADER).copy bs=$(K210_BOOTLOADER_SIZE) seek=1
 	@mv $(BOOTLOADER).copy $(KERNEL_BIN)
 	@sudo chmod 777 $(K210-SERIALPORT)
 	python3 $(K210-BURNER) -p $(K210-SERIALPORT) -b 1500000 $(KERNEL_BIN)
