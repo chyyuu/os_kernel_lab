@@ -168,7 +168,7 @@ impl Page {
 /// allocation) 2. Bookkeeping list (structure contains a taken and length)
 /// 3. Allocate one Page structure per 4096 bytes (this is what I chose)
 /// 4. Others
-pub fn page_init() {
+pub fn page_allocator_init() {
     unsafe {
         let num_pages = HEAP_SIZE / PAGE_SIZE;
         let ptr = HEAP_START as *mut Page;
@@ -643,6 +643,79 @@ pub fn id_map_range(root: &mut Table,
         memaddr += 1 << 12;
     }
 }
+
+pub fn paging_init() {
+    //----------paging ---------------
+    let root_ptr = alloc(1) as *mut Table ;
+    let mut root = unsafe { root_ptr.as_mut().unwrap() };
+
+    id_map_range(
+        &mut root,
+        0x80000000,
+        0x80600000,
+        EntryBits::ReadWriteExecute.val(),
+    );
+
+    use riscv::register::satp;
+    // satp= table / 4096  |  Sv39 mode
+    let satp = root_ptr as *const Table  as usize >>12 |(8 << 60);
+    unsafe {
+        satp::write(satp);
+        llvm_asm!("sfence.vma" :::: "volatile");
+    }
+}
+//----------------trap handling------------------------
+use riscv::register::{
+    mtvec::TrapMode,
+    scause::{self, Exception, Trap},
+    sstatus::{self, Sstatus, SPP},
+    stval, stvec,sepc,
+};
+
+// TrapContext needs 34*8 bytes
+#[repr(C)]
+pub struct TrapContext {
+    pub x: [usize; 32],
+    pub sstatus: Sstatus,
+    pub sepc: usize,
+}
+
+
+// __alltraps & __restore functions
+global_asm!(include_str!("trap.S"));
+
+pub fn trap_init() {
+    extern "C" {
+        fn __alltraps(); //in trap.S
+    }
+    unsafe {
+        stvec::write(__alltraps as usize, TrapMode::Direct);
+    }
+}
+
+
+#[no_mangle]
+pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
+    let scause = scause::read();
+    let stval = stval::read();
+    let sepc = sepc::read();
+
+    match scause.cause() {
+        Trap::Exception(Exception::Breakpoint) => {
+            println!("[kernel] trap_handler {:?}, stval = {:#x}, sepc = {:#x}",
+            scause.cause(),stval, sepc);
+            cx.sepc += 2; //compact instr, so pc+=2
+        }
+        _ => {
+            panic!(
+                "Unsupported trap {:?}, stval = {:#x}, sepc = {:#x}",
+                scause.cause(),
+                stval, sepc
+            );
+        }
+    }
+    cx
+}
 //-----------------------------------------------------
 
 fn clear_bss() {
@@ -693,25 +766,16 @@ extern "C" fn rust_main() {
         HEAP_SIZE = user_begin as usize - HEAP_START;
         println!("HEAP_START {:#x}, HEAP_SIZE {:#x}", HEAP_START, HEAP_SIZE);
     }
-    page_init();
+    page_allocator_init();
     test_page_allocation();
-    //----------paging ---------------
-    let root_ptr = alloc(1) as *mut Table ;
-    let mut root = unsafe { root_ptr.as_mut().unwrap() };
 
-    id_map_range(
-        &mut root,
-        0x80000000,
-        0x80600000,
-        EntryBits::ReadWriteExecute.val(),
-    );
+    paging_init();
 
-    use riscv::register::satp;
-    // satp= table / 4096  |  Sv39 mode
-    let satp = root_ptr as *const Table  as usize >>12 |(8 << 60);
+    trap_init();
     unsafe {
-        satp::write(satp);
-        llvm_asm!("sfence.vma" :::: "volatile");
+        llvm_asm!("ebreak"
+            : : : :
+        );
     }
 
     panic!("It should shutdown!");
