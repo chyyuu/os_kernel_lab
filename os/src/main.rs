@@ -686,6 +686,22 @@ pub struct TrapContext {
     pub sepc: usize,
 }
 
+impl TrapContext {
+    pub fn set_sp(&mut self, sp: usize) {
+        self.x[2] = sp;  //x2 reg is sp reg
+    }
+    pub fn app_init_context(entry: usize, sp: usize) -> Self {
+        let mut sstatus = sstatus::read();
+        sstatus.set_spp(SPP::User);
+        let mut cx = Self {
+            x: [0; 32],
+            sstatus,
+            sepc: entry,
+        };
+        cx.set_sp(sp);
+        cx
+    }
+}
 
 // __alltraps & __restore functions
 global_asm!(include_str!("trap.S"));
@@ -722,7 +738,38 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
     }
     cx
 }
-//-----------------------------------------------------
+
+//---------------- do syscall -------------------------
+const FD_STDOUT: usize = 1;
+
+pub fn do_write(fd: usize, buf: *const u8, len: usize) -> isize {
+    match fd {
+        FD_STDOUT => {
+            let slice = unsafe { core::slice::from_raw_parts(buf, len) };
+            let str = core::str::from_utf8(slice).unwrap();
+            print!("{}", str);
+            len as isize
+        }
+        _ => {
+            panic!("Unsupported fd in sys_write!");
+        }
+    }
+}
+
+pub fn do_exit(exit_code: i32) -> ! {
+    println!("[kernel] Application exited with code {}", exit_code);
+    panic!("System down");
+}
+
+pub fn do_syscall(syscall_id: usize, args: [usize; 3]) -> isize {
+    match syscall_id {
+        SYSCALL_WRITE => do_write(args[0], args[1] as *const u8, args[2]),
+        SYSCALL_EXIT => do_exit(args[0] as i32),
+        _ => panic!("Unsupported syscall_id: {}", syscall_id),
+    }
+}
+
+//-------------------------------------------------------
 
 fn clear_bss() {
     extern "C" {
@@ -828,9 +875,10 @@ pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
 //=============== usr mode console ==================
 struct Ustdout;
 
+
+impl Write for Ustdout {
 #[no_mangle]
 #[link_section=".usrapp.entry"]
-impl Write for Ustdout {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         sys_write(STDOUT, s.as_bytes());
         Ok(())
