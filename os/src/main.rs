@@ -658,7 +658,7 @@ pub fn paging_init() {
     id_map_range(
         &mut root,
         0x80000000,
-        0x80600000,
+        0x80800000,
         EntryBits::ReadWriteExecute.val(),
     );
 
@@ -722,10 +722,10 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
     let stval = stval::read();
     let sepc = sepc::read();
 
+    println!("[kernel] trap_handler {:?}, stval = {:#x}, sepc = {:#x}",
+             scause.cause(),stval, sepc);
     match scause.cause() {
         Trap::Exception(Exception::Breakpoint) => {
-            println!("[kernel] trap_handler {:?}, stval = {:#x}, sepc = {:#x}",
-            scause.cause(),stval, sepc);
             cx.sepc += 2; //compact instr, so pc+=2
         }
         Trap::Exception(Exception::UserEnvCall) => {
@@ -790,6 +790,9 @@ struct UserStack {
 static KERNEL_STACK: KernelStack = KernelStack {
     data: [0; KERNEL_STACK_SIZE],
 };
+
+#[no_mangle]
+#[link_section=".usrapp.entry"]
 static USER_STACK: UserStack = UserStack {
     data: [0; USER_STACK_SIZE],
 };
@@ -871,6 +874,7 @@ extern "C" fn rust_main() {
     println!("user_begin {:#x}", user_begin as usize);
     println!("syscall-fn {:#x}", syscall as usize);
     println!("sys_exit-fn {:#x}", sys_exit as usize);
+    println!("usr stack {:#x}", USER_STACK.data.as_ptr() as usize);
     //----page-grained allocation-------------------
     unsafe {
         HEAP_START=ekernel as usize +4096;
@@ -878,7 +882,9 @@ extern "C" fn rust_main() {
         println!("HEAP_START {:#x}, HEAP_SIZE {:#x}", HEAP_START, HEAP_SIZE);
     }
     page_allocator_init();
-    test_page_allocation();
+    //---------- test page alloc/dealloc -----------
+    //test_page_allocation();
+    //---------- test page alloc/dealloc -----------
 
     paging_init();
 

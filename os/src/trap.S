@@ -74,10 +74,14 @@
     # IF stvec.mode == Direct THEN; PC = (stvec.Base & ~0xF) + (I/E * 4)
 
 __alltraps:
-    # case1: from  U  to K
-    # now sp -> user stack ,sscratch ->kernel stack
+    # case1: from  U to K sp ->user stack  , sscratch ->kernel stack
+    # case2: from  K to K sp ->kernel stack, sscratch ->0
     csrrw sp, sscratch, sp
-    # now sp->kernel stack, sscratch->user stack
+    bnez sp, __save_context     # if U to K, goto  __save_context
+__restore_kernel_sp:            # if K to K, then
+    csrr sp, sscratch           # sscratch = kernel stack
+__save_context:
+    # now sp->kernel stack, sscratch-> kernel stack (S-->S) OR user stack (U-->S) 
     # allocate a TrapContext on kernel stack
     addi sp, sp, -34*8
     # save general-purpose registers
@@ -97,27 +101,38 @@ __alltraps:
     csrr t1, sepc
     sd t1, 33*8(sp)
     # now TrapContext.sstatus ->sstatus CSR, TrapContext.sepc ->sepc CSR
-    # read user stack from sscratch and save it on the kernel stack
-    csrr t2, sscratch
-    sd t2, 2*8(sp)
+
+    # Set sscratch to 0, so that if a recursive
+    # exception occurs, we know it came from the kernel
+    # read kernel stack OR user stack from sscratch and save it on the kernel stack
+    csrrw t2, sscratch, x0
+    # now sscratch=0
+    sd t2, 2*8(sp)          # store kernel stack (S-->S) OR user stack (U-->S) on trapcontext
     # now TrapContext was filled (34*8 bytes)
     # set input argument of trap_handler(cx: &mut TrapContext)
     mv a0, sp
     call trap_handler
 
 __restore:
-    # case1: back to U after handling trap
-    # case2: start running app by __restore
+    # case1: back to S after handling trap
+    # case2: back to U after handling trap
+    # case3: start running app by __restore
     mv sp, a0
-    # now sp->kernel stack(after allocated), sscratch->user stack
+    # now sp->kernel stack(after allocated), sscratch=0
     # restore sstatus/sepc
-    ld t0, 32*8(sp)
-    csrw sstatus, t0
+    ld t0, 32*8(sp)  # t0=sstatus
     ld t1, 33*8(sp)
-    csrw sepc, t1
+    csrw sstatus, t0            # restore sstatus
+    csrw sepc, t1               # restore sepc
 
-    ld t2, 2*8(sp)
-    csrw sscratch, t2
+    andi t1, t0, 256            # SSTATUS_SPP bit=2^8=256
+    bnez t1, __restore_context  # SPP==1 means previous mode is S mode, sscratch should be 0
+__save_kernel_sp:               # SPP==0, means previous mode is U mode
+    addi t1, sp, 34 * 8         # get kernel stack
+    csrw sscratch, t1           # sscratch should be kernel stack
+__restore_context:
+
+    # sscratch =kernel stack(for previous mode is U mode) or 0 (for previous mode is S mode)
     # restore general-purpuse registers except sp/tp
     ld x1, 1*8(sp)
     ld x3, 3*8(sp)
@@ -126,10 +141,7 @@ __restore:
         LOAD_GP %n
         .set n, n+1
     .endr
-    # release TrapContext on kernel stack
-    addi sp, sp, 34*8
-    # now sp->kernel stack, sscratch->user stack
-    csrrw sp, sscratch, sp
+    ld x2, 2*8(sp)     # restore sp
     # The exit procedure for a supervisor interrupt/exception when sret is executed.
     # sstatus.sie = sstatus.spie, restore interrupt enable
     # Privilege mode = sstatus.spp, restore privilege
