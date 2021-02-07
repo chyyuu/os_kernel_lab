@@ -17,3 +17,6 @@ qemu-system-riscv64 \
 #run elf format os
 
 qemu-system-riscv64 -machine virt -nographic -bios ../bootloader/rustsbi-qemu.bin  -kernel target/riscv64gc-unknown-none-elf/release/os 
+
+## set mem =8MB
+qemu-system-riscv64 -machine virt -m 8 -nographic -bios ../bootloader/rustsbi-qemu.bin  -kernel target/riscv64gc-unknown-none-elf/release/os 
