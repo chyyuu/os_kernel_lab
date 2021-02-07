@@ -987,7 +987,7 @@ macro_rules! uprintln {
 #[no_mangle]
 #[link_section = ".usrapp.entry"]
 extern "C" fn usr_app_main() {
-    uprintln!("Usrapp: Hello, world!");
+    //uprintln!("Usrapp: Hello, world!");
     sys_exit(9);
 }
 
