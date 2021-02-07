@@ -19,22 +19,19 @@ fn panic(info: &PanicInfo) -> ! {
     shutdown()
 }
 
-const STDOUT: usize = 1;
-const SYSCALL_WRITE: usize = 64;
-const SYSCALL_EXIT: usize = 93;
 const SBI_CONSOLE_PUTCHAR: usize = 1;
 const SBI_SHUTDOWN: usize = 8;
 
 pub fn console_putchar(c: usize) {
-    syscall(SBI_CONSOLE_PUTCHAR, [c, 0, 0]);
+    sbicall(SBI_CONSOLE_PUTCHAR, [c, 0, 0]);
 }
 
 pub fn shutdown() -> ! {
-    syscall(SBI_SHUTDOWN, [0, 0, 0]);
+    sbicall(SBI_SHUTDOWN, [0, 0, 0]);
     panic!("It should shutdown!");
 }
 
-fn syscall(id: usize, args: [usize; 3]) -> isize {
+fn sbicall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
     unsafe {
         llvm_asm!("ecall"
@@ -47,19 +44,11 @@ fn syscall(id: usize, args: [usize; 3]) -> isize {
     ret
 }
 
-pub fn sys_exit(xstate: i32) -> isize {
-    syscall(SYSCALL_EXIT, [xstate as usize, 0, 0])
-}
-
-pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
-    syscall(SYSCALL_WRITE, [fd, buffer.as_ptr() as usize, buffer.len()])
-}
 
 struct Stdout;
 
 impl Write for Stdout {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        //sys_write(STDOUT, s.as_bytes());
         for c in s.chars() {
             console_putchar(c as usize);
         }
@@ -88,9 +77,6 @@ macro_rules! println {
 #[no_mangle]
 #[link_section=".text.entry"]
 extern "C" fn rust_main() {
-//extern "C" fn _start() {
     println!("Hello, world!");
-    //sys_exit(9);
-    //shutdown();
     panic!("It should shutdown!");
 }
