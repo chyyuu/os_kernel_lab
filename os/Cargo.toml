@@ -1,0 +1,11 @@
+[package]
+name = "os"
+version = "0.1.0"
+authors = ["Yu Chen <yuchen@mail.tsinghua.edu.cn>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
+spin = "0.5.2"
