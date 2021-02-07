@@ -753,6 +753,7 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
                 CLOCKNUM+=1;
                 println!("clock num is {}",CLOCKNUM);
             }
+            suspend_current_and_run_next();
         }
         _ => {
             panic!(
@@ -815,7 +816,13 @@ static KERNEL_STACK: KernelStack = KernelStack {
 
 #[no_mangle]
 #[link_section=".usrapp.entry"]
-static USER_STACK: UserStack = UserStack {
+static USER1_STACK: UserStack = UserStack {
+    data: [0; USER_STACK_SIZE],
+};
+
+#[no_mangle]
+#[link_section=".usrapp.entry"]
+static USER2_STACK: UserStack = UserStack {
     data: [0; USER_STACK_SIZE],
 };
 
@@ -838,17 +845,30 @@ impl UserStack {
     }
 }
 
-pub fn run_usrapp() -> ! {
+pub fn run_usrapp1() -> ! {
     extern "C" {
         fn __restore(cx_addr: usize); //in trap.S
     }
     unsafe {
         __restore(KERNEL_STACK.push_context(TrapContext::app_init_context(
-            usr_app_main as usize,
-            USER_STACK.get_sp(),
+            usr_app1_main as usize,
+            USER1_STACK.get_sp(),
         )) as *const _ as usize);
     }
-    panic!("Unreachable in batch::run_current_app!");
+    panic!("Unreachable in run_usrapp1!");
+}
+
+pub fn run_usrapp2() -> ! {
+    extern "C" {
+        fn __restore(cx_addr: usize); //in trap.S
+    }
+    unsafe {
+        __restore(KERNEL_STACK.push_context(TrapContext::app_init_context(
+            usr_app2_main as usize,
+            USER2_STACK.get_sp(),
+        )) as *const _ as usize);
+    }
+    panic!("Unreachable in run_usrapp1!");
 }
 
 //========= timer device =========================
@@ -877,6 +897,11 @@ pub fn set_next_trigger() {
     set_timer(get_time() + CLOCK_FREQ / TICKS_PER_SEC);
 }
 
+//--------------------task manage -----------------------
+pub fn suspend_current_and_run_next() {
+    // mark_current_suspended();
+    // run_next_task();
+}
 //-------------------------------------------------------
 
 fn clear_bss() {
@@ -923,7 +948,10 @@ extern "C" fn rust_main() {
     println!("user_begin {:#x}", user_begin as usize);
     println!("syscall-fn {:#x}", syscall as usize);
     println!("sys_exit-fn {:#x}", sys_exit as usize);
-    println!("usr stack {:#x}", USER_STACK.data.as_ptr() as usize);
+    println!("usrapp1 entry {:#x}", usr_app1_main as usize);
+    println!("usrapp2 entry {:#x}", usr_app2_main as usize);
+    println!("usrapp1 stack {:#x}", USER1_STACK.data.as_ptr() as usize);
+    println!("usrapp2 stack {:#x}", USER2_STACK.data.as_ptr() as usize);
     //----page-grained allocation-------------------
     unsafe {
         HEAP_START=ekernel as usize +4096;
@@ -954,7 +982,7 @@ extern "C" fn rust_main() {
     set_next_trigger();
     enable_timer_interrupt();
 
-    run_usrapp();
+    run_usrapp2();
 
     panic!("\n[kernel] END: It should shutdown!");
 }
@@ -1028,26 +1056,58 @@ macro_rules! uprintln {
     }
 }
 
-//================ userapp main =============================
+//================ userapp1 main =============================
 #[no_mangle]
 #[link_section = ".usrapp.entry"]
-extern "C" fn usr_app_main() {
+extern "C" fn usr_app1_main() {
     //uprintln!("Usrapp: Hello, world!");
-    sys_write(STDOUT,"[usr_app_main] Hello world!\n".as_bytes());
+    sys_write(STDOUT,"[usr_app1_main] Hello world!\n".as_bytes());
 
     //------ test timer interrupt. uncomment below lines ----------------
     let mut i:u32=0;
+    let mut j:u32=0;
     loop{
         while i <1000000 {
             i+=1;
         }
         i=0;
+        j+=1;
+        if j >50 {
+            sys_exit(2);
+        }
         unsafe {
-            sys_write(STDOUT,"[usr_app_main] loop...\n".as_bytes());
+            sys_write(STDOUT,"[usr_app1_main] loop...\n".as_bytes());
         }
     };
     //------ test timer interrupt. uncomment below lines ----------------
 
-    sys_exit(9);
+    sys_exit(3);
 }
 
+//================ userapp1 main =============================
+#[no_mangle]
+#[link_section = ".usrapp.entry"]
+extern "C" fn usr_app2_main() {
+    //uprintln!("Usrapp: Hello, world!");
+    sys_write(STDOUT,"[usr_app2_main] Hello world!\n".as_bytes());
+
+    //------ test timer interrupt. uncomment below lines ----------------
+    let mut i:u64=0;
+    let mut j:u64=0;
+    loop{
+        while i <8000000000 {
+            i+=1;
+        }
+        i=0;
+        j+=1;
+        if j >50 {
+            sys_exit(6);
+        }
+        unsafe {
+            sys_write(STDOUT,"[usr_app2_main] loop...\n".as_bytes());
+        }
+    };
+    //------ test timer interrupt. uncomment below lines ----------------
+
+    sys_exit(7);
+}
