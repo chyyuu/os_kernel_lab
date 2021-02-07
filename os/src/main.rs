@@ -988,6 +988,7 @@ macro_rules! uprintln {
 #[link_section = ".usrapp.entry"]
 extern "C" fn usr_app_main() {
     //uprintln!("Usrapp: Hello, world!");
+    sys_write(STDOUT,"[usr_app_main] Hello world!\n".as_bytes());
     sys_exit(9);
 }
 
