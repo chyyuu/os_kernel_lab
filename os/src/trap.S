@@ -74,18 +74,20 @@
     # IF stvec.mode == Direct THEN; PC = (stvec.Base & ~0xF) + (I/E * 4)
 
 __alltraps:
-    # ONLY S to S. now sp = kernel stack ,sscratch = 0
+    # case1: from  U  to K
+    # now sp -> user stack ,sscratch ->kernel stack
+    csrrw sp, sscratch, sp
+    # now sp->kernel stack, sscratch->user stack
     # allocate a TrapContext on kernel stack
     addi sp, sp, -34*8
-    # save general-purpose register x1
+    # save general-purpose registers
     sd x1, 1*8(sp)
-    # save old sp (x2)
-    addi x1, sp, 34*8
-    sd x1, 2*8(sp)
-    # save other general-purpose registers
-    # save x3~x31
-    .set n, 3
-    .rept 29
+    # skip sp(x2), we will save it later
+    sd x3, 3*8(sp)
+    # skip tp(x4), application does not use it
+    # save x5~x31
+    .set n, 5
+    .rept 27
         SAVE_GP %n
         .set n, n+1
     .endr
@@ -95,14 +97,17 @@ __alltraps:
     csrr t1, sepc
     sd t1, 33*8(sp)
     # now TrapContext.sstatus ->sstatus CSR, TrapContext.sepc ->sepc CSR
+    # read user stack from sscratch and save it on the kernel stack
+    csrr t2, sscratch
+    sd t2, 2*8(sp)
     # now TrapContext was filled (34*8 bytes)
     # set input argument of trap_handler(cx: &mut TrapContext)
     mv a0, sp
     call trap_handler
 
 __restore:
-    # just K to K. NO U mode
-    # a0 is the return value: pointer of TrapContext
+    # case1: back to U after handling trap
+    # case2: start running app by __restore
     mv sp, a0
     # now sp->kernel stack(after allocated), sscratch->user stack
     # restore sstatus/sepc
@@ -110,19 +115,26 @@ __restore:
     csrw sstatus, t0
     ld t1, 33*8(sp)
     csrw sepc, t1
-    # restore general-purpuse registers 1,3~31
+
+    ld t2, 2*8(sp)
+    csrw sscratch, t2
+    # restore general-purpuse registers except sp/tp
     ld x1, 1*8(sp)
-    .set n, 3
-    .rept 29
+    ld x3, 3*8(sp)
+    .set n, 5
+    .rept 27
         LOAD_GP %n
         .set n, n+1
     .endr
     # release TrapContext on kernel stack
     addi sp, sp, 34*8
-
+    # now sp->kernel stack, sscratch->user stack
+    csrrw sp, sscratch, sp
     # The exit procedure for a supervisor interrupt/exception when sret is executed.
     # sstatus.sie = sstatus.spie, restore interrupt enable
     # Privilege mode = sstatus.spp, restore privilege
     # sstatus.spp = sstatus.spie = 0
     # PC = sepc
     sret
+
+

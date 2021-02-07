@@ -728,6 +728,10 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             scause.cause(),stval, sepc);
             cx.sepc += 2; //compact instr, so pc+=2
         }
+        Trap::Exception(Exception::UserEnvCall) => {
+            cx.sepc += 4;
+            cx.x[10] = do_syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
+        }
         _ => {
             panic!(
                 "Unsupported trap {:?}, stval = {:#x}, sepc = {:#x}",
