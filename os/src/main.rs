@@ -684,8 +684,7 @@ impl TrapContext {
     pub fn app_init_context(entry: usize, sp: usize) -> Self {
         let mut sstatus = sstatus::read();
         sstatus.set_spp(SPP::User);
-        //        println!("app_init_context sstatus {:#x}, entry {:#x}", sstatus, entry);
-        println!("app_init_context  entry {:#x}", entry);
+        //println!("app_init_context  entry {:#x}", entry);
 
         let mut cx = Self {
             x: [0; 32],
@@ -846,26 +845,6 @@ impl UserStack {
     }
 }
 
-pub fn run_usrapp1() -> ! {
-    let _unused: usize = 0;
-    let tcx = TrapContext::app_init_context(usr_app1_main as usize, USER1_STACK.get_sp());
-    let tptr = KERNEL1_STACK.push_context(tcx, TaskContext::goto_restore());
-    let mptr = tptr as *const _ as *const usize;
-    let mmptr = &mptr as &*const usize;
-    println!("mptr {:#x}", mptr as usize);
-    println!("mmptr {:#x}", mmptr as *const _ as *const usize as usize);
-    println!("tptr.ra {:#x}", tptr.ra);
-    println!(
-        "&unused {:#x}",
-        &_unused as *const _ as *const usize as usize
-    );
-
-    unsafe {
-        __switch(&_unused as *const _, mmptr as *const _ as *const usize);
-    }
-    panic!("Unreachable in run_usrapp1!");
-}
-
 pub struct Tasks {
     inner: RefCell<TasksInner>,
 }
@@ -875,47 +854,21 @@ struct TasksInner {
     curr: usize,
 }
 
-// fn get_cxt_ptr(idx:i32) -> *const usize {
-//         &self.tptr[idx] as *const usize
-//     }
-// }
 unsafe impl Sync for Tasks {}
 
 lazy_static! {
-    //static mut ref tcx2:TrapContext =TrapContext{x:[0;32],sstatus:Sstatus{bits:0},sepc:0 };
-    //tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
     pub static ref TASKS: Tasks = {
-        let tcx1 =TrapContext::app_init_context(
-            usr_app1_main as usize,
-            USER1_STACK.get_sp(),
-        );
+        let tcx1 = TrapContext::app_init_context(usr_app1_main as usize, USER1_STACK.get_sp());
 
-        let tcx2 =TrapContext::app_init_context(
-            usr_app2_main as usize,
-            USER2_STACK.get_sp(),
-        );
-        let tcx1_ptr=  KERNEL1_STACK.push_context(tcx1,TaskContext::goto_restore());
-        let tcx2_ptr=  KERNEL2_STACK.push_context(tcx2,TaskContext::goto_restore());
+        let tcx2 = TrapContext::app_init_context(usr_app2_main as usize, USER2_STACK.get_sp());
+        let tcx1_ptr = KERNEL1_STACK.push_context(tcx1, TaskContext::goto_restore());
+        let tcx2_ptr = KERNEL2_STACK.push_context(tcx2, TaskContext::goto_restore());
 
-        let mptr= tcx1_ptr as * const _ as * const usize;
-        let mmptr= &mptr as  &* const usize;
-        println!("tcx1_ptr {:#x}",mptr as usize);
-        println!("&tcx1_ptr {:#x}",mmptr as * const _ as * const usize as usize);
-        println!("tcx1_ptr.ra {:#x}",tcx1_ptr.ra);
-
-        let mptr= tcx2_ptr as * const _ as * const usize;
-        let mmptr= &mptr as  &* const usize;
-        println!("tcx2_ptr {:#x}",mptr as usize);
-        println!("&tcx2_ptr {:#x}",mmptr as * const _ as * const usize as usize);
-        println!("tcx2_ptr.ra {:#x}",tcx2_ptr.ra);
-
-        Tasks{
-            inner: RefCell::new(
-                TasksInner{
-                    tptr:[tcx1_ptr as * const _ as usize, tcx2_ptr as * const _ as usize],
-                    curr: 0 as usize,
-                },
-            )
+        Tasks {
+            inner: RefCell::new(TasksInner {
+                tptr: [tcx1_ptr as *const _ as usize, tcx2_ptr as *const _ as usize],
+                curr: 0 as usize,
+            }),
         }
     };
 }
@@ -940,37 +893,9 @@ impl Tasks {
         let next_task_cx_ptr2 = &(inner.tptr[next]) as *const usize;
         core::mem::drop(inner);
         unsafe {
-            __switch(
-                current_task_cx_ptr2,
-                next_task_cx_ptr2,
-            );
+            __switch(current_task_cx_ptr2, next_task_cx_ptr2);
         }
     }
-}
-
-pub fn run_usrapp2() -> ! {
-    // extern "C" {
-    //     fn __restore(cx_addr: usize); //in trap.S
-    // }
-    let _unused: usize = 0;
-    //let tcx=TaskContext::goto_restore();
-    //println!("tcx {:?}", tcx);
-    let tcx = TrapContext::app_init_context(usr_app2_main as usize, USER2_STACK.get_sp());
-    let tptr = KERNEL2_STACK.push_context(tcx, TaskContext::goto_restore());
-    let mptr = tptr as *const _ as *const usize;
-    let mmptr = &mptr as &*const usize;
-    println!("mptr {:#x}", mptr as usize);
-    println!("mmptr {:#x}", mmptr as *const _ as *const usize as usize);
-    println!("tptr.ra {:#x}", tptr.ra);
-    println!(
-        "&unused {:#x}",
-        &_unused as *const _ as *const usize as usize
-    );
-
-    unsafe {
-        __switch(&_unused as *const _, mmptr as *const _ as *const usize);
-    }
-    panic!("Unreachable in run_usrapp2!");
 }
 
 //--------------------task manage -----------------------
@@ -1052,45 +977,45 @@ extern "C" fn rust_main() {
         fn user_begin();
     }
     clear_bss();
-    println!("Hello, world!");
-    println!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
-    println!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
-    println!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
-    println!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
-    println!(
-        "boot_stack [{:#x}, {:#x})",
-        boot_stack as usize, boot_stack_top as usize
-    );
-    println!(
-        ".stack [{:#x}, {:#x})",
-        stack_begin as usize, stack_end as usize
-    );
-    println!("__restore {:#x}", __restore as usize);
-    println!("user_begin {:#x}", user_begin as usize);
-    println!("syscall-fn {:#x}", syscall as usize);
-    println!("sys_exit-fn {:#x}", sys_exit as usize);
-    println!("usrapp1 entry {:#x}", usr_app1_main as usize);
-    println!("usrapp2 entry {:#x}", usr_app2_main as usize);
-    println!(
-        "usrapp1 stack {:#x} ~ {:#x}",
-        USER1_STACK.data.as_ptr() as usize,
-        USER1_STACK.data.as_ptr() as usize + USER_STACK_SIZE
-    );
-    println!(
-        "usrapp2 stack {:#x} ~ {:#x}",
-        USER2_STACK.data.as_ptr() as usize,
-        USER2_STACK.data.as_ptr() as usize + USER_STACK_SIZE
-    );
-    println!(
-        "kernel1 stack {:#x} ~ {:#x}",
-        KERNEL1_STACK.data.as_ptr() as usize,
-        KERNEL1_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE
-    );
-    println!(
-        "kernel2 stack {:#x} ~ {:#x}",
-        KERNEL2_STACK.data.as_ptr() as usize,
-        KERNEL2_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE
-    );
+    // println!("Hello, world!");
+    // println!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
+    // println!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
+    // println!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
+    // println!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
+    // println!(
+    //     "boot_stack [{:#x}, {:#x})",
+    //     boot_stack as usize, boot_stack_top as usize
+    // );
+    // println!(
+    //     ".stack [{:#x}, {:#x})",
+    //     stack_begin as usize, stack_end as usize
+    // );
+    // println!("__restore {:#x}", __restore as usize);
+    // println!("user_begin {:#x}", user_begin as usize);
+    // println!("syscall-fn {:#x}", syscall as usize);
+    // println!("sys_exit-fn {:#x}", sys_exit as usize);
+    // println!("usrapp1 entry {:#x}", usr_app1_main as usize);
+    // println!("usrapp2 entry {:#x}", usr_app2_main as usize);
+    // println!(
+    //     "usrapp1 stack {:#x} ~ {:#x}",
+    //     USER1_STACK.data.as_ptr() as usize,
+    //     USER1_STACK.data.as_ptr() as usize + USER_STACK_SIZE
+    // );
+    // println!(
+    //     "usrapp2 stack {:#x} ~ {:#x}",
+    //     USER2_STACK.data.as_ptr() as usize,
+    //     USER2_STACK.data.as_ptr() as usize + USER_STACK_SIZE
+    // );
+    // println!(
+    //     "kernel1 stack {:#x} ~ {:#x}",
+    //     KERNEL1_STACK.data.as_ptr() as usize,
+    //     KERNEL1_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE
+    // );
+    // println!(
+    //     "kernel2 stack {:#x} ~ {:#x}",
+    //     KERNEL2_STACK.data.as_ptr() as usize,
+    //     KERNEL2_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE
+    // );
     //----page-grained allocation-------------------
     unsafe {
         HEAP_START = ekernel as usize + 4096;
@@ -1199,8 +1124,7 @@ extern "C" fn usr_app1_main() {
     sys_write(STDOUT, "[usr_app1_main] Hello world!\n".as_bytes());
 
     loop {
-            sys_write(STDOUT, "1.".as_bytes());
-
+        sys_write(STDOUT, "1.".as_bytes());
     }
 
     //sys_exit(3);
@@ -1213,9 +1137,7 @@ extern "C" fn usr_app2_main() {
     sys_write(STDOUT, "[usr_app2_main] Hello world!\n".as_bytes());
 
     loop {
-
-            sys_write(STDOUT, "2.".as_bytes());
-
+        sys_write(STDOUT, "2.".as_bytes());
     }
 
     //sys_exit(7);
