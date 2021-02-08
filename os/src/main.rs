@@ -912,7 +912,7 @@ lazy_static! {
         Tasks{
             inner: RefCell::new(
                 TasksInner{
-                    tptr:[&tcx1_ptr as * const _ as usize, &tcx2_ptr as * const _ as usize],
+                    tptr:[tcx1_ptr as * const _ as usize, tcx2_ptr as * const _ as usize],
                     curr: 0 as usize,
                 },
             )
@@ -925,7 +925,7 @@ impl Tasks {
         let next_task_cx_ptr2 = self.inner.borrow().tptr[0];
         let _unused: usize = 0;
         unsafe {
-            __switch(&_unused as *const _, next_task_cx_ptr2 as *const usize);
+            __switch(&_unused as *const _, &next_task_cx_ptr2 as *const usize);
         }
     }
     fn run_next_task(&self) {
@@ -934,13 +934,13 @@ impl Tasks {
         let next: usize = if current == 1 { 0 } else { 1 };
 
         inner.curr = next;
-        let current_task_cx_ptr2 = inner.tptr[current];
-        let next_task_cx_ptr2 = inner.tptr[next];
+        let current_task_cx_ptr2:usize = inner.tptr[current];
+        let next_task_cx_ptr2:usize = inner.tptr[next];
         core::mem::drop(inner);
         unsafe {
             __switch(
-                current_task_cx_ptr2 as *const usize,
-                next_task_cx_ptr2 as *const usize,
+                &current_task_cx_ptr2 as *const usize,
+                &next_task_cx_ptr2 as *const usize,
             );
         }
     }
