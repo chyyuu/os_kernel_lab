@@ -56,13 +56,13 @@ pub fn main() -> i32 {
 
     println!("fork ok.");
 
-    let mut xstate: i32 = 0;
+    let mut exit_code: i32 = 0;
     for _ in 0..NUM {
-        if wait(&mut xstate) < 0 {
+        if wait(&mut exit_code) < 0 {
             panic!("wait failed.");
         }
     }
-    assert!(wait(&mut xstate) < 0);
+    assert!(wait(&mut exit_code) < 0);
     println!("matrix passed.");
     0
 }
