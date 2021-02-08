@@ -827,15 +827,17 @@ impl KernelStack {
         &self,
         trap_cx: TrapContext,
         task_cx: TaskContext,
-    ) -> &'static mut TaskContext {
+    ) -> usize {
         unsafe {
+            let kstack_trap_ptr = self.get_sp() - core::mem::size_of::<TrapContext>();
             let trap_cx_ptr =
-                (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
+                kstack_trap_ptr as *mut TrapContext;
             *trap_cx_ptr = trap_cx;
+            let kstac_task_ptr = kstack_trap_ptr - core::mem::size_of::<TaskContext>();
             let task_cx_ptr =
-                (trap_cx_ptr as usize - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
+                kstac_task_ptr as *mut TaskContext;
             *task_cx_ptr = task_cx;
-            task_cx_ptr.as_mut().unwrap()
+            kstac_task_ptr
         }
     }
 }
@@ -844,26 +846,6 @@ impl UserStack {
     fn get_sp(&self) -> usize {
         self.data.as_ptr() as usize + USER_STACK_SIZE
     }
-}
-
-pub fn run_usrapp1() -> ! {
-    let _unused: usize = 0;
-    let tcx = TrapContext::app_init_context(usr_app1_main as usize, USER1_STACK.get_sp());
-    let tptr = KERNEL1_STACK.push_context(tcx, TaskContext::goto_restore());
-    let mptr = tptr as *const _ as *const usize;
-    let mmptr = &mptr as &*const usize;
-    println!("mptr {:#x}", mptr as usize);
-    println!("mmptr {:#x}", mmptr as *const _ as *const usize as usize);
-    println!("tptr.ra {:#x}", tptr.ra);
-    println!(
-        "&unused {:#x}",
-        &_unused as *const _ as *const usize as usize
-    );
-
-    unsafe {
-        __switch(&_unused as *const _, mmptr as *const _ as *const usize);
-    }
-    panic!("Unreachable in run_usrapp1!");
 }
 
 pub struct Tasks {
@@ -875,15 +857,9 @@ struct TasksInner {
     curr: usize,
 }
 
-// fn get_cxt_ptr(idx:i32) -> *const usize {
-//         &self.tptr[idx] as *const usize
-//     }
-// }
 unsafe impl Sync for Tasks {}
 
 lazy_static! {
-    //static mut ref tcx2:TrapContext =TrapContext{x:[0;32],sstatus:Sstatus{bits:0},sepc:0 };
-    //tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
     pub static ref TASKS: Tasks = {
         let tcx1 =TrapContext::app_init_context(
             usr_app1_main as usize,
@@ -897,22 +873,26 @@ lazy_static! {
         let tcx1_ptr=  KERNEL1_STACK.push_context(tcx1,TaskContext::goto_restore());
         let tcx2_ptr=  KERNEL2_STACK.push_context(tcx2,TaskContext::goto_restore());
 
-        let mptr= tcx1_ptr as * const _ as * const usize;
-        let mmptr= &mptr as  &* const usize;
-        println!("tcx1_ptr {:#x}",mptr as usize);
-        println!("&tcx1_ptr {:#x}",mmptr as * const _ as * const usize as usize);
-        println!("tcx1_ptr.ra {:#x}",tcx1_ptr.ra);
-
-        let mptr= tcx2_ptr as * const _ as * const usize;
-        let mmptr= &mptr as  &* const usize;
-        println!("tcx2_ptr {:#x}",mptr as usize);
-        println!("&tcx2_ptr {:#x}",mmptr as * const _ as * const usize as usize);
-        println!("tcx2_ptr.ra {:#x}",tcx2_ptr.ra);
+        // let mptr= tcx1_ptr as * const _ as * const usize;
+        // let mmptr= &mptr as  &* const usize;
+        // println!("tcx1_ptr {:#x}",mptr as usize);
+        // println!("&tcx1_ptr {:#x}",mmptr as * const _ as * const usize as usize);
+        //
+        // println!("tcx1_ptr.ra {:#x}",tcx1_ptr.ra);
+        //
+        // let mptr= tcx2_ptr as * const _ as * const usize;
+        // let mmptr= &mptr as  &* const usize;
+        // println!("tcx2_ptr {:#x}",mptr as usize);
+        // println!("&tcx2_ptr {:#x}",mmptr as * const _ as * const usize as usize);
+        // println!("tcx2_ptr.ra {:#x}",tcx2_ptr.ra);
+        //
+        // println!("&tcx1_ptr ## {:#x}",&tcx1_ptr as * const _ as * const usize as usize);
+        // println!("&tcx2_ptr ## {:#x}",&tcx2_ptr as * const _ as * const usize as usize);
 
         Tasks{
             inner: RefCell::new(
                 TasksInner{
-                    tptr:[&tcx1_ptr as * const _ as usize, &tcx2_ptr as * const _ as usize],
+                    tptr:[tcx1_ptr, tcx2_ptr],
                     curr: 0 as usize,
                 },
             )
@@ -925,7 +905,7 @@ impl Tasks {
         let next_task_cx_ptr2 = self.inner.borrow().tptr[0];
         let _unused: usize = 0;
         unsafe {
-            __switch(&_unused as *const _, next_task_cx_ptr2 as *const usize);
+            __switch(&_unused as *const _, &next_task_cx_ptr2 as *const usize);
         }
     }
     fn run_next_task(&self) {
@@ -939,36 +919,11 @@ impl Tasks {
         core::mem::drop(inner);
         unsafe {
             __switch(
-                current_task_cx_ptr2 as *const usize,
-                next_task_cx_ptr2 as *const usize,
+                &current_task_cx_ptr2 as *const usize,
+                &next_task_cx_ptr2 as *const usize,
             );
         }
     }
-}
-
-pub fn run_usrapp2() -> ! {
-    // extern "C" {
-    //     fn __restore(cx_addr: usize); //in trap.S
-    // }
-    let _unused: usize = 0;
-    //let tcx=TaskContext::goto_restore();
-    //println!("tcx {:?}", tcx);
-    let tcx = TrapContext::app_init_context(usr_app2_main as usize, USER2_STACK.get_sp());
-    let tptr = KERNEL2_STACK.push_context(tcx, TaskContext::goto_restore());
-    let mptr = tptr as *const _ as *const usize;
-    let mmptr = &mptr as &*const usize;
-    println!("mptr {:#x}", mptr as usize);
-    println!("mmptr {:#x}", mmptr as *const _ as *const usize as usize);
-    println!("tptr.ra {:#x}", tptr.ra);
-    println!(
-        "&unused {:#x}",
-        &_unused as *const _ as *const usize as usize
-    );
-
-    unsafe {
-        __switch(&_unused as *const _, mmptr as *const _ as *const usize);
-    }
-    panic!("Unreachable in run_usrapp2!");
 }
 
 //--------------------task manage -----------------------
