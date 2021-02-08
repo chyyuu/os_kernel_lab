@@ -707,6 +707,9 @@ impl TrapContext {
     pub fn app_init_context(entry: usize, sp: usize) -> Self {
         let mut sstatus = sstatus::read();
         sstatus.set_spp(SPP::User);
+//        println!("app_init_context sstatus {:#x}, entry {:#x}", sstatus, entry);
+        println!("app_init_context  entry {:#x}", entry);
+
         let mut cx = Self {
             x: [0; 32],
             sstatus,
@@ -876,15 +879,17 @@ pub fn run_usrapp2() -> ! {
     let _unused: usize = 0;
     //let tcx=TaskContext::goto_restore();
     //println!("tcx {:?}", tcx);
-    let tptr= KERNEL2_STACK.push_context(TrapContext::app_init_context(
+    let tcx =TrapContext::app_init_context(
         usr_app2_main as usize,
         USER2_STACK.get_sp(),
-    ),TaskContext::goto_restore());
+    );
+    let tptr= KERNEL2_STACK.push_context(tcx,TaskContext::goto_restore());
     let mptr= tptr as * const _ as * const usize;
     let mmptr= &mptr as  &* const usize;
     println!("mptr {:#x}",mptr as usize);
     println!("mmptr {:#x}",mmptr as * const _ as * const usize as usize);
     println!("tptr.ra {:#x}",tptr.ra);
+    println!("&unused {:#x}",&_unused as * const _ as * const usize as usize);
 
     unsafe {
         __switch(&_unused as *const _,
@@ -1040,8 +1045,10 @@ extern "C" fn rust_main() {
     println!("usrapp2 entry {:#x}", usr_app2_main as usize);
     println!("usrapp1 stack {:#x}", USER1_STACK.data.as_ptr() as usize);
     println!("usrapp2 stack {:#x}", USER2_STACK.data.as_ptr() as usize);
-    println!("kernel1 stack {:#x}", KERNEL1_STACK.data.as_ptr() as usize);
-    println!("kernel2 stack {:#x}", KERNEL2_STACK.data.as_ptr() as usize);
+    println!("kernel1 stack {:#x} ~ {:#x}", KERNEL1_STACK.data.as_ptr() as usize,
+             KERNEL1_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE);
+    println!("kernel2 stack {:#x} ~ {:#x}", KERNEL2_STACK.data.as_ptr() as usize,
+             KERNEL2_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE);
     //----page-grained allocation-------------------
     unsafe {
         HEAP_START=ekernel as usize +4096;

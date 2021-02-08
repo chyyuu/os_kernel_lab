@@ -117,7 +117,7 @@ __restore:
     # case1: back to S after handling trap
     # case2: back to U after handling trap
     # case3: start running app by __restore
-    mv sp, a0
+    #mv sp, a0 //this instr is harmful, because __switch will change SP to app's kernel stack and return to here.
     # now sp->kernel stack(after allocated), sscratch=0
     # restore sstatus/sepc
     ld t0, 32*8(sp)  # t0=sstatus
