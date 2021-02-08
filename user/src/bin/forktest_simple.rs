@@ -18,11 +18,11 @@ pub fn main() -> i32 {
         100
     } else {
         // parent process
-        let mut xstate: i32 = 0;
+        let mut exit_code: i32 = 0;
         println!("ready waiting on parent process!");
-        assert_eq!(pid, wait(&mut xstate));
-        assert_eq!(xstate, 100);
-        println!("child process pid = {}, exit code = {}", pid, xstate);
+        assert_eq!(pid, wait(&mut exit_code));
+        assert_eq!(exit_code, 100);
+        println!("child process pid = {}, exit code = {}", pid, exit_code);
         0
     }
 }
