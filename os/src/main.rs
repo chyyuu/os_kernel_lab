@@ -764,7 +764,7 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
                 CLOCKNUM+=1;
                 println!("clock num is {}",CLOCKNUM);
             }
-            suspend_current_and_run_next();
+            TASKS.run_next_task();
         }
         _ => {
             panic!(
@@ -916,10 +916,23 @@ lazy_static! {
         );
         let tcx1_ptr=  KERNEL1_STACK.push_context(tcx1,TaskContext::goto_restore());
         let tcx2_ptr=  KERNEL2_STACK.push_context(tcx2,TaskContext::goto_restore());
+
+        let mptr= tcx1_ptr as * const _ as * const usize;
+        let mmptr= &mptr as  &* const usize;
+        println!("tcx1_ptr {:#x}",mptr as usize);
+        println!("&tcx1_ptr {:#x}",mmptr as * const _ as * const usize as usize);
+        println!("tcx1_ptr.ra {:#x}",tcx1_ptr.ra);
+
+        let mptr= tcx2_ptr as * const _ as * const usize;
+        let mmptr= &mptr as  &* const usize;
+        println!("tcx2_ptr {:#x}",mptr as usize);
+        println!("&tcx2_ptr {:#x}",mmptr as * const _ as * const usize as usize);
+        println!("tcx2_ptr.ra {:#x}",tcx2_ptr.ra);
+
         Tasks{
             inner: RefCell::new(
                 TasksInner{
-                    tptr:[tcx1_ptr as * const _ as usize, tcx2_ptr as * const _ as usize],
+                    tptr:[&tcx1_ptr as * const _ as usize, &tcx2_ptr as * const _ as usize],
                     curr: 0 as usize,
                 },
             )
@@ -939,7 +952,6 @@ impl Tasks {
         }
     }
     fn run_next_task(&self) {
-
         let mut inner = self.inner.borrow_mut();
         let current = inner.curr;
         let next:usize = if current == 1 { 0 } else {1};
@@ -1026,10 +1038,10 @@ impl TaskContext {
 //     );
 // }
 
-pub fn suspend_current_and_run_next() {
-    // mark_current_suspended();
-    // run_next_task();
-}
+// pub fn suspend_current_and_run_next() {
+//     // mark_current_suspended();
+//     // run_next_task();
+// }
 
 // pub fn init_app_cx() ->[&'static mut TaskContext;2]{
 //     let tk_ctx1=KERNEL1_STACK.push_context(
@@ -1128,8 +1140,10 @@ extern "C" fn rust_main() {
     println!("sys_exit-fn {:#x}", sys_exit as usize);
     println!("usrapp1 entry {:#x}", usr_app1_main as usize);
     println!("usrapp2 entry {:#x}", usr_app2_main as usize);
-    println!("usrapp1 stack {:#x}", USER1_STACK.data.as_ptr() as usize);
-    println!("usrapp2 stack {:#x}", USER2_STACK.data.as_ptr() as usize);
+    println!("usrapp1 stack {:#x} ~ {:#x}", USER1_STACK.data.as_ptr() as usize,
+             USER1_STACK.data.as_ptr() as usize + USER_STACK_SIZE);
+    println!("usrapp2 stack {:#x} ~ {:#x}", USER2_STACK.data.as_ptr() as usize,
+             USER2_STACK.data.as_ptr() as usize + USER_STACK_SIZE);
     println!("kernel1 stack {:#x} ~ {:#x}", KERNEL1_STACK.data.as_ptr() as usize,
              KERNEL1_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE);
     println!("kernel2 stack {:#x} ~ {:#x}", KERNEL2_STACK.data.as_ptr() as usize,
