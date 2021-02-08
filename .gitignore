@@ -3,3 +3,4 @@ os/target/*
 os/.idea/*
 os/src/link_app.S
 os/Cargo.lock
+tools/
