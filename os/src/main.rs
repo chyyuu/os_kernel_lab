@@ -859,18 +859,26 @@ extern "C" {
     fn __restore(cx_addr: usize); //in trap.S
 }
 
-// pub fn run_usrapp1() -> ! {
-//     extern "C" {
-//         fn __restore(cx_addr: usize); //in trap.S
-//     }
-//     unsafe {
-//         __restore(KERNEL1_STACK.push_context(TrapContext::app_init_context(
-//             usr_app1_main as usize,
-//             USER1_STACK.get_sp(),
-//         ),TaskContext::goto_restore(),) as *const _ as usize);
-//     }
-//     panic!("Unreachable in run_usrapp1!");
-// }
+pub fn run_usrapp1() -> ! {
+    let _unused: usize = 0;
+    let tcx =TrapContext::app_init_context(
+        usr_app1_main as usize,
+        USER1_STACK.get_sp(),
+    );
+    let tptr= KERNEL1_STACK.push_context(tcx,TaskContext::goto_restore());
+    let mptr= tptr as * const _ as * const usize;
+    let mmptr= &mptr as  &* const usize;
+    println!("mptr {:#x}",mptr as usize);
+    println!("mmptr {:#x}",mmptr as * const _ as * const usize as usize);
+    println!("tptr.ra {:#x}",tptr.ra);
+    println!("&unused {:#x}",&_unused as * const _ as * const usize as usize);
+
+    unsafe {
+        __switch(&_unused as *const _,
+                 mmptr as * const _ as * const usize);
+    }
+    panic!("Unreachable in run_usrapp1!");
+}
 
 pub fn run_usrapp2() -> ! {
     // extern "C" {
@@ -1079,7 +1087,7 @@ extern "C" fn rust_main() {
     set_next_trigger();
     enable_timer_interrupt();
 
-    run_usrapp2();
+    run_usrapp1();
 
     panic!("\n[kernel] END: It should shutdown!");
 }
