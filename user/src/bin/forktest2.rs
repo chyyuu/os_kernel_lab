@@ -22,12 +22,12 @@ pub fn main() -> i32 {
         }
     }
 
-    let mut xstate: i32 = 0;
+    let mut exit_code: i32 = 0;
     for _ in 0..NUM {
-        assert!(wait(&mut xstate) > 0);
-        assert_eq!(xstate, 0);
+        assert!(wait(&mut exit_code) > 0);
+        assert_eq!(exit_code, 0);
     }
-    assert!(wait(&mut xstate) < 0);
+    assert!(wait(&mut exit_code) < 0);
     println!("forktest2 test passed!");
     0
 }
