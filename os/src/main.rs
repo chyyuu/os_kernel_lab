@@ -5,6 +5,12 @@
 #![feature(panic_info_message)]
 #![feature(const_raw_ptr_to_usize_cast)]
 
+#[macro_use]
+extern crate lazy_static;
+
+use core::cell::RefCell;
+use lazy_static::*;
+
 //=====================SHARE PARTS============================
 const STDOUT: usize = 1;
 const SYSCALL_WRITE: usize = 64;
@@ -880,6 +886,77 @@ pub fn run_usrapp1() -> ! {
     panic!("Unreachable in run_usrapp1!");
 }
 
+pub struct Tasks {
+    inner: RefCell<TasksInner>,
+}
+
+struct TasksInner {
+    tptr: [usize; 2],
+    curr: usize,
+}
+
+// fn get_cxt_ptr(idx:i32) -> *const usize {
+//         &self.tptr[idx] as *const usize
+//     }
+// }
+unsafe impl Sync for Tasks {}
+
+lazy_static! {
+    //static mut ref tcx2:TrapContext =TrapContext{x:[0;32],sstatus:Sstatus{bits:0},sepc:0 };
+    //tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
+    pub static ref TASKS: Tasks = {
+        let tcx1 =TrapContext::app_init_context(
+            usr_app1_main as usize,
+            USER1_STACK.get_sp(),
+        );
+
+        let tcx2 =TrapContext::app_init_context(
+            usr_app2_main as usize,
+            USER2_STACK.get_sp(),
+        );
+        let tcx1_ptr=  KERNEL1_STACK.push_context(tcx1,TaskContext::goto_restore());
+        let tcx2_ptr=  KERNEL2_STACK.push_context(tcx2,TaskContext::goto_restore());
+        Tasks{
+            inner: RefCell::new(
+                TasksInner{
+                    tptr:[tcx1_ptr as * const _ as usize, tcx2_ptr as * const _ as usize],
+                    curr: 0 as usize,
+                },
+            )
+        }
+    };
+}
+
+impl Tasks {
+    fn run_first_task(&self) {
+        let next_task_cx_ptr2 = self.inner.borrow().tptr[0];
+        let _unused: usize = 0;
+        unsafe {
+            __switch(
+                &_unused as *const _,
+                next_task_cx_ptr2 as *const usize,
+            );
+        }
+    }
+    fn run_next_task(&self) {
+
+        let mut inner = self.inner.borrow_mut();
+        let current = inner.curr;
+        let next:usize = if current == 1 { 0 } else {1};
+
+        inner.curr = next;
+        let current_task_cx_ptr2 = inner.tptr[current];
+        let next_task_cx_ptr2 = inner.tptr[next];
+        core::mem::drop(inner);
+        unsafe {
+            __switch(
+                current_task_cx_ptr2 as *const usize,
+                next_task_cx_ptr2 as *const usize,
+            );
+        }
+    }
+}
+
 pub fn run_usrapp2() -> ! {
     // extern "C" {
     //     fn __restore(cx_addr: usize); //in trap.S
@@ -933,8 +1010,8 @@ impl TaskContext {
     }
 }
 
-static mut tctx1:TaskContext=unsafe {TaskContext{ra:0x80020610 as usize,s:[0;12]}};
-static mut tctx2:TaskContext=unsafe {TaskContext{ra:0x80020610 as usize,s:[0;12]}};
+// static mut tctx1:TaskContext=unsafe {TaskContext{ra:0x80020610 as usize,s:[0;12]}};
+// static mut tctx2:TaskContext=unsafe {TaskContext{ra:0x80020610 as usize,s:[0;12]}};
 //static mut tctx2:TaskContext=TaskContext{ra:__restore as usize,s:[0;12]};
 // static mut tctx2:TaskContext=TaskContext::goto_restore();
 
@@ -1087,8 +1164,8 @@ extern "C" fn rust_main() {
     set_next_trigger();
     enable_timer_interrupt();
 
-    run_usrapp1();
-
+    //run_usrapp1();
+    TASKS.run_first_task();
     panic!("\n[kernel] END: It should shutdown!");
 }
 
