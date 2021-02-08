@@ -10,11 +10,11 @@ use lazy_static::*;
 
 use riscv::register::{
     mtvec::TrapMode,
+    satp,
     scause::{self, Exception, Interrupt, Trap},
     sepc, sie,
     sstatus::{self, Sstatus, SPP},
     stval, stvec, time,
-    satp,
 };
 
 //=====================SHARE PARTS============================
@@ -657,7 +657,7 @@ pub fn paging_init() {
     id_map_range(
         &mut root1,
         0x80600000,
-        0x80800000,
+        0x80650000,
         EntryBits::UserReadWriteExecute.val(),
     );
 
@@ -673,8 +673,8 @@ pub fn paging_init() {
 
     id_map_range(
         &mut root2,
-        0x80600000,
-        0x80800000,
+        0x80700000,
+        0x80750000,
         EntryBits::UserReadWriteExecute.val(),
     );
 
@@ -693,7 +693,6 @@ pub fn paging_init() {
     }
 }
 //----------------trap handling------------------------
-
 
 // TrapContext needs 34*8 bytes
 #[repr(C)]
@@ -833,13 +832,13 @@ static KERNEL2_STACK: KernelStack = KernelStack {
 };
 
 #[no_mangle]
-#[link_section = ".usrapp.entry"]
+#[link_section = ".usrapp1.data"]
 static USER1_STACK: UserStack = UserStack {
     data: [0; USER_STACK_SIZE],
 };
 
 #[no_mangle]
-#[link_section = ".usrapp.entry"]
+#[link_section = ".usrapp2.data"]
 static USER2_STACK: UserStack = UserStack {
     data: [0; USER_STACK_SIZE],
 };
@@ -919,14 +918,13 @@ impl Tasks {
         inner.curr = next;
         let current_task_cx_ptr2 = &(inner.tptr[current]) as *const usize;
         let next_task_cx_ptr2 = &(inner.tptr[next]) as *const usize;
-        let satp=inner.satp[next];
+        let satp = inner.satp[next];
         core::mem::drop(inner);
         // change page table
         unsafe {
             satp::write(satp);
             llvm_asm!("sfence.vma" :::: "volatile");
         }
-
 
         unsafe {
             __switch(current_task_cx_ptr2, next_task_cx_ptr2);
@@ -1010,7 +1008,8 @@ extern "C" fn rust_main() {
         // fn stack_begin();
         // fn stack_end();
         fn ekernel();
-        fn user_begin();
+        fn user1_begin();
+        fn user2_begin();
     }
     clear_bss();
     // println!("Hello, world!");
@@ -1027,7 +1026,8 @@ extern "C" fn rust_main() {
     //     stack_begin as usize, stack_end as usize
     // );
     // println!("__restore {:#x}", __restore as usize);
-    // println!("user_begin {:#x}", user_begin as usize);
+    println!("user1_begin {:#x}", user1_begin as usize);
+    println!("user2_begin {:#x}", user2_begin as usize);
     // println!("syscall-fn {:#x}", syscall as usize);
     // println!("sys_exit-fn {:#x}", sys_exit as usize);
     // println!("usrapp1 entry {:#x}", usr_app1_main as usize);
@@ -1055,7 +1055,7 @@ extern "C" fn rust_main() {
     //----page-grained allocation-------------------
     unsafe {
         HEAP_START = ekernel as usize + 4096;
-        HEAP_SIZE = user_begin as usize - HEAP_START;
+        HEAP_SIZE = user1_begin as usize - HEAP_START;
         println!("HEAP_START {:#x}, HEAP_SIZE {:#x}", HEAP_START, HEAP_SIZE);
     }
     page_allocator_init();
@@ -1154,26 +1154,45 @@ macro_rules! uprintln {
 
 //================ userapp1 main =============================
 #[no_mangle]
-#[link_section = ".usrapp.entry"]
+#[link_section = ".usrapp1.data"]
+static usr1v: &[u8] = "1.".as_bytes();
+
+#[no_mangle]
+#[link_section = ".usrapp1.entry"]
+fn app1_write() {
+    loop {
+        //sys_write(STDOUT, "1.".as_bytes());
+        sys_write(STDOUT, usr1v);
+        sys_write(STDOUT, usr2v);
+    }
+}
+
+#[no_mangle]
+#[link_section = ".usrapp1.entry"]
 extern "C" fn usr_app1_main() {
     sys_write(STDOUT, "[usr_app1_main] Hello world!\n".as_bytes());
-
-    loop {
-        sys_write(STDOUT, "1.".as_bytes());
-    }
-
+    app1_write();
     //sys_exit(3);
 }
 
-//================ userapp1 main =============================
+//================ userapp2 main =============================
 #[no_mangle]
-#[link_section = ".usrapp.entry"]
-extern "C" fn usr_app2_main() {
-    sys_write(STDOUT, "[usr_app2_main] Hello world!\n".as_bytes());
+#[link_section = ".usrapp2.data"]
+static usr2v: &[u8] = "3.".as_bytes();
 
+#[no_mangle]
+#[link_section = ".usrapp2.entry"]
+fn app2_write() {
     loop {
         sys_write(STDOUT, "2.".as_bytes());
+        sys_write(STDOUT, usr1v);
     }
+}
 
+#[no_mangle]
+#[link_section = ".usrapp2.entry"]
+extern "C" fn usr_app2_main() {
+    sys_write(STDOUT, "[usr_app2_main] Hello world!\n".as_bytes());
+    app2_write();
     //sys_exit(7);
 }
