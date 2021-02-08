@@ -635,18 +635,35 @@ pub fn id_map_range(root: &mut Table, start: usize, end: usize, bits: i64) {
 
 pub fn paging_init() {
     //----------paging ---------------
-    let root_ptr = alloc(1) as *mut Table;
-    let mut root = unsafe { root_ptr.as_mut().unwrap() };
+    let root_ptr1 = alloc(1) as *mut Table;
+    let mut root1 = unsafe { root_ptr1.as_mut().unwrap() };
 
     id_map_range(
-        &mut root,
+        &mut root1,
         0x80000000,
         0x80600000,
         EntryBits::ReadWriteExecute.val(),
     );
 
     id_map_range(
-        &mut root,
+        &mut root1,
+        0x80600000,
+        0x80800000,
+        EntryBits::UserReadWriteExecute.val(),
+    );
+
+    let root_ptr2 = alloc(1) as *mut Table;
+    let mut root2 = unsafe { root_ptr2.as_mut().unwrap() };
+
+    id_map_range(
+        &mut root2,
+        0x80000000,
+        0x80600000,
+        EntryBits::ReadWriteExecute.val(),
+    );
+
+    id_map_range(
+        &mut root2,
         0x80600000,
         0x80800000,
         EntryBits::UserReadWriteExecute.val(),
@@ -654,9 +671,16 @@ pub fn paging_init() {
 
     use riscv::register::satp;
     // satp= table / 4096  |  Sv39 mode
-    let satp = root_ptr as *const Table as usize >> 12 | (8 << 60);
+    let satp1 = root_ptr1 as *const Table as usize >> 12 | (8 << 60);
+    let satp2 = root_ptr2 as *const Table as usize >> 12 | (8 << 60);
+
+    let mut inner = TASKS.inner.borrow_mut();
+    inner.satp[0] = satp1;
+    inner.satp[1] = satp2;
+    core::mem::drop(inner);
+
     unsafe {
-        satp::write(satp);
+        satp::write(satp1);
         llvm_asm!("sfence.vma" :::: "volatile");
     }
 }
@@ -668,6 +692,7 @@ use riscv::register::{
     sstatus::{self, Sstatus, SPP},
     stval, stvec, time,
 };
+use crate::PageBits::Taken;
 
 // TrapContext needs 34*8 bytes
 #[repr(C)]
@@ -852,6 +877,7 @@ pub struct Tasks {
 struct TasksInner {
     tptr: [usize; 2],
     curr: usize,
+    satp: [usize;2],
 }
 
 unsafe impl Sync for Tasks {}
@@ -868,6 +894,7 @@ lazy_static! {
             inner: RefCell::new(TasksInner {
                 tptr: [tcx1_ptr as *const _ as usize, tcx2_ptr as *const _ as usize],
                 curr: 0 as usize,
+                satp: [0,0],
             }),
         }
     };
@@ -908,12 +935,12 @@ extern "C" {
 #[repr(C)]
 pub struct TaskContext {
     ra: usize,
+    //satp: usize;
     s: [usize; 12],
 }
 
 impl TaskContext {
     pub fn goto_restore() -> Self {
-        //extern "C" { fn __restore(); }
         Self {
             ra: __restore as usize,
             s: [0; 12],
@@ -1046,7 +1073,6 @@ extern "C" fn rust_main() {
     set_next_trigger();
     enable_timer_interrupt();
 
-    //run_usrapp1();
     TASKS.run_first_task();
     panic!("\n[kernel] END: It should shutdown!");
 }
