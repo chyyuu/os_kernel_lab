@@ -6,3 +6,4 @@ os/Cargo.lock
 user/target/*
 user/.idea/*
 user/Cargo.lock
+tools/
