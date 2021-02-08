@@ -8,6 +8,15 @@
 use core::cell::RefCell;
 use lazy_static::*;
 
+use riscv::register::{
+    mtvec::TrapMode,
+    scause::{self, Exception, Interrupt, Trap},
+    sepc, sie,
+    sstatus::{self, Sstatus, SPP},
+    stval, stvec, time,
+    satp,
+};
+
 //=====================SHARE PARTS============================
 const STDOUT: usize = 1;
 const SYSCALL_WRITE: usize = 64;
@@ -669,7 +678,6 @@ pub fn paging_init() {
         EntryBits::UserReadWriteExecute.val(),
     );
 
-    use riscv::register::satp;
     // satp= table / 4096  |  Sv39 mode
     let satp1 = root_ptr1 as *const Table as usize >> 12 | (8 << 60);
     let satp2 = root_ptr2 as *const Table as usize >> 12 | (8 << 60);
@@ -685,14 +693,7 @@ pub fn paging_init() {
     }
 }
 //----------------trap handling------------------------
-use riscv::register::{
-    mtvec::TrapMode,
-    scause::{self, Exception, Interrupt, Trap},
-    sepc, sie,
-    sstatus::{self, Sstatus, SPP},
-    stval, stvec, time,
-};
-use crate::PageBits::Taken;
+
 
 // TrapContext needs 34*8 bytes
 #[repr(C)]
@@ -743,7 +744,7 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
     let stval = stval::read();
     let sepc = sepc::read();
 
-    // println!(
+    //for test println!(
     //     "[kernel] trap_handler {:?}, stval = {:#x}, sepc = {:#x}",
     //     scause.cause(),
     //     stval,
@@ -877,7 +878,7 @@ pub struct Tasks {
 struct TasksInner {
     tptr: [usize; 2],
     curr: usize,
-    satp: [usize;2],
+    satp: [usize; 2],
 }
 
 unsafe impl Sync for Tasks {}
@@ -894,7 +895,7 @@ lazy_static! {
             inner: RefCell::new(TasksInner {
                 tptr: [tcx1_ptr as *const _ as usize, tcx2_ptr as *const _ as usize],
                 curr: 0 as usize,
-                satp: [0,0],
+                satp: [0, 0],
             }),
         }
     };
@@ -918,7 +919,15 @@ impl Tasks {
         inner.curr = next;
         let current_task_cx_ptr2 = &(inner.tptr[current]) as *const usize;
         let next_task_cx_ptr2 = &(inner.tptr[next]) as *const usize;
+        let satp=inner.satp[next];
         core::mem::drop(inner);
+        // change page table
+        unsafe {
+            satp::write(satp);
+            llvm_asm!("sfence.vma" :::: "volatile");
+        }
+
+
         unsafe {
             __switch(current_task_cx_ptr2, next_task_cx_ptr2);
         }
@@ -988,18 +997,18 @@ fn clear_bss() {
 #[link_section = ".text.entry"]
 extern "C" fn rust_main() {
     extern "C" {
-        fn stext();
-        fn etext();
-        fn srodata();
-        fn erodata();
-        fn sdata();
-        fn edata();
-        fn sbss();
-        fn ebss();
-        fn boot_stack();
-        fn boot_stack_top();
-        fn stack_begin();
-        fn stack_end();
+        // fn stext();
+        // fn etext();
+        // fn srodata();
+        // fn erodata();
+        // fn sdata();
+        // fn edata();
+        // fn sbss();
+        // fn ebss();
+        // fn boot_stack();
+        // fn boot_stack_top();
+        // fn stack_begin();
+        // fn stack_end();
         fn ekernel();
         fn user_begin();
     }
