@@ -922,10 +922,12 @@ lazy_static! {
 
 impl Tasks {
     fn run_first_task(&self) {
-        let next_task_cx_ptr2 = self.inner.borrow().tptr[0];
+        let inner = self.inner.borrow();
+        let next_task_cx_ptr2 = &(inner.tptr[0]) as *const usize;
         let _unused: usize = 0;
+        core::mem::drop(inner);
         unsafe {
-            __switch(&_unused as *const _, &next_task_cx_ptr2 as *const usize);
+            __switch(&_unused as *const _, next_task_cx_ptr2);
         }
     }
     fn run_next_task(&self) {
@@ -934,13 +936,13 @@ impl Tasks {
         let next: usize = if current == 1 { 0 } else { 1 };
 
         inner.curr = next;
-        let current_task_cx_ptr2:usize = inner.tptr[current];
-        let next_task_cx_ptr2:usize = inner.tptr[next];
+        let current_task_cx_ptr2 = &(inner.tptr[current]) as *const usize;
+        let next_task_cx_ptr2 = &(inner.tptr[next]) as *const usize;
         core::mem::drop(inner);
         unsafe {
             __switch(
-                &current_task_cx_ptr2 as *const usize,
-                &next_task_cx_ptr2 as *const usize,
+                current_task_cx_ptr2,
+                next_task_cx_ptr2,
             );
         }
     }
