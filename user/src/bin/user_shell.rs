@@ -12,7 +12,7 @@ const DL: u8 = 0x7fu8;
 const BS: u8 = 0x08u8;
 
 use alloc::string::String;
-use user_lib::{fork, exec, waitpid, yield_};
+use user_lib::{fork, exec, waitpid};
 use user_lib::console::getchar;
 
 #[no_mangle]
@@ -36,18 +36,10 @@ pub fn main() -> i32 {
                         }
                         unreachable!();
                     } else {
-                        let mut xstate: i32 = 0;
-                        let mut exit_pid: isize;
-                        loop {
-                            exit_pid = waitpid(pid as usize, &mut xstate);
-                            if exit_pid == -1 {
-                                yield_();
-                            } else {
-                                assert_eq!(pid, exit_pid);
-                                println!("Shell: Process {} exited with code {}", pid, xstate);
-                                break;
-                            }
-                        }
+                        let mut exit_code: i32 = 0;
+                        let exit_pid = waitpid(pid as usize, &mut exit_code);
+                        assert_eq!(pid, exit_pid);
+                        println!("Shell: Process {} exited with code {}", pid, exit_code);
                     }
                     line.clear();
                 }
