@@ -5,9 +5,6 @@
 #![feature(panic_info_message)]
 #![feature(const_raw_ptr_to_usize_cast)]
 
-#[macro_use]
-extern crate lazy_static;
-
 use core::cell::RefCell;
 use lazy_static::*;
 
@@ -19,13 +16,18 @@ const SYSCALL_EXIT: usize = 93;
 //======================= SUPERVISOR MODE =========================
 global_asm!(include_str!("entry.asm"));
 
-use core::panic::PanicInfo;
 use core::fmt::{self, Write};
+use core::panic::PanicInfo;
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
-        println!("Panicked at {}:{} {}", location.file(), location.line(), info.message().unwrap());
+        println!(
+            "Panicked at {}:{} {}",
+            location.file(),
+            location.line(),
+            info.message().unwrap()
+        );
     } else {
         println!("Panicked: {}", info.message().unwrap());
     }
@@ -62,7 +64,6 @@ fn sbicall(id: usize, args: [usize; 3]) -> isize {
     ret
 }
 
-
 struct Stdout;
 
 impl Write for Stdout {
@@ -96,7 +97,7 @@ macro_rules! println {
 use core::{mem::size_of, ptr::null_mut};
 
 static mut HEAP_START: usize = 0;
-static mut HEAP_SIZE: usize =  0;
+static mut HEAP_SIZE: usize = 0;
 
 // We will use ALLOC_START to mark the start of the actual
 // memory we can dish out.
@@ -141,8 +142,7 @@ impl Page {
     pub fn is_last(&self) -> bool {
         if self.flags & PageBits::Last.val() != 0 {
             true
-        }
-        else {
+        } else {
             false
         }
     }
@@ -152,8 +152,7 @@ impl Page {
     pub fn is_taken(&self) -> bool {
         if self.flags & PageBits::Taken.val() != 0 {
             true
-        }
-        else {
+        } else {
             false
         }
     }
@@ -200,11 +199,7 @@ pub fn page_allocator_init() {
         // to a page-boundary (PAGE_SIZE = 4096). ALLOC_START =
         // (HEAP_START + num_pages * size_of::<Page>() + PAGE_SIZE - 1)
         // & !(PAGE_SIZE - 1);
-        ALLOC_START = align_val(
-            HEAP_START
-                + num_pages * size_of::<Page,>(),
-            PAGE_ORDER,
-        );
+        ALLOC_START = align_val(HEAP_START + num_pages * size_of::<Page>(), PAGE_ORDER);
     }
 }
 
@@ -248,14 +243,13 @@ pub fn alloc(pages: usize) -> *mut u8 {
                 // The marker for the last page is
                 // PageBits::Last This lets us know when we've
                 // hit the end of this particular allocation.
-                (*ptr.add(i+pages-1)).set_flag(PageBits::Taken);
-                (*ptr.add(i+pages-1)).set_flag(PageBits::Last);
+                (*ptr.add(i + pages - 1)).set_flag(PageBits::Taken);
+                (*ptr.add(i + pages - 1)).set_flag(PageBits::Last);
                 // The Page structures themselves aren't the
                 // useful memory. Instead, there is 1 Page
                 // structure per 4096 bytes starting at
                 // ALLOC_START.
-                return (ALLOC_START + PAGE_SIZE * i)
-                    as *mut u8;
+                return (ALLOC_START + PAGE_SIZE * i) as *mut u8;
             }
         }
     }
@@ -298,8 +292,7 @@ pub fn dealloc(ptr: *mut u8) {
     // Make sure we don't try to free a null pointer.
     assert!(!ptr.is_null());
     unsafe {
-        let addr =
-            HEAP_START + (ptr as usize - ALLOC_START) / PAGE_SIZE;
+        let addr = HEAP_START + (ptr as usize - ALLOC_START) / PAGE_SIZE;
         // Make sure that the address makes sense. The address we
         // calculate here is the page structure, not the HEAP address!
         assert!(addr >= HEAP_START && addr < HEAP_START + HEAP_SIZE);
@@ -341,24 +334,14 @@ pub fn print_page_allocations() {
         while beg < end {
             if (*beg).is_taken() {
                 let start = beg as usize;
-                let memaddr = ALLOC_START
-                    + (start - HEAP_START)
-                    * PAGE_SIZE;
+                let memaddr = ALLOC_START + (start - HEAP_START) * PAGE_SIZE;
                 print!("0x{:x} => ", memaddr);
                 loop {
                     num += 1;
                     if (*beg).is_last() {
                         let end = beg as usize;
-                        let memaddr = ALLOC_START
-                            + (end
-                            - HEAP_START)
-                            * PAGE_SIZE
-                            + PAGE_SIZE - 1;
-                        print!(
-                            "0x{:x}: {:>3} page(s)",
-                            memaddr,
-                            (end - start + 1)
-                        );
+                        let memaddr = ALLOC_START + (end - HEAP_START) * PAGE_SIZE + PAGE_SIZE - 1;
+                        print!("0x{:x}: {:>3} page(s)", memaddr, (end - start + 1));
                         println!(".");
                         break;
                     }
@@ -381,17 +364,17 @@ pub fn print_page_allocations() {
     }
 }
 
-fn test_page_allocation() {
-    print_page_allocations();
-    let t1 = alloc(10);
-    print_page_allocations();
-    let t2 = alloc(8);
-    print_page_allocations();
-    dealloc(t1);
-    print_page_allocations();
-    dealloc(t2);
-    print_page_allocations();
-}
+// fn test_page_allocation() {
+//     print_page_allocations();
+//     let t1 = alloc(10);
+//     print_page_allocations();
+//     let t2 = alloc(8);
+//     print_page_allocations();
+//     dealloc(t1);
+//     print_page_allocations();
+//     dealloc(t2);
+//     print_page_allocations();
+// }
 
 //-------------Paging&MMU-----------------------
 
@@ -536,10 +519,7 @@ pub fn map(root: &mut Table, vaddr: usize, paddr: usize, bits: i64, level: usize
             // The page is already aligned by 4,096, so store it
             // directly The page is stored in the entry shifted
             // right by 2 places.
-            v.set_entry(
-                (page as i64 >> 2)
-                    | EntryBits::Valid.val(),
-            );
+            v.set_entry((page as i64 >> 2) | EntryBits::Valid.val());
         }
         let entry = ((v.get_entry() & !0x3ff) << 2) as *mut Entry;
         v = unsafe { entry.add(vpn[i]).as_mut().unwrap() };
@@ -552,9 +532,9 @@ pub fn map(root: &mut Table, vaddr: usize, paddr: usize, bits: i64, level: usize
         (ppn[1] << 19) as i64 |   // PPN[1] = [27:19]
         (ppn[0] << 10) as i64 |   // PPN[0] = [18:10]
         bits |                    // Specified bits, such as User, Read, Write, etc
-        EntryBits::Valid.val();   // Valid bit
-    // Set the entry. V should be set to the correct pointer by the loop
-    // above.
+        EntryBits::Valid.val(); // Valid bit
+                                // Set the entry. V should be set to the correct pointer by the loop
+                                // above.
     v.set_entry(entry);
 }
 
@@ -577,10 +557,8 @@ pub fn unmap(root: &mut Table) {
             };
             for lv1 in 0..Table::len() {
                 let ref entry_lv1 = table_lv1.entries[lv1];
-                if entry_lv1.is_valid() && entry_lv1.is_branch()
-                {
-                    let memaddr_lv0 = (entry_lv1.get_entry()
-                        & !0x3ff) << 2;
+                if entry_lv1.is_valid() && entry_lv1.is_branch() {
+                    let memaddr_lv0 = (entry_lv1.get_entry() & !0x3ff) << 2;
                     // The next level is level 0, which
                     // cannot have branches, therefore,
                     // we free here.
@@ -612,8 +590,7 @@ pub fn virt_to_phys(root: &Table, vaddr: usize) -> Option<usize> {
         if v.is_invalid() {
             // This is an invalid entry, page fault.
             break;
-        }
-        else if v.is_leaf() {
+        } else if v.is_leaf() {
             // According to RISC-V, a leaf can be at any level.
 
             // The offset mask masks off the PPN. Each PPN is 9
@@ -642,15 +619,9 @@ pub fn virt_to_phys(root: &Table, vaddr: usize) -> Option<usize> {
 /// Identity map range
 /// Takes a contiguous allocation of memory and maps it using PAGE_SIZE
 /// This assumes that start <= end
-pub fn id_map_range(root: &mut Table,
-                    start: usize,
-                    end: usize,
-                    bits: i64)
-{
+pub fn id_map_range(root: &mut Table, start: usize, end: usize, bits: i64) {
     let mut memaddr = start & !(PAGE_SIZE - 1);
-    let num_kb_pages = (align_val(end, 12)
-        - memaddr)
-        / PAGE_SIZE;
+    let num_kb_pages = (align_val(end, 12) - memaddr) / PAGE_SIZE;
 
     // I named this num_kb_pages for future expansion when
     // I decide to allow for GiB (2^30) and 2MiB (2^21) page
@@ -664,7 +635,7 @@ pub fn id_map_range(root: &mut Table,
 
 pub fn paging_init() {
     //----------paging ---------------
-    let root_ptr = alloc(1) as *mut Table ;
+    let root_ptr = alloc(1) as *mut Table;
     let mut root = unsafe { root_ptr.as_mut().unwrap() };
 
     id_map_range(
@@ -683,7 +654,7 @@ pub fn paging_init() {
 
     use riscv::register::satp;
     // satp= table / 4096  |  Sv39 mode
-    let satp = root_ptr as *const Table  as usize >>12 |(8 << 60);
+    let satp = root_ptr as *const Table as usize >> 12 | (8 << 60);
     unsafe {
         satp::write(satp);
         llvm_asm!("sfence.vma" :::: "volatile");
@@ -692,10 +663,10 @@ pub fn paging_init() {
 //----------------trap handling------------------------
 use riscv::register::{
     mtvec::TrapMode,
-    scause::{self, Exception, Trap,Interrupt},
+    scause::{self, Exception, Interrupt, Trap},
+    sepc, sie,
     sstatus::{self, Sstatus, SPP},
-    stval, stvec,sepc,sie,
-    time,
+    stval, stvec, time,
 };
 
 // TrapContext needs 34*8 bytes
@@ -708,12 +679,12 @@ pub struct TrapContext {
 
 impl TrapContext {
     pub fn set_sp(&mut self, sp: usize) {
-        self.x[2] = sp;  //x2 reg is sp reg
+        self.x[2] = sp; //x2 reg is sp reg
     }
     pub fn app_init_context(entry: usize, sp: usize) -> Self {
         let mut sstatus = sstatus::read();
         sstatus.set_spp(SPP::User);
-//        println!("app_init_context sstatus {:#x}, entry {:#x}", sstatus, entry);
+        //        println!("app_init_context sstatus {:#x}, entry {:#x}", sstatus, entry);
         println!("app_init_context  entry {:#x}", entry);
 
         let mut cx = Self {
@@ -732,13 +703,15 @@ extern "C" {
     fn __alltraps(); //in trap.S
 }
 
-pub fn trap_init() {
+extern "C" {
+    fn __restore(); //in trap.S
+}
 
+pub fn trap_init() {
     unsafe {
         stvec::write(__alltraps as usize, TrapMode::Direct);
     }
 }
-
 
 #[no_mangle]
 pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
@@ -746,8 +719,12 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
     let stval = stval::read();
     let sepc = sepc::read();
 
-    println!("[kernel] trap_handler {:?}, stval = {:#x}, sepc = {:#x}",
-             scause.cause(),stval, sepc);
+    // println!(
+    //     "[kernel] trap_handler {:?}, stval = {:#x}, sepc = {:#x}",
+    //     scause.cause(),
+    //     stval,
+    //     sepc
+    // );
     match scause.cause() {
         Trap::Exception(Exception::Breakpoint) => {
             cx.sepc += 2; //compact instr, so pc+=2
@@ -761,8 +738,8 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             //kprintln!("clock");
             set_next_trigger();
             unsafe {
-                CLOCKNUM+=1;
-                println!("clock num is {}",CLOCKNUM);
+                CLOCKNUM += 1;
+                println!("clock num is {}", CLOCKNUM);
             }
             TASKS.run_next_task();
         }
@@ -770,7 +747,8 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             panic!(
                 "Unsupported trap {:?}, stval = {:#x}, sepc = {:#x}",
                 scause.cause(),
-                stval, sepc
+                stval,
+                sepc
             );
         }
     }
@@ -830,13 +808,13 @@ static KERNEL2_STACK: KernelStack = KernelStack {
 };
 
 #[no_mangle]
-#[link_section=".usrapp.entry"]
+#[link_section = ".usrapp.entry"]
 static USER1_STACK: UserStack = UserStack {
     data: [0; USER_STACK_SIZE],
 };
 
 #[no_mangle]
-#[link_section=".usrapp.entry"]
+#[link_section = ".usrapp.entry"]
 static USER2_STACK: UserStack = UserStack {
     data: [0; USER_STACK_SIZE],
 };
@@ -845,11 +823,17 @@ impl KernelStack {
     fn get_sp(&self) -> usize {
         self.data.as_ptr() as usize + KERNEL_STACK_SIZE
     }
-    pub fn push_context(&self, trap_cx: TrapContext, task_cx: TaskContext) -> &'static mut TaskContext {
+    pub fn push_context(
+        &self,
+        trap_cx: TrapContext,
+        task_cx: TaskContext,
+    ) -> &'static mut TaskContext {
         unsafe {
-            let trap_cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
+            let trap_cx_ptr =
+                (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
             *trap_cx_ptr = trap_cx;
-            let task_cx_ptr = (trap_cx_ptr as usize - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
+            let task_cx_ptr =
+                (trap_cx_ptr as usize - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
             *task_cx_ptr = task_cx;
             task_cx_ptr.as_mut().unwrap()
         }
@@ -861,27 +845,23 @@ impl UserStack {
         self.data.as_ptr() as usize + USER_STACK_SIZE
     }
 }
-extern "C" {
-    fn __restore(cx_addr: usize); //in trap.S
-}
 
 pub fn run_usrapp1() -> ! {
     let _unused: usize = 0;
-    let tcx =TrapContext::app_init_context(
-        usr_app1_main as usize,
-        USER1_STACK.get_sp(),
+    let tcx = TrapContext::app_init_context(usr_app1_main as usize, USER1_STACK.get_sp());
+    let tptr = KERNEL1_STACK.push_context(tcx, TaskContext::goto_restore());
+    let mptr = tptr as *const _ as *const usize;
+    let mmptr = &mptr as &*const usize;
+    println!("mptr {:#x}", mptr as usize);
+    println!("mmptr {:#x}", mmptr as *const _ as *const usize as usize);
+    println!("tptr.ra {:#x}", tptr.ra);
+    println!(
+        "&unused {:#x}",
+        &_unused as *const _ as *const usize as usize
     );
-    let tptr= KERNEL1_STACK.push_context(tcx,TaskContext::goto_restore());
-    let mptr= tptr as * const _ as * const usize;
-    let mmptr= &mptr as  &* const usize;
-    println!("mptr {:#x}",mptr as usize);
-    println!("mmptr {:#x}",mmptr as * const _ as * const usize as usize);
-    println!("tptr.ra {:#x}",tptr.ra);
-    println!("&unused {:#x}",&_unused as * const _ as * const usize as usize);
 
     unsafe {
-        __switch(&_unused as *const _,
-                 mmptr as * const _ as * const usize);
+        __switch(&_unused as *const _, mmptr as *const _ as *const usize);
     }
     panic!("Unreachable in run_usrapp1!");
 }
@@ -945,16 +925,13 @@ impl Tasks {
         let next_task_cx_ptr2 = self.inner.borrow().tptr[0];
         let _unused: usize = 0;
         unsafe {
-            __switch(
-                &_unused as *const _,
-                next_task_cx_ptr2 as *const usize,
-            );
+            __switch(&_unused as *const _, next_task_cx_ptr2 as *const usize);
         }
     }
     fn run_next_task(&self) {
         let mut inner = self.inner.borrow_mut();
         let current = inner.curr;
-        let next:usize = if current == 1 { 0 } else {1};
+        let next: usize = if current == 1 { 0 } else { 1 };
 
         inner.curr = next;
         let current_task_cx_ptr2 = inner.tptr[current];
@@ -976,34 +953,29 @@ pub fn run_usrapp2() -> ! {
     let _unused: usize = 0;
     //let tcx=TaskContext::goto_restore();
     //println!("tcx {:?}", tcx);
-    let tcx =TrapContext::app_init_context(
-        usr_app2_main as usize,
-        USER2_STACK.get_sp(),
+    let tcx = TrapContext::app_init_context(usr_app2_main as usize, USER2_STACK.get_sp());
+    let tptr = KERNEL2_STACK.push_context(tcx, TaskContext::goto_restore());
+    let mptr = tptr as *const _ as *const usize;
+    let mmptr = &mptr as &*const usize;
+    println!("mptr {:#x}", mptr as usize);
+    println!("mmptr {:#x}", mmptr as *const _ as *const usize as usize);
+    println!("tptr.ra {:#x}", tptr.ra);
+    println!(
+        "&unused {:#x}",
+        &_unused as *const _ as *const usize as usize
     );
-    let tptr= KERNEL2_STACK.push_context(tcx,TaskContext::goto_restore());
-    let mptr= tptr as * const _ as * const usize;
-    let mmptr= &mptr as  &* const usize;
-    println!("mptr {:#x}",mptr as usize);
-    println!("mmptr {:#x}",mmptr as * const _ as * const usize as usize);
-    println!("tptr.ra {:#x}",tptr.ra);
-    println!("&unused {:#x}",&_unused as * const _ as * const usize as usize);
 
     unsafe {
-        __switch(&_unused as *const _,
-                 mmptr as * const _ as * const usize);
+        __switch(&_unused as *const _, mmptr as *const _ as *const usize);
     }
     panic!("Unreachable in run_usrapp2!");
 }
-
 
 //--------------------task manage -----------------------
 global_asm!(include_str!("switch.S"));
 
 extern "C" {
-    pub fn __switch(
-        current_task_cx_ptr2: *const usize,
-        next_task_cx_ptr2: *const usize
-    );
+    pub fn __switch(current_task_cx_ptr2: *const usize, next_task_cx_ptr2: *const usize);
 }
 
 #[repr(C)]
@@ -1022,51 +994,8 @@ impl TaskContext {
     }
 }
 
-// static mut tctx1:TaskContext=unsafe {TaskContext{ra:0x80020610 as usize,s:[0;12]}};
-// static mut tctx2:TaskContext=unsafe {TaskContext{ra:0x80020610 as usize,s:[0;12]}};
-//static mut tctx2:TaskContext=TaskContext{ra:__restore as usize,s:[0;12]};
-// static mut tctx2:TaskContext=TaskContext::goto_restore();
-
-// lazy_static! {
-//     pub mut static ref TK1:  TaskContext = KERNEL1_STACK.push_context(
-//         TrapContext::app_init_context(usr_app1_main as usize, USER1_STACK.get_sp()),
-//         TaskContext::goto_restore(),
-//     );
-//     pub mut static ref TK2:  TaskContext = KERNEL2_STACK.push_context(
-//         TrapContext::app_init_context(usr_app2_main as usize, USER2_STACK.get_sp()),
-//         TaskContext::goto_restore(),
-//     );
-// }
-
-// pub fn suspend_current_and_run_next() {
-//     // mark_current_suspended();
-//     // run_next_task();
-// }
-
-// pub fn init_app_cx() ->[&'static mut TaskContext;2]{
-//     let tk_ctx1=KERNEL1_STACK.push_context(
-//         TrapContext::app_init_context(usr_app1_main as usize, USER1_STACK.get_sp()),
-//         TaskContext::goto_restore(),
-//     );
-//     let tk_ctx2= KERNEL2_STACK.push_context(
-//         TrapContext::app_init_context(usr_app2_main as usize, USER2_STACK.get_sp()),
-//         TaskContext::goto_restore(),
-//     );
-// //
-// }
-
-// fn run_first_task() {
-//     let next_task_cx_ptr2:usize = 0;
-//     let _unused: usize = 0;
-//     unsafe {
-//         __switch(
-//             &_unused as *const _,
-//             & next_task_cx_ptr2 as *const _,
-//         );
-//     }
-// }
 //========= timer device =========================
-static mut CLOCKNUM:u64=0;
+static mut CLOCKNUM: u64 = 0;
 
 pub fn enable_timer_interrupt() {
     unsafe {
@@ -1091,7 +1020,6 @@ pub fn set_next_trigger() {
     set_timer(get_time() + CLOCK_FREQ / TICKS_PER_SEC);
 }
 
-
 //-------------------------------------------------------
 
 fn clear_bss() {
@@ -1099,13 +1027,11 @@ fn clear_bss() {
         fn sbss();
         fn ebss();
     }
-    (sbss as usize..ebss as usize).for_each(|a| {
-        unsafe { (a as *mut u8).write_volatile(0) }
-    });
+    (sbss as usize..ebss as usize).for_each(|a| unsafe { (a as *mut u8).write_volatile(0) });
 }
 
 #[no_mangle]
-#[link_section=".text.entry"]
+#[link_section = ".text.entry"]
 extern "C" fn rust_main() {
     extern "C" {
         fn stext();
@@ -1133,24 +1059,39 @@ extern "C" fn rust_main() {
         "boot_stack [{:#x}, {:#x})",
         boot_stack as usize, boot_stack_top as usize
     );
-    println!(".stack [{:#x}, {:#x})", stack_begin as usize, stack_end as usize);
+    println!(
+        ".stack [{:#x}, {:#x})",
+        stack_begin as usize, stack_end as usize
+    );
     println!("__restore {:#x}", __restore as usize);
     println!("user_begin {:#x}", user_begin as usize);
     println!("syscall-fn {:#x}", syscall as usize);
     println!("sys_exit-fn {:#x}", sys_exit as usize);
     println!("usrapp1 entry {:#x}", usr_app1_main as usize);
     println!("usrapp2 entry {:#x}", usr_app2_main as usize);
-    println!("usrapp1 stack {:#x} ~ {:#x}", USER1_STACK.data.as_ptr() as usize,
-             USER1_STACK.data.as_ptr() as usize + USER_STACK_SIZE);
-    println!("usrapp2 stack {:#x} ~ {:#x}", USER2_STACK.data.as_ptr() as usize,
-             USER2_STACK.data.as_ptr() as usize + USER_STACK_SIZE);
-    println!("kernel1 stack {:#x} ~ {:#x}", KERNEL1_STACK.data.as_ptr() as usize,
-             KERNEL1_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE);
-    println!("kernel2 stack {:#x} ~ {:#x}", KERNEL2_STACK.data.as_ptr() as usize,
-             KERNEL2_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE);
+    println!(
+        "usrapp1 stack {:#x} ~ {:#x}",
+        USER1_STACK.data.as_ptr() as usize,
+        USER1_STACK.data.as_ptr() as usize + USER_STACK_SIZE
+    );
+    println!(
+        "usrapp2 stack {:#x} ~ {:#x}",
+        USER2_STACK.data.as_ptr() as usize,
+        USER2_STACK.data.as_ptr() as usize + USER_STACK_SIZE
+    );
+    println!(
+        "kernel1 stack {:#x} ~ {:#x}",
+        KERNEL1_STACK.data.as_ptr() as usize,
+        KERNEL1_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE
+    );
+    println!(
+        "kernel2 stack {:#x} ~ {:#x}",
+        KERNEL2_STACK.data.as_ptr() as usize,
+        KERNEL2_STACK.data.as_ptr() as usize + KERNEL_STACK_SIZE
+    );
     //----page-grained allocation-------------------
     unsafe {
-        HEAP_START=ekernel as usize +4096;
+        HEAP_START = ekernel as usize + 4096;
         HEAP_SIZE = user_begin as usize - HEAP_START;
         println!("HEAP_START {:#x}, HEAP_SIZE {:#x}", HEAP_START, HEAP_SIZE);
     }
@@ -1169,7 +1110,7 @@ extern "C" fn rust_main() {
         );
     }
     //------------- test trap handler ----------------------
-    
+
     //--------------- test paging code -------------------
     // let ptr = 0x80600000 as *const u8;
     // unsafe{ let c = *ptr; println!("{}",c); }
@@ -1186,7 +1127,7 @@ extern "C" fn rust_main() {
 //======================= USR MODE APP =========================
 //========= usr mode syscall ==============
 #[no_mangle]
-#[link_section=".usrapp.entry"]
+#[link_section = ".usrapp.entry"]
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
     unsafe {
@@ -1201,27 +1142,24 @@ fn syscall(id: usize, args: [usize; 3]) -> isize {
 }
 
 #[no_mangle]
-#[link_section=".usrapp.entry"]
+#[link_section = ".usrapp.entry"]
 pub fn sys_exit(xstate: i32) -> isize {
     syscall(SYSCALL_EXIT, [xstate as usize, 0, 0])
 }
 
 #[no_mangle]
-#[link_section=".usrapp.entry"]
+#[link_section = ".usrapp.entry"]
 pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
     syscall(SYSCALL_WRITE, [fd, buffer.as_ptr() as usize, buffer.len()])
 }
 
 //=============== usr mode console ==================
-#[no_mangle]
-#[link_section=".usrapp.entry"]
+
 struct Ustdout;
 
-#[no_mangle]
-#[link_section=".usrapp.entry"]
 impl Write for Ustdout {
-#[no_mangle]
-#[link_section=".usrapp.entry"]
+    #[no_mangle]
+    #[link_section = ".usrapp.entry"]
     fn write_str(&mut self, s: &str) -> fmt::Result {
         sys_write(STDOUT, s.as_bytes());
         Ok(())
@@ -1229,13 +1167,13 @@ impl Write for Ustdout {
 }
 
 #[no_mangle]
-#[link_section=".usrapp.entry"]
+#[link_section = ".usrapp.entry"]
 pub fn uconsole_print(args: fmt::Arguments) {
     Ustdout.write_fmt(args).unwrap();
 }
 
 #[no_mangle]
-#[link_section=".usrapp.entry"]
+#[link_section = ".usrapp.entry"]
 #[macro_export]
 macro_rules! uprint {
     ($fmt: literal $(, $($arg: tt)+)?) => {
@@ -1244,7 +1182,7 @@ macro_rules! uprint {
 }
 
 #[no_mangle]
-#[link_section=".usrapp.entry"]
+#[link_section = ".usrapp.entry"]
 #[macro_export]
 macro_rules! uprintln {
     ($fmt: literal $(, $($arg: tt)+)?) => {
@@ -1256,54 +1194,27 @@ macro_rules! uprintln {
 #[no_mangle]
 #[link_section = ".usrapp.entry"]
 extern "C" fn usr_app1_main() {
-    //uprintln!("Usrapp: Hello, world!");
-    sys_write(STDOUT,"[usr_app1_main] Hello world!\n".as_bytes());
+    sys_write(STDOUT, "[usr_app1_main] Hello world!\n".as_bytes());
 
-    //------ test timer interrupt. uncomment below lines ----------------
-    let mut i:u32=0;
-    let mut j:u32=0;
-    loop{
-        while i <1000000 {
-            i+=1;
-        }
-        i=0;
-        j+=1;
-        if j >50 {
-            sys_exit(2);
-        }
-        unsafe {
-            sys_write(STDOUT,"[usr_app1_main] loop...\n".as_bytes());
-        }
-    };
-    //------ test timer interrupt. uncomment below lines ----------------
+    loop {
+            sys_write(STDOUT, "1.".as_bytes());
 
-    sys_exit(3);
+    }
+
+    //sys_exit(3);
 }
 
 //================ userapp1 main =============================
 #[no_mangle]
 #[link_section = ".usrapp.entry"]
 extern "C" fn usr_app2_main() {
-    //uprintln!("Usrapp: Hello, world!");
-    sys_write(STDOUT,"[usr_app2_main] Hello world!\n".as_bytes());
+    sys_write(STDOUT, "[usr_app2_main] Hello world!\n".as_bytes());
 
-    //------ test timer interrupt. uncomment below lines ----------------
-    let mut i:u64=0;
-    let mut j:u64=0;
-    loop{
-        while i <8000000000 {
-            i+=1;
-        }
-        i=0;
-        j+=1;
-        if j >50 {
-            sys_exit(6);
-        }
-        unsafe {
-            sys_write(STDOUT,"[usr_app2_main] loop...\n".as_bytes());
-        }
-    };
-    //------ test timer interrupt. uncomment below lines ----------------
+    loop {
 
-    sys_exit(7);
+            sys_write(STDOUT, "2.".as_bytes());
+
+    }
+
+    //sys_exit(7);
 }
