@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
-#virtio-drivers = { git = "https://github.com/rcore-os/virtio-drivers" }
+virtio-drivers = { git = "https://github.com/rcore-os/virtio-drivers" }
 #easy-fs = { path = "../easy-fs" }
