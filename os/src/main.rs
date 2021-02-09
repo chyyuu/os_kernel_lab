@@ -978,11 +978,11 @@ pub fn block_op(dev: usize, buffer: *mut u8, size: u32, offset: u64, write: bool
     }
 }
 
-pub fn read(dev: usize, buffer: *mut u8, size: u32, offset: u64) {
+pub fn blk_read(dev: usize, buffer: *mut u8, size: u32, offset: u64) {
     block_op(dev, buffer, size, offset, false);
 }
 
-pub fn write(dev: usize, buffer: *mut u8, size: u32, offset: u64) {
+pub fn blk_write(dev: usize, buffer: *mut u8, size: u32, offset: u64) {
     block_op(dev, buffer, size, offset, true);
 }
 
@@ -1340,6 +1340,54 @@ pub fn handle_interrupt(interrupt: u32) {
         }
     }
 }
+
+fn test_virtio_blk_device(){
+    // Set up virtio. This requires a working heap and page-grained allocator.
+    virtio_probe();
+    // This just tests the block device. We know that it connects backwards (8, 7, ..., 1).
+    let buffer = kmalloc(1024);
+    // Offset 1024 is the first block, which is the superblock. In the minix 3 file system, the first
+    // block is the "boot block", which in our case will be 0.
+    blk_read(8, buffer, 512, 1024);
+    let mut i = 0;
+    loop {
+        if i > 100_000_000 {
+            break;
+        }
+        i += 1;
+    }
+    println!("Test hdd.dsk ....");
+    unsafe {
+        print!("  ");
+        for i in 0..16 {
+            print!("{:02x} ", buffer.add(i).read());
+        }
+        println!(" ");
+        print!("  ");
+        for i in 0..16 {
+            print!("{:02x} ", buffer.add(16+i).read());
+        }
+        println!(" ");
+        print!("  ");
+        for i in 0..16 {
+            print!("{:02x} ", buffer.add(32+i).read());
+        }
+        println!(" ");
+        print!("  ");
+        for i in 0..16 {
+            print!("{:02x} ", buffer.add(48+i).read());
+        }
+        println!(" ");
+        buffer.add(0).write(0xaa);
+        buffer.add(1).write(0xbb);
+        buffer.add(2).write(0x7a);
+
+    }
+    blk_write(8, buffer, 512, 0);
+    // Free the testing buffer.
+    kfree(buffer);
+    println!("Test hdd.dsk  OK!");
+}
 //------------------------------------------------------------------
 
 
@@ -1395,7 +1443,8 @@ extern "C" fn rust_main() {
     test_page_allocation();
     kmem_init();
     test_alloc();
-    virtio_probe();
+    test_virtio_blk_device();
+
     println!("[kernel] OK ALL! Shutdown!");
     shutdown();
     //panic!("NO! should not come here");
