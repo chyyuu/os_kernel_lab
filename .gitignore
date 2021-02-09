@@ -2,4 +2,4 @@
 os/target/*
 os/.idea/*
 Cargo.lock
-hdd.dsk
+*.dsk
