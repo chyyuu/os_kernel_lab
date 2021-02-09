@@ -19,6 +19,11 @@ global_asm!(include_str!("entry.asm"));
 use core::panic::PanicInfo;
 use core::fmt::{self, Write};
 
+use lazy_static::*;
+use bitflags::*;
+use spin::Mutex;
+use alloc::sync::Arc;
+
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
@@ -681,25 +686,85 @@ pub fn test_alloc() {
     a.push(3);
     assert_eq!(a[0],3);
 }
+
+
+//---------user buffer ----------------------------
+pub struct UserBuffer {
+    pub buffers: Vec<&'static mut [u8]>,
+}
+
+impl UserBuffer {
+    pub fn new(buffers: Vec<&'static mut [u8]>) -> Self {
+        Self { buffers }
+    }
+    pub fn len(&self) -> usize {
+        let mut total: usize = 0;
+        for b in self.buffers.iter() {
+            total += b.len();
+        }
+        total
+    }
+}
+
+impl IntoIterator for UserBuffer {
+    type Item = *mut u8;
+    type IntoIter = UserBufferIterator;
+    fn into_iter(self) -> Self::IntoIter {
+        UserBufferIterator {
+            buffers: self.buffers,
+            current_buffer: 0,
+            current_idx: 0,
+        }
+    }
+}
+
+pub struct UserBufferIterator {
+    buffers: Vec<&'static mut [u8]>,
+    current_buffer: usize,
+    current_idx: usize,
+}
+
+impl Iterator for UserBufferIterator {
+    type Item = *mut u8;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current_buffer >= self.buffers.len() {
+            None
+        } else {
+            let r = &mut self.buffers[self.current_buffer][self.current_idx] as *mut _;
+            if self.current_idx + 1 == self.buffers[self.current_buffer].len() {
+                self.current_idx = 0;
+                self.current_buffer += 1;
+            } else {
+                self.current_idx += 1;
+            }
+            Some(r)
+        }
+    }
+}
 //--------------------block device------------------------------------------
 pub const MEMORY_END: usize = 0x80800000;
 pub const MEMORY_DMA: usize = MEMORY_END - 0x100000;
 pub const VIRTIO0: usize = 0x10001000;
 
 use virtio_drivers::{VirtIOBlk, VirtIOHeader};
+use easy_fs::BlockDevice;
 
-pub trait BlockDevice {
-    fn read_block(&mut self, block_id: usize, buf: &mut [u8]);
-    fn write_block(&mut self, block_id: usize, buf: &[u8]);
-}
+// pub trait BlockDevice: Send + Sync + Any  {
+//     fn read_block(&mut self, block_id: usize, buf: &mut [u8]);
+//     fn write_block(&mut self, block_id: usize, buf: &[u8]);
+// }
 
 pub struct VirtIOBlock(VirtIOBlk<'static>);
 
 type BlockDeviceImpl = VirtIOBlock;
 
-//test_block_device() will write disk, so comment this function when test fs.
+lazy_static! {
+    pub static ref BLOCK_DEVICE: Arc<dyn BlockDevice> = Arc::new(BlockDeviceImpl::new());
+}
+
+test_block_device() will write disk, so comment this function when test fs.
 pub fn test_block_device() {
-    let mut block_device = BlockDeviceImpl::new();
+    let block_device = BlockDeviceImpl::new();
     let mut write_buffer = [0u8; 512];
     let mut read_buffer =  [0u8; 512];
     for i in 0..512 {
@@ -716,10 +781,10 @@ pub fn test_block_device() {
 
 
 impl BlockDevice for VirtIOBlock {
-    fn read_block(&mut self, block_id: usize, buf: &mut [u8]) {
+    fn read_block(&self, block_id: usize, buf: &mut [u8]) {
         self.0.read_block(block_id, buf).expect("Error when reading VirtIOBlk");
     }
-    fn write_block(&mut self, block_id: usize, buf: &[u8]) {
+    fn write_block(&self, block_id: usize, buf: &[u8]) {
         self.0.write_block(block_id, buf).expect("Error when writing VirtIOBlk");
     }
 }
@@ -761,7 +826,177 @@ extern "C" fn virtio_virt_to_phys(vaddr: VirtAddr) -> PhysAddr {
 
 type VirtAddr = usize;
 type PhysAddr = usize;
-//---------------------------------------------------------------
+//-------------------------fs--------------------------------------
+use core::any::Any;
+use easy_fs::{
+    EasyFileSystem,
+    Inode,
+};
+pub trait File : Any + Send + Sync {
+    fn readable(&self) -> bool;
+    fn writable(&self) -> bool;
+    fn read(&self, buf: UserBuffer) -> usize;
+    fn write(&self, buf: UserBuffer) -> usize;
+    fn as_any_ref(&self) -> &dyn Any;
+}
+
+impl dyn File {
+    #[allow(unused)]
+    pub fn downcast_ref<T: File>(&self) -> Option<&T> {
+        self.as_any_ref().downcast_ref::<T>()
+    }
+}
+
+pub struct OSInode {
+    readable: bool,
+    writable: bool,
+    inner: Mutex<OSInodeInner>,
+}
+
+pub struct OSInodeInner {
+    offset: usize,
+    inode: Arc<Inode>,
+}
+
+impl OSInode {
+    pub fn new(
+        readable: bool,
+        writable: bool,
+        inode: Arc<Inode>,
+    ) -> Self {
+        Self {
+            readable,
+            writable,
+            inner: Mutex::new(OSInodeInner {
+                offset: 0,
+                inode,
+            }),
+        }
+    }
+    pub fn read_all(&self) -> Vec<u8> {
+        let mut inner = self.inner.lock();
+        let mut buffer = [0u8; 512];
+        let mut v: Vec<u8> = Vec::new();
+        loop {
+            let len = inner.inode.read_at(inner.offset, &mut buffer);
+            if len == 0 {
+                break;
+            }
+            inner.offset += len;
+            v.extend_from_slice(&buffer[..len]);
+        }
+        v
+    }
+}
+
+lazy_static! {
+    pub static ref ROOT_INODE: Arc<Inode> = {
+        let efs = EasyFileSystem::open(BLOCK_DEVICE.clone());
+        Arc::new(EasyFileSystem::root_inode(&efs))
+    };
+}
+
+pub fn list_apps() {
+    println!("/**** APPS ****");
+    for app in ROOT_INODE.ls() {
+        println!("{}", app);
+    }
+    println!("**************/")
+}
+
+
+bitflags! {
+    pub struct OpenFlags: u32 {
+        const RDONLY = 0;
+        const WRONLY = 1 << 0;
+        const RDWR = 1 << 1;
+        const CREATE = 1 << 9;
+        const TRUNC = 1 << 10;
+    }
+}
+
+impl OpenFlags {
+    /// Do not check validity for simplicity
+    /// Return (readable, writable)
+    pub fn read_write(&self) -> (bool, bool) {
+        if self.is_empty() {
+            (true, false)
+        } else if self.contains(Self::WRONLY) {
+            (false, true)
+        } else {
+            (true, true)
+        }
+    }
+}
+
+pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
+    let (readable, writable) = flags.read_write();
+    if flags.contains(OpenFlags::CREATE) {
+        if let Some(inode) = ROOT_INODE.find(name) {
+            // clear size
+            inode.clear();
+            Some(Arc::new(OSInode::new(
+                readable,
+                writable,
+                inode,
+            )))
+        } else {
+            // create file
+            ROOT_INODE.create(name)
+                .map(|inode| {
+                    Arc::new(OSInode::new(
+                        readable,
+                        writable,
+                        inode,
+                    ))
+                })
+        }
+    } else {
+        ROOT_INODE.find(name)
+            .map(|inode| {
+                if flags.contains(OpenFlags::TRUNC) {
+                    inode.clear();
+                }
+                Arc::new(OSInode::new(
+                    readable,
+                    writable,
+                    inode
+                ))
+            })
+    }
+}
+
+impl File for OSInode {
+    fn readable(&self) -> bool { self.readable }
+    fn writable(&self) -> bool { self.writable }
+    fn read(&self, mut buf: UserBuffer) -> usize {
+        let mut inner = self.inner.lock();
+        let mut total_read_size = 0usize;
+        for slice in buf.buffers.iter_mut() {
+            let read_size = inner.inode.read_at(inner.offset, *slice);
+            if read_size == 0 {
+                break;
+            }
+            inner.offset += read_size;
+            total_read_size += read_size;
+        }
+        total_read_size
+    }
+    fn write(&self, buf: UserBuffer) -> usize {
+        let mut inner = self.inner.lock();
+        let mut total_write_size = 0usize;
+        for slice in buf.buffers.iter() {
+            let write_size = inner.inode.write_at(inner.offset, *slice);
+            assert_eq!(write_size, slice.len());
+            inner.offset += write_size;
+            total_write_size += write_size;
+        }
+        total_write_size
+    }
+    fn as_any_ref(&self) -> &dyn Any { self }
+}
+//--------------------------------------------------------------------------------
+
 
 fn clear_bss() {
     extern "C" {
