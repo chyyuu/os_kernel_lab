@@ -697,6 +697,7 @@ pub struct VirtIOBlock(VirtIOBlk<'static>);
 
 type BlockDeviceImpl = VirtIOBlock;
 
+//test_block_device() will write disk, so comment this function when test fs.
 pub fn test_block_device() {
     let mut block_device = BlockDeviceImpl::new();
     let mut write_buffer = [0u8; 512];
@@ -814,7 +815,8 @@ extern "C" fn rust_main() {
     test_page_allocation();
     kmem_init();
     test_alloc();
-    test_block_device();
+    //test_block_device() will write disk, so comment this function when test fs.
+    //test_block_device();
     println!("[kernel] OK ALL! Shutdown!");
     shutdown();
     panic!("NO! should not come here");
