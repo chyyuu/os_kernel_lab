@@ -896,7 +896,7 @@ lazy_static! {
     };
 }
 
-pub fn list_apps() {
+pub fn test_fs_list_apps() {
     println!("/**** APPS ****");
     for app in ROOT_INODE.ls() {
         println!("{}", app);
@@ -1052,6 +1052,7 @@ extern "C" fn rust_main() {
     test_alloc();
     //test_block_device() will write disk, so comment this function when test fs.
     //test_block_device();
+    test_fs_list_apps();
     println!("[kernel] OK ALL! Shutdown!");
     shutdown();
     panic!("NO! should not come here");
