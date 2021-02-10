@@ -754,7 +754,7 @@ use easy_fs::BlockDevice;
 //     fn write_block(&mut self, block_id: usize, buf: &[u8]);
 // }
 
-pub struct VirtIOBlock(VirtIOBlk<'static>);
+pub struct VirtIOBlock(Mutex<VirtIOBlk<'static>>);
 
 type BlockDeviceImpl = VirtIOBlock;
 
@@ -762,7 +762,7 @@ lazy_static! {
     pub static ref BLOCK_DEVICE: Arc<dyn BlockDevice> = Arc::new(BlockDeviceImpl::new());
 }
 
-test_block_device() will write disk, so comment this function when test fs.
+//test_block_device() will write disk, so comment this function when test fs.
 pub fn test_block_device() {
     let block_device = BlockDeviceImpl::new();
     let mut write_buffer = [0u8; 512];
@@ -782,18 +782,18 @@ pub fn test_block_device() {
 
 impl BlockDevice for VirtIOBlock {
     fn read_block(&self, block_id: usize, buf: &mut [u8]) {
-        self.0.read_block(block_id, buf).expect("Error when reading VirtIOBlk");
+        self.0.lock().read_block(block_id, buf).expect("Error when reading VirtIOBlk");
     }
     fn write_block(&self, block_id: usize, buf: &[u8]) {
-        self.0.write_block(block_id, buf).expect("Error when writing VirtIOBlk");
+        self.0.lock().write_block(block_id, buf).expect("Error when writing VirtIOBlk");
     }
 }
 
 impl VirtIOBlock {
     pub fn new() -> Self {
-        Self(VirtIOBlk::new(
+        Self(Mutex::new(VirtIOBlk::new(
             unsafe { &mut *(VIRTIO0 as *mut VirtIOHeader) }
-        ).expect("failed to create blk driver"))
+        ).unwrap()))
     }
 }
 
