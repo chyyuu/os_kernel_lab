@@ -98,7 +98,7 @@ impl TaskControlBlock {
             .ppn();
 
         // **** hold current PCB lock
-        let mut inner = self.inner.lock();
+        let mut inner = self.acquire_inner_lock();
         // substitute memory_set
         inner.memory_set = memory_set;
         // update trap_cx ppn
@@ -120,7 +120,7 @@ impl TaskControlBlock {
     }
     pub fn fork(self: &Arc<TaskControlBlock>) -> Arc<TaskControlBlock> {
         // ---- hold parent PCB lock
-        let mut parent_inner = self.inner.lock();
+        let mut parent_inner = self.acquire_inner_lock();
         // copy user space(include trap context)
         let memory_set = MemorySet::from_existed_user(
             &parent_inner.memory_set
