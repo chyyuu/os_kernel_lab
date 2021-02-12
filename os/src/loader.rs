@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use lazy_static::*;
 
 pub fn get_num_app() -> usize {
     extern "C" { fn _num_app(); }
@@ -21,41 +22,40 @@ pub fn get_app_data(app_id: usize) -> &'static [u8] {
     }
 }
 
+lazy_static! {
+    static ref APP_NAMES: Vec<&'static str> = {
+        let num_app = get_num_app();
+        extern "C" { fn _app_names(); }
+        let mut start = _app_names as usize as *const u8;
+        let mut v = Vec::new();
+        unsafe {
+            for _ in 0..num_app {
+                let mut end = start;
+                while end.read_volatile() != '\0' as u8 {
+                    end = end.add(1);
+                }
+                let slice = core::slice::from_raw_parts(start, end as usize - start as usize);
+                let str = core::str::from_utf8(slice).unwrap();
+                v.push(str);
+                start = end.add(1);
+            }
+        }
+        v
+    };
+}
+
+
 #[allow(unused)]
 pub fn get_app_data_by_name(name: &str) -> Option<&'static [u8]> {
     let num_app = get_num_app();
-    let app_names = app_names();
     (0..num_app)
-        .find(|&i| app_names[i] == name)
+        .find(|&i| APP_NAMES[i] == name)
         .map(|i| get_app_data(i))
 }
 
-#[allow(unused)]
-fn app_names() -> Vec<&'static str> {
-    let num_app = get_num_app();
-    extern "C" { fn _app_names(); }
-    let mut start = _app_names as usize as *const u8;
-    let mut v = Vec::new();
-    unsafe {
-        for _ in 0..num_app {
-            let mut end = start;
-            while end.read_volatile() != '\n' as u8 {
-                end = end.add(1);
-            }
-            let slice = core::slice::from_raw_parts(start, end as usize - start as usize);
-            let str = core::str::from_utf8(slice).unwrap();
-            v.push(str);
-            // Mention that there is a extra char between names
-            start = end.add(2);
-        }
-    }
-    v
-}
-
 pub fn list_apps() {
-    let apps = app_names();
     println!("/**** APPS ****");
-    for app in apps {
+    for app in APP_NAMES.iter() {
         println!("{}", app);
     }
     println!("**************/")
