@@ -80,7 +80,8 @@ fn efs_test()->std::io::Result<()>{
 
     println!("write files in efs OK!");
     //--------------------------------
-
+    let efs = EasyFileSystem::open(blk.clone());
+    let mut root_inode = EasyFileSystem::root_inode(&efs);
     let filea = root_inode.find("hello.txt").unwrap();
     let mut buffer = [0u8; 512];
     let len = filea.read_at(0, &mut buffer);

@@ -256,6 +256,28 @@ impl EasyFileSystem {
         });
         Arc::new(Mutex::new(efs))
     }
+    pub fn open(block_device: Arc<dyn BlockDevice>) -> Arc<Mutex<Self>> {
+        // read SuperBlock
+        let super_block_dirty: Dirty<SuperBlock> = Dirty::new(0, 0, block_device.clone());
+        let super_block = super_block_dirty.get_ref();
+        assert!(super_block.is_valid(), "Error loading EFS!");
+        let inode_total_blocks =
+            super_block.inode_bitmap_blocks + super_block.inode_area_blocks;
+        let efs = Self {
+            block_device,
+            inode_bitmap: Bitmap::new(
+                1,
+                super_block.inode_bitmap_blocks as usize
+            ),
+            data_bitmap: Bitmap::new(
+                (1 + inode_total_blocks) as usize,
+                super_block.data_bitmap_blocks as usize,
+            ),
+            inode_area_start_block: 1 + super_block.inode_bitmap_blocks,
+            data_area_start_block: 1 + inode_total_blocks + super_block.data_bitmap_blocks,
+        };
+        Arc::new(Mutex::new(efs))
+    }
 
     pub fn root_inode(efs: &Arc<Mutex<Self>>) -> Inode {
         Inode::new(
