@@ -35,6 +35,13 @@ fn efs_test()->std::io::Result<()>{
         f.set_len(8192 * 512).unwrap();
         f
     });
+
+    let rb=[b'b';512];
+    let  mut wb=[b'a';512];
+    assert_ne!(rb,wb);
+    blkfs.write_block(0, &rb);
+    blkfs.read_block(0,&mut wb);
+    assert_eq!(rb,wb);
     Ok(())
 }
 fn main() {
