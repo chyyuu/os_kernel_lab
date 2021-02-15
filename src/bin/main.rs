@@ -53,6 +53,43 @@ fn efs_test()->std::io::Result<()>{
     let efs = EasyFileSystem::create(blk.clone(), 8192, 1);
     let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
     println!("create efs img OK!");
+    let apps: Vec<(String, String)> = read_dir("./mytest")
+        .unwrap()
+        .into_iter()
+        .map(|dir_entry| {
+            let mut name_with_ext = dir_entry.unwrap().file_name().into_string().unwrap();
+            //name_with_ext.drain(name_with_ext.find('.').unwrap()..name_with_ext.len());
+            let name_with_dir=format!("{}{}", "./mytest/",name_with_ext);
+            (name_with_dir,name_with_ext)
+        })
+        .collect();
+    for app in apps {
+        // load app data from host file systemname_with_ext
+        let mut host_file = File::open(&app.0).unwrap();
+        let mut all_data: Vec<u8> = Vec::new();
+        host_file.read_to_end(&mut all_data).unwrap();
+        // create a file in easy-fs
+        let inode = root_inode.create(&app.1).unwrap();
+        // write data to easy-fs
+        inode.write_at(0, all_data.as_slice());
+    }
+    // list apps
+    for app in root_inode.ls() {
+        println!("{}", app);
+    }
+
+    println!("write files in efs OK!");
+    //--------------------------------
+
+    let filea = root_inode.find("hello.txt").unwrap();
+    let mut buffer = [0u8; 512];
+    let len = filea.read_at(0, &mut buffer);
+    let greet_str = "Hello\n";
+    assert_eq!(
+        greet_str,
+        core::str::from_utf8(&buffer[..len]).unwrap(),
+    );
+    println!("read files in efs OK!");
     Ok(())
 }
 fn main() {
