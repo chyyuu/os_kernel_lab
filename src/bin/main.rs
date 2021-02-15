@@ -1,8 +1,10 @@
+extern crate alloc;
+
 use std::fs::{read_dir, File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::sync::Mutex;
 use efs::{BlockDevice,SuperBlock, EasyFileSystem,BLOCK_SZ};
-
+use alloc::sync::Arc;
 
 //------------faked block device---------------------------------
 
@@ -27,7 +29,7 @@ impl BlockDevice for BlockFile {
 
 //---------------------------test -------------------------------------
 fn efs_test()->std::io::Result<()>{
-    let mut blk=BlockFile(Mutex::new({
+    let mut blk= Arc::new(BlockFile(Mutex::new({
         //create block file efs.img
         let f=OpenOptions::new()
             .read(true)
@@ -37,7 +39,7 @@ fn efs_test()->std::io::Result<()>{
         //4MB block file
         f.set_len(8192 * 512).unwrap();
         f
-    }));
+    })));
 
     let mut rb=[b'b';512];
     let wb=[b'a';512];
@@ -47,8 +49,10 @@ fn efs_test()->std::io::Result<()>{
     assert_eq!(rb,wb);
     println!("test block device file write/read OK!");
 
-    // let blkfs=::new(&mut blk);
-    //let efs = EasyFileSystem::create(blkfs, 8192, 1);
+    // 4MiB, at most 4095 files
+    let efs = EasyFileSystem::create(blk.clone(), 8192, 1);
+    let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
+    println!("create efs img OK!");
     Ok(())
 }
 fn main() {
