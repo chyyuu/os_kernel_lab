@@ -1,13 +1,13 @@
 use super::TaskControlBlock;
 use alloc::sync::Arc;
-use spin::Mutex;
+use core::cell::RefCell;
 use lazy_static::*;
 use super::{fetch_task, TaskStatus};
 use super::__switch;
 use crate::trap::TrapContext;
 
 pub struct Processor {
-    inner: Mutex<ProcessorInner>,
+    inner: RefCell<ProcessorInner>,
 }
 
 unsafe impl Sync for Processor {}
@@ -20,14 +20,14 @@ struct ProcessorInner {
 impl Processor {
     pub fn new() -> Self {
         Self {
-            inner: Mutex::new(ProcessorInner {
+            inner: RefCell::new(ProcessorInner {
                 current: None,
                 idle_task_cx_ptr: 0,
             }),
         }
     }
     fn get_idle_task_cx_ptr2(&self) -> *const usize {
-        let inner = self.inner.lock();
+        let inner = self.inner.borrow();
         &inner.idle_task_cx_ptr as *const usize
     }
     pub fn run(&self) {
@@ -38,7 +38,7 @@ impl Processor {
                 let next_task_cx_ptr2 = task.acquire_inner_lock().get_task_cx_ptr2();
                 task.acquire_inner_lock().task_status = TaskStatus::Running;
                 // release
-                self.inner.lock().current = Some(task);
+                self.inner.borrow_mut().current = Some(task);
                 unsafe {
                     __switch(
                         idle_task_cx_ptr2,
@@ -49,10 +49,10 @@ impl Processor {
         }
     }
     pub fn take_current(&self) -> Option<Arc<TaskControlBlock>> {
-        self.inner.lock().current.take()
+        self.inner.borrow_mut().current.take()
     }
     pub fn current(&self) -> Option<Arc<TaskControlBlock>> {
-        self.inner.lock().current.as_ref().map(|task| task.clone())
+        self.inner.borrow().current.as_ref().map(|task| task.clone())
     }
 }
 
