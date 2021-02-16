@@ -28,14 +28,13 @@ pub fn suspend_current_and_run_next() {
     // There must be an application running.
     let task = take_current_task().unwrap();
 
-    // ---- temporarily hold current PCB lock
-    let task_cx_ptr2 = task.acquire_inner_lock().get_task_cx_ptr2();
-    // ---- release current PCB lock
-
-    // ++++ temporarily hold current PCB lock
+    // ---- hold current PCB lock
+    let mut task_inner = task.acquire_inner_lock();
+    let task_cx_ptr2 = task_inner.get_task_cx_ptr2();
     // Change status to Ready
-    task.acquire_inner_lock().task_status = TaskStatus::Ready;
-    // ++++ release current PCB lock
+    task_inner.task_status = TaskStatus::Ready;
+    drop(task_inner);
+    // ---- release current PCB lock
 
     // push back to ready queue.
     add_task(task);
@@ -58,6 +57,7 @@ pub fn exit_current_and_run_next(exit_code: i32) {
     {
         let mut initproc_inner = INITPROC.acquire_inner_lock();
         for child in inner.children.iter() {
+            child.acquire_inner_lock().parent = Some(Arc::downgrade(&INITPROC));
             initproc_inner.children.push(child.clone());
         }
     }

@@ -67,7 +67,6 @@ impl TaskControlBlock {
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
             .ppn();
-        let task_status = TaskStatus::Ready;
         // alloc a pid and a kernel stack in kernel space
         let pid_handle = pid_alloc();
         let kernel_stack = KernelStack::new(&pid_handle);
@@ -81,7 +80,7 @@ impl TaskControlBlock {
                 trap_cx_ppn,
                 base_size: user_sp,
                 task_cx_ptr: task_cx_ptr as usize,
-                task_status,
+                task_status: TaskStatus::Ready,
                 memory_set,
                 parent: None,
                 children: Vec::new(),
@@ -97,9 +96,7 @@ impl TaskControlBlock {
             }),
         };
         // prepare TrapContext in user space
-        // ---- acquire child PCB lock
         let trap_cx = task_control_block.acquire_inner_lock().get_trap_cx();
-        // ---- release child PCB lock
         *trap_cx = TrapContext::app_init_context(
             entry_point,
             user_sp,
@@ -118,18 +115,13 @@ impl TaskControlBlock {
             .ppn();
 
         // **** hold current PCB lock
-        let mut inner = self.inner.lock();
+        let mut inner = self.acquire_inner_lock();
         // substitute memory_set
         inner.memory_set = memory_set;
         // update trap_cx ppn
         inner.trap_cx_ppn = trap_cx_ppn;
-        drop(inner);
-        // **** release current PCB lock manually
-
         // initialize trap_cx
-        // **** acquire current PCB lock
-        let trap_cx = self.acquire_inner_lock().get_trap_cx();
-        // **** release current PCB lock
+        let trap_cx = inner.get_trap_cx();
         *trap_cx = TrapContext::app_init_context(
             entry_point,
             user_sp,
@@ -137,10 +129,11 @@ impl TaskControlBlock {
             self.kernel_stack.get_top(),
             trap_handler as usize,
         );
+        // **** release current PCB lock
     }
     pub fn fork(self: &Arc<TaskControlBlock>) -> Arc<TaskControlBlock> {
         // ---- hold parent PCB lock
-        let mut parent_inner = self.inner.lock();
+        let mut parent_inner = self.acquire_inner_lock();
         // copy user space(include trap context)
         let memory_set = MemorySet::from_existed_user(
             &parent_inner.memory_set
@@ -149,7 +142,6 @@ impl TaskControlBlock {
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
             .ppn();
-        let task_status = TaskStatus::Ready;
         // alloc a pid and a kernel stack in kernel space
         let pid_handle = pid_alloc();
         let kernel_stack = KernelStack::new(&pid_handle);
@@ -172,7 +164,7 @@ impl TaskControlBlock {
                 trap_cx_ppn,
                 base_size: parent_inner.base_size,
                 task_cx_ptr: task_cx_ptr as usize,
-                task_status,
+                task_status: TaskStatus::Ready,
                 memory_set,
                 parent: Some(Arc::downgrade(self)),
                 children: Vec::new(),
