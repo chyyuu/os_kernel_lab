@@ -35,8 +35,10 @@ impl Processor {
             if let Some(task) = fetch_task() {
                 let idle_task_cx_ptr2 = self.get_idle_task_cx_ptr2();
                 // acquire
-                let next_task_cx_ptr2 = task.acquire_inner_lock().get_task_cx_ptr2();
-                task.acquire_inner_lock().task_status = TaskStatus::Running;
+                let mut task_inner = task.acquire_inner_lock();
+                let next_task_cx_ptr2 = task_inner.get_task_cx_ptr2();
+                task_inner.task_status = TaskStatus::Running;
+                drop(task_inner);
                 // release
                 self.inner.borrow_mut().current = Some(task);
                 unsafe {
@@ -52,7 +54,7 @@ impl Processor {
         self.inner.borrow_mut().current.take()
     }
     pub fn current(&self) -> Option<Arc<TaskControlBlock>> {
-        self.inner.borrow().current.as_ref().map(|task| task.clone())
+        self.inner.borrow().current.as_ref().map(|task| Arc::clone(task))
     }
 }
 
