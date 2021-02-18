@@ -5,7 +5,6 @@ use crate::mm::{
     UserBuffer,
 };
 use crate::task::suspend_current_and_run_next;
-use core::any::Any;
 
 pub struct Pipe {
     readable: bool,
@@ -165,5 +164,4 @@ impl File for Pipe {
             }
         }
     }
-    fn as_any_ref(&self) -> &dyn Any { self }
 }
