@@ -3,21 +3,12 @@ mod stdio;
 mod inode;
 
 use crate::mm::UserBuffer;
-use core::any::Any;
 
-pub trait File : Any + Send + Sync {
+pub trait File : Send + Sync {
     fn readable(&self) -> bool;
     fn writable(&self) -> bool;
     fn read(&self, buf: UserBuffer) -> usize;
     fn write(&self, buf: UserBuffer) -> usize;
-    fn as_any_ref(&self) -> &dyn Any;
-}
-
-impl dyn File {
-    #[allow(unused)]
-    pub fn downcast_ref<T: File>(&self) -> Option<&T> {
-        self.as_any_ref().downcast_ref::<T>()
-    }
 }
 
 pub use pipe::{Pipe, make_pipe};

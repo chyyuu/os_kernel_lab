@@ -10,7 +10,6 @@ use alloc::vec::Vec;
 use spin::Mutex;
 use super::File;
 use crate::mm::UserBuffer;
-use core::any::Any;
 
 pub struct OSInode {
     readable: bool,
@@ -157,5 +156,4 @@ impl File for OSInode {
         }
         total_write_size
     }
-    fn as_any_ref(&self) -> &dyn Any { self }
 }
