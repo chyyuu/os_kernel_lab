@@ -23,6 +23,8 @@ pub fn main() -> i32 {
         close(pipe_fd[1]);
         let mut buffer = [0u8; 32];
         let len_read = read(pipe_fd[0], &mut buffer) as usize;
+        // close read_end
+        close(pipe_fd[0]);
         assert_eq!(core::str::from_utf8(&buffer[..len_read]).unwrap(), STR);
         println!("Read OK, child process exited!");
         0
