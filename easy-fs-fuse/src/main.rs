@@ -1,6 +1,3 @@
-extern crate easy_fs;
-extern crate alloc;
-
 use easy_fs::{
     BlockDevice,
     EasyFileSystem,
@@ -8,7 +5,8 @@ use easy_fs::{
 use std::fs::{File, OpenOptions, read_dir};
 use std::io::{Read, Write, Seek, SeekFrom};
 use std::sync::Mutex;
-use alloc::sync::Arc;
+use std::sync::Arc;
+use clap::{Arg, App};
 
 const BLOCK_SZ: usize = 512;
 
@@ -34,15 +32,30 @@ fn main() {
     easy_fs_pack().expect("Error when packing easy-fs!");
 }
 
-static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
-
 fn easy_fs_pack() -> std::io::Result<()> {
+    let matches = App::new("EasyFileSystem packer")
+        .arg(Arg::with_name("source")
+            .short("s")
+            .long("source")
+            .takes_value(true)
+            .help("Executable source dir(with backslash)")
+        )
+        .arg(Arg::with_name("target")
+            .short("t")
+            .long("target")
+            .takes_value(true)
+            .help("Executable target dir(with backslash)")    
+        )
+        .get_matches();
+    let src_path = matches.value_of("source").unwrap();
+    let target_path = matches.value_of("target").unwrap();
+    println!("src_path = {}\ntarget_path = {}", src_path, target_path);
     let block_file = Arc::new(BlockFile(Mutex::new({
         let f = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open(format!("{}{}", TARGET_PATH, "fs.img"))?;
+            .open(format!("{}{}", target_path, "fs.img"))?;
         f.set_len(8192 * 512).unwrap();
         f
     })));
@@ -53,7 +66,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
         1,
     );
     let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
-    let apps: Vec<_> = read_dir("../user/src/bin")
+    let apps: Vec<_> = read_dir(src_path)
         .unwrap()
         .into_iter()
         .map(|dir_entry| {
@@ -64,7 +77,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
         .collect();
     for app in apps {
         // load app data from host file system
-        let mut host_file = File::open(format!("{}{}", TARGET_PATH, app)).unwrap();
+        let mut host_file = File::open(format!("{}{}", target_path, app)).unwrap();
         let mut all_data: Vec<u8> = Vec::new();
         host_file.read_to_end(&mut all_data).unwrap();
         // create a file in easy-fs
@@ -79,22 +92,24 @@ fn easy_fs_pack() -> std::io::Result<()> {
     Ok(())
 }
 
-/*
 #[test]
 fn efs_test() -> std::io::Result<()> {
-    let block_file = Arc::new(BlockFile(Mutex::new(
-        OpenOptions::new()
+    let block_file = Arc::new(BlockFile(Mutex::new({
+        let f = OpenOptions::new()
             .read(true)
             .write(true)
-            .open("target/fs.img")?
-    )));
+            .create(true)
+            .open("target/fs.img")?;
+        f.set_len(8192 * 512).unwrap();
+        f
+    })));
     EasyFileSystem::create(
         block_file.clone(),
         4096,
         1,
     );
     let efs = EasyFileSystem::open(block_file.clone());
-    let mut root_inode = EasyFileSystem::root_inode(&efs);
+    let root_inode = EasyFileSystem::root_inode(&efs);
     root_inode.create("filea");
     root_inode.create("fileb");
     for name in root_inode.ls() {
@@ -147,4 +162,3 @@ fn efs_test() -> std::io::Result<()> {
 
     Ok(())
 }
- */
