@@ -1,7 +1,9 @@
 use alloc::sync::Arc;
-use super::BlockDevice;
-use super::Dirty;
-use super::BLOCK_SZ;
+use super::{
+    BlockDevice,
+    BLOCK_SZ,
+    get_block_cache,
+};
 
 type BitmapBlock = [u64; 64];
 
@@ -26,41 +28,45 @@ impl Bitmap {
             blocks,
         }
     }
+
     pub fn alloc(&self, block_device: &Arc<dyn BlockDevice>) -> Option<usize> {
         for block_id in 0..self.blocks {
-            let mut dirty_bitmap_block: Dirty<BitmapBlock> = Dirty::new(
+            let pos = get_block_cache(
                 block_id + self.start_block_id as usize,
-                0,
-                block_device.clone()
-            );
-            let bitmap_block = dirty_bitmap_block.get_mut();
-            if let Some((bits64_pos, inner_pos)) = bitmap_block
-                .iter()
-                .enumerate()
-                .find(|(_, bits64)| **bits64 != u64::MAX)
-                .map(|(bits64_pos, bits64)| {
-                    (bits64_pos, bits64.trailing_ones() as usize)
-                }) {
-                // modify cache
-                bitmap_block[bits64_pos] |= 1u64 << inner_pos;
-                return Some(block_id * BLOCK_BITS + bits64_pos * 64 + inner_pos as usize);
-                // after dirty is dropped, data will be written back automatically
+                Arc::clone(block_device),
+            ).lock().modify(0, |bitmap_block: &mut BitmapBlock| {
+                if let Some((bits64_pos, inner_pos)) = bitmap_block
+                    .iter()
+                    .enumerate()
+                    .find(|(_, bits64)| **bits64 != u64::MAX)
+                    .map(|(bits64_pos, bits64)| {
+                        (bits64_pos, bits64.trailing_ones() as usize)
+                    }) {
+                    // modify cache
+                    bitmap_block[bits64_pos] |= 1u64 << inner_pos;
+                    Some(block_id * BLOCK_BITS + bits64_pos * 64 + inner_pos as usize)
+                } else {
+                    None
+                }
+            });
+            if pos.is_some() {
+                return pos;
             }
         }
         None
     }
+
     pub fn dealloc(&self, block_device: &Arc<dyn BlockDevice>, bit: usize) {
         let (block_pos, bits64_pos, inner_pos) = decomposition(bit);
-        let mut dirty_bitmap_block: Dirty<BitmapBlock> = Dirty::new(
+        get_block_cache(
             block_pos + self.start_block_id,
-            0,
-            block_device.clone(),
-        );
-        dirty_bitmap_block.modify(|bitmap_block| {
+            Arc::clone(block_device)
+        ).lock().modify(0, |bitmap_block: &mut BitmapBlock| {
             assert!(bitmap_block[bits64_pos] & (1u64 << inner_pos) > 0);
             bitmap_block[bits64_pos] -= 1u64 << inner_pos;
         });
     }
+
     pub fn maximum(&self) -> usize {
         self.blocks * BLOCK_BITS
     }
