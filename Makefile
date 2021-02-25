@@ -1,4 +1,4 @@
-DOCKER_NAME ?= blackanger/tutorial
+DOCKER_NAME ?= dinghao188/rcore-tutorial
 .PHONY: docker build_docker
 all:
 	make -C usr user_img
