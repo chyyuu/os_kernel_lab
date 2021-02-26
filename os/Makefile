@@ -6,7 +6,7 @@ KERNEL_BIN := $(KERNEL_ELF).bin
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
 FS_IMG := ../user/target/$(TARGET)/$(MODE)/fs.img
 SDCARD := /dev/sdb
-APPS := ../user/src/bin
+APPS := ../user/src/bin/*
 
 # BOARD
 BOARD ?= qemu

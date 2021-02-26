@@ -174,6 +174,7 @@ pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&
     v
 }
 
+/// Load a string from other address spaces into kernel space without an end `\0`.
 pub fn translated_str(token: usize, ptr: *const u8) -> String {
     let page_table = PageTable::from_token(token);
     let mut string = String::new();
@@ -182,12 +183,16 @@ pub fn translated_str(token: usize, ptr: *const u8) -> String {
         let ch: u8 = *(page_table.translate_va(VirtAddr::from(va)).unwrap().get_mut());
         if ch == 0 {
             break;
-        } else {
-            string.push(ch as char);
-            va += 1;
         }
+        string.push(ch as char);
+        va += 1;
     }
     string
+}
+
+pub fn translated_ref<T>(token: usize, ptr: *const T) -> &'static T {
+    let page_table = PageTable::from_token(token);
+    page_table.translate_va(VirtAddr::from(ptr as usize)).unwrap().get_ref()
 }
 
 pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
