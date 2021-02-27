@@ -122,22 +122,18 @@ impl Inode {
         }).is_some() {
             return None;
         }
-        //println!("same file does not exist in Inode::create.");
         // create a new file
         // alloc a inode with an indirect block
         let new_inode_id = fs.alloc_inode();
-        let indirect1 = fs.alloc_data();
         // initialize inode
         let (new_inode_block_id, new_inode_block_offset) 
             = fs.get_disk_inode_pos(new_inode_id);
-        //println!("new_inode_id={} ({},{})", new_inode_id, new_inode_block_id, new_inode_block_offset);
         get_block_cache(
             new_inode_block_id as usize,
             Arc::clone(&self.block_device)
         ).lock().modify(new_inode_block_offset, |new_inode: &mut DiskInode| {
-            new_inode.initialize(DiskInodeType::File, indirect1);
+            new_inode.initialize(DiskInodeType::File);
         });
-        //println!("new inode has been initialized.");
         self.modify_disk_inode(|root_inode| {
             // append file in the dirent
             let file_count = (root_inode.size as usize) / DIRENT_SZ;
@@ -152,7 +148,6 @@ impl Inode {
                 &self.block_device,
             );
         });
-        //println!("new file has been inserted into root inode.");
         // release efs lock manually because we will acquire it again in Inode::new
         drop(fs);
         // return inode
@@ -202,7 +197,9 @@ impl Inode {
     pub fn clear(&self) {
         let mut fs = self.fs.lock();
         self.modify_disk_inode(|disk_inode| {
+            let size = disk_inode.size;
             let data_blocks_dealloc = disk_inode.clear_size(&self.block_device);
+            assert!(data_blocks_dealloc.len() == DiskInode::total_blocks(size) as usize);
             for data_block in data_blocks_dealloc.into_iter() {
                 fs.dealloc_data(data_block);
             }
