@@ -26,7 +26,7 @@ pub fn main() -> i32 {
         println!("Usertests: Running {}", test);
         let pid = fork();
         if pid == 0 {
-            exec(*test);
+            exec(*test, &[0 as *const u8]);
             panic!("unreachable!");
         } else {
             let mut exit_code: i32 = Default::default();
