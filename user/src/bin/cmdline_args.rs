@@ -10,7 +10,7 @@ extern crate user_lib;
 pub fn main(argc: usize, argv: &[&str]) -> i32 {
     println!("argc = {}", argc);
     for i in 0..argc {
-        println!("argc[{}] = {}", i, argv[i]);
+        println!("argv[{}] = {}", i, argv[i]);
     }
     0
 }
