@@ -142,6 +142,8 @@ impl TaskControlBlock {
             }
             *translated_refmut(memory_set.token(), p as *mut u8) = 0;
         }
+        // make the user_sp aligned to 8B for k210 platform
+        user_sp -= user_sp % core::mem::size_of::<usize>();
 
         // **** hold current PCB lock
         let mut inner = self.acquire_inner_lock();
