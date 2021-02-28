@@ -23,7 +23,7 @@ fn insert_app_data() -> Result<()> {
     apps.sort();
 
     writeln!(f, r#"
-    .align 4
+    .align 3
     .section .data
     .global _num_app
 _num_app:
