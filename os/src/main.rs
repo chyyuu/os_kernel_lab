@@ -15,12 +15,6 @@ fn panic(_: &PanicInfo) -> ! {
 const STDOUT: usize = 1;
 const SYSCALL_WRITE: usize = 64;
 const SYSCALL_EXIT: usize = 93;
-const SBI_SHUTDOWN: usize = 8;
-
-pub fn shutdown() -> ! {
-    syscall(SBI_SHUTDOWN, [0, 0, 0]);
-    panic!("It should shutdown!");
-}
 
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
@@ -73,8 +67,6 @@ macro_rules! println {
 #[no_mangle]
 #[link_section=".text.entry"]
 extern "C" fn rust_main() {
-//extern "C" fn _start() {
     println!("Hello, world!");
     sys_exit(9);
-    //shutdown();
 }
