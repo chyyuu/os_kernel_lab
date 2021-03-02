@@ -72,7 +72,6 @@ type IndirectBlock = [u32; BLOCK_SZ / 4];
 type DataBlock = [u8; BLOCK_SZ];
 
 #[repr(C)]
-/// Only support level-1 indirect now, **indirect2** field is always 0.
 pub struct DiskInode {
     pub size: u32,
     pub direct: [u32; INODE_DIRECT_COUNT],
@@ -235,32 +234,6 @@ impl DiskInode {
             } 
         });
     }
-    
-    /*
-    pub fn clear_size(&mut self, block_device: &Arc<dyn BlockDevice>) -> Vec<u32> {
-        let mut v: Vec<u32> = Vec::new();
-        let blocks = self.blocks() as usize;
-        self.size = 0;
-        for i in 0..blocks.min(INODE_DIRECT_COUNT) {
-            v.push(self.direct[i]);
-            self.direct[i] = 0;
-        }
-        if blocks > INODE_DIRECT_COUNT {
-            get_block_cache(
-                self.indirect1 as usize,
-                Arc::clone(block_device),
-            )
-            .lock()
-            .modify(0, |indirect_block: &mut IndirectBlock| {
-                for i in 0..blocks - INODE_DIRECT_COUNT {
-                    v.push(indirect_block[i]);
-                    indirect_block[i] = 0;
-                }
-            });
-        }
-        v
-    }
-    */
 
     /// Clear size to zero and return blocks that should be deallocated.
     ///
