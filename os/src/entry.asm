@@ -10,3 +10,8 @@ boot_stack:
     .space 4096 * 16
     .globl boot_stack_top
 boot_stack_top:
+    .globl new_stack
+new_stack:
+    .space 64
+    .globl boot_stack_top
+new_stack_top:

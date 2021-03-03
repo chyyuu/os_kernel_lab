@@ -2,6 +2,8 @@
 #![no_main]
 #![feature(llvm_asm)]
 #![feature(global_asm)]
+#![feature(naked_functions)]
+
 global_asm!(include_str!("entry.asm"));
 
 use core::panic::PanicInfo;
@@ -65,16 +67,57 @@ macro_rules! println {
 }
 
 //-------------task-----------------------
+const STACKSIZE: isize = 48;
 
+#[derive(Debug, Default)]
+#[repr(C)]
+pub struct TaskContext {
+    ra: usize,
+//    s: [usize; 12],
+}
+
+#[no_mangle]
+#[link_section=".text.entry"]
+#[naked]
+#[inline(never)]
+unsafe fn switch_(new: *const TaskContext) {
+    llvm_asm!("
+        ld ra, 0(a0)  //TaskContext.ra = f1 fun
+        ret
+        "
+    :    :    :    :
+    );
+}
+
+#[no_mangle]
+#[link_section=".text.entry"]
 extern "C" fn f1() {
-    println!("I LOVE WAKING UP ON A NEW STACK! in f1()");
+    println!("Hello, world! in f1()");
     sys_exit(8);
 }
 
 #[no_mangle]
 #[link_section=".text.entry"]
 extern "C" fn rust_main() {
+    extern "C" {
+        fn boot_stack();
+        fn new_stack();
+    }
     println!("Hello, world! in main()");
-    f1();
+    //f1();
+    println!("boot_stack {:#4x}, new_stack {:#4x}", boot_stack as usize, new_stack as usize);
+    let mut ctx = TaskContext::default();
+    let stack_ptr = new_stack as *mut u8;
+
+    // 1. push f1 addr in new_stack,
+    // 2. read f1 addr from new_stack to task_context.ra,
+    // 3. switch to f1
+    unsafe {
+        core::ptr::write(stack_ptr.offset(STACKSIZE - 8) as * mut u64, f1 as u64);
+        ctx.ra = core::ptr::read(stack_ptr.offset(STACKSIZE - 8) as * mut u64) as usize;
+        switch_(&mut ctx);
+    }
+    println!("{:#04x}",ctx.ra);
+    println!("{:#04x}",f1 as u64);
     sys_exit(9);
 }
