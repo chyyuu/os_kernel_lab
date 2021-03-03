@@ -25,24 +25,28 @@ unsafe fn switch_(new: *const TaskContext) {
 
 fn f1() {
     println!("Hello, world! in f1()");
+    loop {}
 }
 
 fn main() {
 
     println!("Hello, world! in main()");
     f1();
-    // println!("boot_stack {:#4x}, new_stack {:#4x}", boot_stack as usize, new_stack as usize);
-    // let mut ctx = TaskContext::default();
-    // let stack_ptr = new_stack as *mut u8;
+
+    let mut ctx = TaskContext::default();
+    let mut stack = vec![0_u8; STACKSIZE as usize];
 
     // 1. push f1 addr in new_stack,
     // 2. read f1 addr from new_stack to task_context.ra,
     // 3. switch to f1
-    // unsafe {
-    //     ptr::write(stack_ptr.offset(STACKSIZE - 8) as * mut u64, f1 as u64);
-    //     ctx.ra = ptr::read(stack_ptr.offset(STACKSIZE - 8) as * mut u64) as usize;
-    //     switch_(&mut ctx);
-    // }
-    // println!("{:#04x}",ctx.ra);
-    // println!("{:#04x}",f1 as u64);
+    unsafe {
+        let stack_bottom = stack.as_mut_ptr().offset(STACKSIZE);
+        let stack_ptr = (stack_bottom as usize & !15) as *mut u8;
+        ptr::write(stack_ptr.offset(STACKSIZE - 8) as * mut u64, f1 as u64);
+        ctx.ra = ptr::read(stack_ptr.offset(STACKSIZE - 8) as * mut u64) as usize;
+        //println!("ctx.ra: {:#04x}",ctx.ra);
+        //println!("f1:     {:#04x}",f1 as u64);
+        switch_(&mut ctx);
+    }
+
 }
