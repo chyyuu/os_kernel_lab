@@ -150,7 +150,7 @@ fn next_task() {
             current_task_cx_ptr2 = (*tbs1).get_task_cx_ptr2() as *const usize;
             next_task_cx_ptr2 = (*tbs0).get_task_cx_ptr2() as *const usize;
         }
-
+        println!("switch...");
         __switch(current_task_cx_ptr2, next_task_cx_ptr2);
     }
 }
@@ -211,7 +211,6 @@ extern "C" fn rust_main() {
         println!("f1:     {:#04x}", f1 as u64);
         //switch_(&mut ctx);
     }
-    //println!("{:#04x}",ctx.ra);
-    //println!("{:#04x}",f1 as u64);
+    next_task();
     sys_exit(0);
 }
