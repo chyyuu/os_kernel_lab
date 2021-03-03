@@ -4,10 +4,22 @@ _start:
     la sp, boot_stack_top
     call rust_main
 
-    .section .bss.stack
+     .section .bss.stack
+    .global current
+current:
+    .space 4096
+
+    .global task1
+task1:
+    .space 4096
+
+    .global task2
+task2:
+    .space 4096
+
     .globl boot_stack
 boot_stack:
-    .space 4096 * 16
+    .space 4096 * 8
     .globl boot_stack_top
 boot_stack_top:
     .globl t1_stack
