@@ -64,9 +64,17 @@ macro_rules! println {
     }
 }
 
+//-------------task-----------------------
+
+extern "C" fn f1() {
+    println!("I LOVE WAKING UP ON A NEW STACK! in f1()");
+    sys_exit(8);
+}
+
 #[no_mangle]
 #[link_section=".text.entry"]
 extern "C" fn rust_main() {
-    println!("Hello, world!");
+    println!("Hello, world! in main()");
+    f1();
     sys_exit(9);
 }
