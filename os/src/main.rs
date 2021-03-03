@@ -101,23 +101,27 @@ extern "C" fn f1() {
 extern "C" fn rust_main() {
     extern "C" {
         fn boot_stack();
-        fn new_stack();
+        fn t1_stack();
+        fn t2_stack();
     }
     println!("Hello, world! in main()");
     //f1();
-    println!("boot_stack {:#4x}, new_stack {:#4x}", boot_stack as usize, new_stack as usize);
+    println!("boot_stack {:#4x}, t1_stack {:#4x}, t2_stack {:#4x}", boot_stack as usize,
+             t1_stack as usize,t2_stack as usize);
     let mut ctx = TaskContext::default();
-    let stack_ptr = new_stack as *mut u8;
+    let stack_ptr = t1_stack as *mut u8;
 
     // 1. push f1 addr in new_stack,
-    // 2. read f1 addr from new_stack to task_context.ra,
+    // 2. read f1 addr from t1_stack to task_context.ra,
     // 3. switch to f1
     unsafe {
         core::ptr::write(stack_ptr.offset(STACKSIZE - 8) as * mut u64, f1 as u64);
         ctx.ra = core::ptr::read(stack_ptr.offset(STACKSIZE - 8) as * mut u64) as usize;
+        println!("ctx.ra: {:#04x}",ctx.ra);
+        println!("f1:     {:#04x}",f1 as u64);
         switch_(&mut ctx);
     }
-    println!("{:#04x}",ctx.ra);
-    println!("{:#04x}",f1 as u64);
+    //println!("{:#04x}",ctx.ra);
+    //println!("{:#04x}",f1 as u64);
     sys_exit(9);
 }
