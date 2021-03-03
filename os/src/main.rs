@@ -182,7 +182,9 @@ impl Runtime {
 
             available.ctx.x1 = guard as u64;  //ctx.x1  is old return address
             available.ctx.nx1 = f as u64;     //ctx.nx2 is new return address
-            available.ctx.x2 = s_ptr.offset(-32) as u64; //cxt.x2 is sp
+            //if comment below line, the app will be segment fault in debian linux riscv64
+            //set  offset(0 OR 16 OR 32..) will be OK.
+            available.ctx.x2 = s_ptr.offset(32) as u64; //cxt.x2 is sp
 
         }
         available.state = State::Ready;
@@ -245,6 +247,7 @@ pub fn yield_task() {
 unsafe fn switch(old: *mut TaskContext, new: *const TaskContext) {
     // a0: old, a1: new
     llvm_asm!("
+        //if comment below lines: sd x1..., ld x1..., TASK2 can not finish, and will segment fault
         sd x1, 0x00(a0)
         sd x2, 0x08(a0)
         sd x8, 0x10(a0)
