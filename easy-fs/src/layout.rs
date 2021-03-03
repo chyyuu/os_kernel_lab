@@ -407,10 +407,13 @@ pub struct DirEntry {
 
 pub const DIRENT_SZ: usize = 32;
 
-//pub type DirentBlock = [DirEntry; BLOCK_SZ / DIRENT_SZ];
-pub type DirentBytes = [u8; DIRENT_SZ];
-
 impl DirEntry {
+    pub fn empty() -> Self {
+        Self {
+            name: [0u8; NAME_LENGTH_LIMIT + 1],
+            inode_number: 0,
+        }
+    }
     pub fn new(name: &str, inode_number: u32) -> Self {
         let mut bytes = [0u8; NAME_LENGTH_LIMIT + 1];
         &mut bytes[..name.len()].copy_from_slice(name.as_bytes());
@@ -419,18 +422,20 @@ impl DirEntry {
             inode_number,
         }
     }
-    pub fn into_bytes(&self) -> &DirentBytes {
+    pub fn as_bytes(&self) -> &[u8] {
         unsafe {
-            &*(self as *const Self as usize as *const DirentBytes)
+            core::slice::from_raw_parts(
+                self as *const _ as usize as *const u8,
+                DIRENT_SZ,
+            )
         }
     }
-    pub fn from_bytes(bytes: &DirentBytes) -> &Self {
-        unsafe { &*(bytes.as_ptr() as usize as *const Self) }
-    }
-    #[allow(unused)]
-    pub fn from_bytes_mut(bytes: &mut DirentBytes) -> &mut Self {
+    pub fn as_bytes_mut(&mut self) -> &mut [u8] {
         unsafe {
-            &mut *(bytes.as_mut_ptr() as usize as *mut Self)
+            core::slice::from_raw_parts_mut(
+                self as *mut _ as usize as *mut u8,
+                DIRENT_SZ,
+            )
         }
     }
     pub fn name(&self) -> &str {
