@@ -119,12 +119,6 @@ impl EasyFileSystem {
         )
     }
 
-    /*
-    fn get_super_block(&self) -> Dirty<SuperBlock> {
-        Dirty::new(0, 0, self.block_device.clone())
-    }
-    */
-
     pub fn get_disk_inode_pos(&self, inode_id: u32) -> (u32, usize) {
         let inode_size = core::mem::size_of::<DiskInode>();
         let inodes_per_block = (BLOCK_SZ / inode_size) as u32;
@@ -135,16 +129,6 @@ impl EasyFileSystem {
     pub fn get_data_block_id(&self, data_block_id: u32) -> u32 {
         self.data_area_start_block + data_block_id
     }
-
-    /*
-    fn get_block(&self, block_id: u32) -> Dirty<DataBlock> {
-        Dirty::new(
-            block_id as usize,
-            0,
-            self.block_device.clone(),
-        )
-    }
-    */
 
     pub fn alloc_inode(&mut self) -> u32 {
         self.inode_bitmap.alloc(&self.block_device).unwrap() as u32
