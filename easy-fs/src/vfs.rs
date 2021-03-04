@@ -48,12 +48,6 @@ impl Inode {
         ).lock().modify(self.block_offset, f)
     }
 
-    /*
-    fn get_disk_inode(&self, fs: &mut MutexGuard<EasyFileSystem>) -> Dirty<DiskInode> {
-        fs.get_disk_inode(self.inode_id)
-    }
-    */
-
     fn find_inode_id(
         &self,
         name: &str,
