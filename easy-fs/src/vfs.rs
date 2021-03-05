@@ -3,7 +3,6 @@ use super::{
     DiskInode,
     DiskInodeType,
     DirEntry,
-    DirentBytes,
     EasyFileSystem,
     DIRENT_SZ,
     get_block_cache,
@@ -49,12 +48,6 @@ impl Inode {
         ).lock().modify(self.block_offset, f)
     }
 
-    /*
-    fn get_disk_inode(&self, fs: &mut MutexGuard<EasyFileSystem>) -> Dirty<DiskInode> {
-        fs.get_disk_inode(self.inode_id)
-    }
-    */
-
     fn find_inode_id(
         &self,
         name: &str,
@@ -63,17 +56,16 @@ impl Inode {
         // assert it is a directory
         assert!(disk_inode.is_dir());
         let file_count = (disk_inode.size as usize) / DIRENT_SZ;
-        let mut dirent_space: DirentBytes = Default::default();
+        let mut dirent = DirEntry::empty();
         for i in 0..file_count {
             assert_eq!(
                 disk_inode.read_at(
                     DIRENT_SZ * i,
-                    &mut dirent_space,
+                    dirent.as_bytes_mut(),
                     &self.block_device,
                 ),
                 DIRENT_SZ,
             );
-            let dirent = DirEntry::from_bytes(&dirent_space);
             if dirent.name() == name {
                 return Some(dirent.inode_number() as u32);
             }
@@ -144,7 +136,7 @@ impl Inode {
             let dirent = DirEntry::new(name, new_inode_id);
             root_inode.write_at(
                 file_count * DIRENT_SZ,
-                dirent.into_bytes(),
+                dirent.as_bytes(),
                 &self.block_device,
             );
         });
@@ -164,16 +156,16 @@ impl Inode {
             let file_count = (disk_inode.size as usize) / DIRENT_SZ;
             let mut v: Vec<String> = Vec::new();
             for i in 0..file_count {
-                let mut dirent_bytes: DirentBytes = Default::default();
+                let mut dirent = DirEntry::empty();
                 assert_eq!(
                     disk_inode.read_at(
                         i * DIRENT_SZ,
-                        &mut dirent_bytes,
+                        dirent.as_bytes_mut(),
                         &self.block_device,
                     ),
                     DIRENT_SZ,
                 );
-                v.push(String::from(DirEntry::from_bytes(&dirent_bytes).name()));
+                v.push(String::from(dirent.name()));
             }
             v
         })
