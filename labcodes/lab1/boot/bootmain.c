@@ -46,6 +46,7 @@ readsect(void *dst, uint32_t secno) {
     // wait for disk to be ready
     waitdisk();
 
+    // Issue a read request to the disk.
     outb(0x1F2, 1);                         // count = 1
     outb(0x1F3, secno & 0xFF);
     outb(0x1F4, (secno >> 8) & 0xFF);
