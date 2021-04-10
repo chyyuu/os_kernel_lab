@@ -374,13 +374,15 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
     // Get the page directory entry by adding offset(the index) and the base address of page direcotry table.
     pde_t *entry = pgdir + PDX(la) * sizeof(pde_t);
     
-    if (!(*entry & PTR_P)) {
+    if (!(*entry & PTE_P)) {
         // Not present in the table? We need to allocate the page table.
         struct Page *page = 
-            (true == create ? 
+            (create ? 
                             alloc_page() : NULL);
 
-        assert(NULL != page);
+        if (NULL == page) {
+            return page;
+        }
 
         // Initialize the page.
         set_page_ref(page, 1);
@@ -388,9 +390,9 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
         // ? uintptr_t seems to be unsigned int...
         uintptr_t page_addr = page2pa(page);
         // Set the page to be empty in the kernel.
-        memset(KADDR(page_addr), 0, sizeof(uintptr_t) * (PAGE_SIZE));
+        memset(KADDR(page_addr), 0, sizeof(uintptr_t) * (PGSIZE));
         *entry = page_addr |
-                 PTR_P     |
+                 PTE_P     |
                  PTE_W     |
                  PTE_U     ;
     }
@@ -400,7 +402,7 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
     uintptr_t page_table_addr = PTE_ADDR(*entry);
 
     pte_t *page_table_entry = 
-            &(ptr_t *)(page_table_addr) + page_table_index * sizeof(pte_t);
+            (pte_t *)(page_table_addr) + page_table_index * sizeof(pte_t);
     return page_table_entry;
 }
 
