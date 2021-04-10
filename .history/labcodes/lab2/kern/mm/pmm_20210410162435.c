@@ -374,34 +374,13 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
     // Get the page directory entry by adding offset(the index) and the base address of page direcotry table.
     pde_t *entry = pgdir + PDX(la) * sizeof(pde_t);
     
-    if (!(*entry & PTR_P)) {
-        // Not present in the table? We need to allocate the page table.
-        struct Page *page = 
-            (true == create ? 
-                            alloc_page() : NULL);
-
-        assert(NULL != page);
-
-        // Initialize the page.
+    if (NULL == entry) {
+        // Not found? We need to allocate the page table.
+        struct Page *page = alloc_page();
         set_page_ref(page, 1);
-        // Get the physical address for next step.
-        // ? uintptr_t seems to be unsigned int...
-        uintptr_t page_addr = page2pa(page);
-        // Set the page to be empty in the kernel.
-        memset(KADDR(page_addr), 0, sizeof(uintptr_t) * (PAGE_SIZE));
-        *entry = page_addr |
-                 PTR_P     |
-                 PTE_W     |
-                 PTE_U     ;
+        *entry = page;
     }
 
-    uintptr_t page_table_index = PTX(la);
-    // Page directory table's entry is just a pointer to the page table itself.
-    uintptr_t page_table_addr = PTE_ADDR(*entry);
-
-    pte_t *page_table_entry = 
-            &(ptr_t *)(page_table_addr) + page_table_index * sizeof(pte_t);
-    return page_table_entry;
 }
 
 //get_page - get related Page struct for linear address la using PDT pgdir

@@ -58,18 +58,6 @@ const struct pmm_manager *pmm_manager;
  * always available at virtual address PGADDR(PDX(VPT), PDX(VPT), 0), to which
  * vpd is set bellow.
  * */
-
-/*
- * Haobin Chen.
- * 
- * Note that each process has its own table, so if a virtual address is issued to MMU, we need to first find the address of its
- * page table. So we need another table called page directory table which enables the MMU to find the page table where the virtual address should
- * be looked up.
- * 
- * For convenience, a page directory table stores the pointer to the page table, so if we know the PDE of a virtual address, it is equivalent to 
- * the page table itself.
- */ 
-
 pte_t * const vpt = (pte_t *)VPT; // Virtual Page Table
 pde_t * const vpd = (pde_t *)PGADDR(PDX(VPT), PDX(VPT), 0); // Virtual Page Directory, i.e., the range.
 
@@ -351,7 +339,7 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
      *   KADDR(pa) : takes a physical address and returns the corresponding kernel virtual address.
      *   set_page_ref(page,1) : means the page be referenced by one time
      *   page2pa(page): get the physical address of memory which this (struct Page *) page  manages
-     *   struct Page * alloc_page() : allocate a page
+     *   struct Page * alloc_page() : allocation a page
      *   memset(void *s, char c, size_t n) : sets the first n bytes of the memory area pointed by s
      *                                       to the specified value c.
      * DEFINEs:
@@ -371,37 +359,10 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
     }
     return NULL;          // (8) return page table entry
 #endif
-    // Get the page directory entry by adding offset(the index) and the base address of page direcotry table.
-    pde_t *entry = pgdir + PDX(la) * sizeof(pde_t);
+
+
     
-    if (!(*entry & PTR_P)) {
-        // Not present in the table? We need to allocate the page table.
-        struct Page *page = 
-            (true == create ? 
-                            alloc_page() : NULL);
 
-        assert(NULL != page);
-
-        // Initialize the page.
-        set_page_ref(page, 1);
-        // Get the physical address for next step.
-        // ? uintptr_t seems to be unsigned int...
-        uintptr_t page_addr = page2pa(page);
-        // Set the page to be empty in the kernel.
-        memset(KADDR(page_addr), 0, sizeof(uintptr_t) * (PAGE_SIZE));
-        *entry = page_addr |
-                 PTR_P     |
-                 PTE_W     |
-                 PTE_U     ;
-    }
-
-    uintptr_t page_table_index = PTX(la);
-    // Page directory table's entry is just a pointer to the page table itself.
-    uintptr_t page_table_addr = PTE_ADDR(*entry);
-
-    pte_t *page_table_entry = 
-            &(ptr_t *)(page_table_addr) + page_table_index * sizeof(pte_t);
-    return page_table_entry;
 }
 
 //get_page - get related Page struct for linear address la using PDT pgdir

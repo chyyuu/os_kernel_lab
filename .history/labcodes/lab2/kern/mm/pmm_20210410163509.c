@@ -395,13 +395,7 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
                  PTE_U     ;
     }
 
-    uintptr_t page_table_index = PTX(la);
-    // Page directory table's entry is just a pointer to the page table itself.
-    uintptr_t page_table_addr = PTE_ADDR(*entry);
-
-    pte_t *page_table_entry = 
-            &(ptr_t *)(page_table_addr) + page_table_index * sizeof(pte_t);
-    return page_table_entry;
+    pte_e *page_table_entry = 
 }
 
 //get_page - get related Page struct for linear address la using PDT pgdir
