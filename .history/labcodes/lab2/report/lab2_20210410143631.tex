@@ -1,0 +1,39 @@
+\documentclass[UTF8, a4paper]{ctexart}
+\usepackage{color}
+\usepackage{anyfontsize}
+\usepackage{extarrows}
+\usepackage{amsthm}
+\usepackage{caption}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{mathabx}  
+\usepackage[ruled,linesnumbered]{algorithm2e}
+\usepackage{amsmath} 
+\usepackage{amsfonts,amssymb}
+
+\geometry{left = 2.18cm, right = 2.18cm, top = 1.54cm, bottom = 1.54cm}
+
+\begin{document}
+\definecolor{grey}{RGB}{125, 125, 125}
+\definecolor{MyGreen}{RGB}{0, 125, 0}
+\centerline{\textbf{\LARGE{操作系统实验报告Lab2}}}
+\bigskip
+\centerline{\large{成员：陈豪斌 \quad 朱浩泽 \quad 许佳培}}
+
+\begin{enumerate}
+    \item [一、] \textbf{实现First Fit算法}
+    \par
+    首先我们需要分析代码中是如何组织空闲内存块的。
+    实际上在代码中并非单独创建某个结构体用以表示block，而是定义了一个叫做Page的结构，然后以每个block的基址Page来标识各个块，作为它们的Identifier。
+    这样的话就可以支持地址的比较了，因为，我们只需要定义一个指向Page的指针即可。指针的值就是它指向的元素的地址，因此，地址的比较可以在指针的运算的基础上完成。详情可见下图：
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[scale=0.25]{freelist.png}
+        \label{fig:1}
+        \caption{free\_list和空闲内存块}
+    \end{figure}
+\end{enumerate}
+
+\end{document}

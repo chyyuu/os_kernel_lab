@@ -227,7 +227,6 @@ default_free_pages(struct Page *base, size_t n) {
     }
     base->property = n;
     SetPageProperty(base);
-
     list_entry_t *le = list_next(&free_list);
     while (le != &free_list) {
         // Get the next block and fetch its property by tranforming it to a page pointer.
@@ -249,7 +248,7 @@ default_free_pages(struct Page *base, size_t n) {
             list_del(&(p->page_link));
         }
     }
-
+    
     /*
      * Haobin Chen.
      * 
@@ -273,6 +272,8 @@ default_free_pages(struct Page *base, size_t n) {
 
     list_add_before(ptr, &(base->page_link));
     nr_free += n;
+
+    // Merge the free block segments, if any.
 
     //list_add_before(&free_list, &(base->page_link));
 }

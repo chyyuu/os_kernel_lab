@@ -227,29 +227,26 @@ default_free_pages(struct Page *base, size_t n) {
     }
     base->property = n;
     SetPageProperty(base);
-
     list_entry_t *le = list_next(&free_list);
     while (le != &free_list) {
         // Get the next block and fetch its property by tranforming it to a page pointer.
         p = le2page(le, page_link);
         le = list_next(le);
 
-        // Do merge.
+        // No more space to merge.
         if (base + base->property == p) {
-            // Merge with the next block.
             base->property += p->property;
             ClearPageProperty(p);
             list_del(&(p->page_link));
         }
         else if (p + p->property == base) {
-            // Merge with the previous block.
             p->property += base->property;
             ClearPageProperty(base);
             base = p;
             list_del(&(p->page_link));
         }
     }
-
+    
     /*
      * Haobin Chen.
      * 
@@ -273,6 +270,8 @@ default_free_pages(struct Page *base, size_t n) {
 
     list_add_before(ptr, &(base->page_link));
     nr_free += n;
+
+    // Merge the free block segments, if any.
 
     //list_add_before(&free_list, &(base->page_link));
 }

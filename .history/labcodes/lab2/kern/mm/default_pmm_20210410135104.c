@@ -19,13 +19,6 @@
  *                  The free list structure
  */
 
-/*
- * Q: How to order every block by their addresses?
- *
- * Recall that each block is represented by their base page pointer, and we can
- * easily compare the pointers because they store the address of the base page!
- */
-
 /*  In the First Fit algorithm, the allocator keeps a list of free blocks
  * (known as the free list). Once receiving a allocation request for memory,
  * it scans along the list for the first block that is large enough to satisfy
@@ -187,6 +180,8 @@ default_alloc_pages(size_t n) {
      * Haobin Chen.
      * Traverse the free list.
      * If the next memory block to find is the head of the free list, then it means we cannot find any available block.
+     * 
+     * TODO: Optimize the traverse step by tranforming the list to a tree.
      */
     while ((le = list_next(le)) != &free_list) {
         struct Page *p = le2page(le, page_link);
@@ -204,8 +199,8 @@ default_alloc_pages(size_t n) {
             p->property = page->property - n;
             // Apply the property.
             SetPageProperty(p);
-            // Split the memory block and append the remainder right behind the current block.
-            list_add_after(&(page->page_link), &(p->page_link));
+            // Split the memory block and append the remainder to the end.
+            list_add_after(&free_list, &(p->page_link));
         }
 
         list_del(&(page->page_link));
@@ -220,61 +215,30 @@ default_free_pages(struct Page *base, size_t n) {
     assert(n > 0);
     struct Page *p = base;
     for (; p != base + n; p ++) {
-        // Reset the pages within the block.
         assert(!PageReserved(p) && !PageProperty(p));
         p->flags = 0;
         set_page_ref(p, 0);
     }
     base->property = n;
     SetPageProperty(base);
-
     list_entry_t *le = list_next(&free_list);
     while (le != &free_list) {
-        // Get the next block and fetch its property by tranforming it to a page pointer.
         p = le2page(le, page_link);
         le = list_next(le);
-
-        // Do merge.
         if (base + base->property == p) {
-            // Merge with the next block.
             base->property += p->property;
             ClearPageProperty(p);
             list_del(&(p->page_link));
         }
         else if (p + p->property == base) {
-            // Merge with the previous block.
             p->property += base->property;
             ClearPageProperty(base);
             base = p;
             list_del(&(p->page_link));
         }
     }
-
-    /*
-     * Haobin Chen.
-     * 
-     * Find the right place to insert.
-     */
-    list_entry_t *ptr = list_next(&free_list);
-    while (ptr != &free_list) {
-        /*
-         * Haobin Chen.
-         * le2page receives two parameters to convert a struct to another. The second parameter
-         * means the member to be the first parameter.
-         * 
-         * E.g. Current page's page_link member will be the first parameter: ptr (which is the current block to be accessed).
-         */
-        struct Page *cur = le2page(ptr, page_link);
-        if (base + base->property < cur) {
-            break;
-        }
-        ptr = list_next(ptr);
-    }
-
-    list_add_before(ptr, &(base->page_link));
     nr_free += n;
-
-    //list_add_before(&free_list, &(base->page_link));
+    list_add(&free_list, &(base->page_link));
 }
 
 static size_t
