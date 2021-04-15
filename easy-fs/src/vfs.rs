@@ -20,12 +20,13 @@ pub struct Inode {
 }
 
 impl Inode {
+    /// We should not acquire efs lock here.
     pub fn new(
-        inode_id: u32,
+        block_id: u32,
+        block_offset: usize,
         fs: Arc<Mutex<EasyFileSystem>>,
         block_device: Arc<dyn BlockDevice>,
     ) -> Self {
-        let (block_id, block_offset) = fs.lock().get_disk_inode_pos(inode_id);
         Self {
             block_id: block_id as usize,
             block_offset,
@@ -74,12 +75,14 @@ impl Inode {
     }
 
     pub fn find(&self, name: &str) -> Option<Arc<Inode>> {
-        let _ = self.fs.lock();
+        let fs = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
             self.find_inode_id(name, disk_inode)
             .map(|inode_id| {
+                let (block_id, block_offset) = fs.get_disk_inode_pos(inode_id);
                 Arc::new(Self::new(
-                    inode_id,
+                    block_id,
+                    block_offset,
                     self.fs.clone(),
                     self.block_device.clone(),
                 ))
@@ -140,18 +143,20 @@ impl Inode {
                 &self.block_device,
             );
         });
-        // release efs lock manually because we will acquire it again in Inode::new
-        drop(fs);
+
+        let (block_id, block_offset) = fs.get_disk_inode_pos(new_inode_id);
         // return inode
         Some(Arc::new(Self::new(
-            new_inode_id,
+            block_id,
+            block_offset,
             self.fs.clone(),
             self.block_device.clone(),
         )))
+        // release efs lock automatically by compiler
     }
 
     pub fn ls(&self) -> Vec<String> {
-        let _ = self.fs.lock();
+        let _fs = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
             let file_count = (disk_inode.size as usize) / DIRENT_SZ;
             let mut v: Vec<String> = Vec::new();
@@ -172,7 +177,7 @@ impl Inode {
     }
 
     pub fn read_at(&self, offset: usize, buf: &mut [u8]) -> usize {
-        let _ = self.fs.lock();
+        let _fs = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
             disk_inode.read_at(offset, buf, &self.block_device)
         })
