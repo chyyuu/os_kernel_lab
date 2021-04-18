@@ -154,25 +154,21 @@ default_init(void) {
  */
 static void
 default_init_memmap(struct Page *base, size_t n) {
-    // For Paging mechanism.
-    assert(n > 0);
+assert(n > 0);
     struct Page *p = base;
     for (; p != base + n; p ++) {
-        // Initialize the page within the block.
         assert(PageReserved(p));
         p->flags = p->property = 0;
         set_page_ref(p, 0);
     }
-    // If the page is free and is the first page of the block, the property should be the size of the (required) block.
     base->property = n;
     SetPageProperty(base);
     nr_free += n;
-    // Order by address.
     list_add_before(&free_list, &(base->page_link));
 }
-
 static struct Page *
 default_alloc_pages(size_t n) {
+
     assert(n > 0);
     /*
      * The required size n cannot be allocated, because there is no more free memory block.
@@ -213,6 +209,7 @@ default_alloc_pages(size_t n) {
         ClearPageProperty(page);
     }
     return page;
+
 }
 
 static void
@@ -273,8 +270,6 @@ default_free_pages(struct Page *base, size_t n) {
 
     list_add_before(ptr, &(base->page_link));
     nr_free += n;
-
-    //list_add_before(&free_list, &(base->page_link));
 }
 
 static size_t
