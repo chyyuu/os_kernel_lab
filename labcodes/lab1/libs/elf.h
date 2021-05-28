@@ -5,7 +5,19 @@
 
 #define ELF_MAGIC    0x464C457FU            // "\x7FELF" in little endian
 
-/* file header */
+/*
+ * Note that for Linux-like systems, the executable file can be written in .elf format, which has a ELF header
+ * that stores necessary information about the file itself. 
+ * When the operating system wants to execute the file, it will first read the information contained in the header
+ * and then executes it.
+ * 
+ * ELF format can have three different meanings as follows:
+ *      * Executable File;
+ *      * Relocatable File;
+ *      * Shared Object File.
+ */
+
+/* ELF file header */
 struct elfhdr {
     uint32_t e_magic;     // must equal ELF_MAGIC
     uint8_t e_elf[12];

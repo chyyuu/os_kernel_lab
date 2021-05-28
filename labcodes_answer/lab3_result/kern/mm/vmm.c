@@ -316,6 +316,8 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     //check the error_code
     switch (error_code & 3) {
     default:
+        cprintf("Unknown error code!\n");
+        goto failed;
             /* error code flag : default is 3 ( W/R=1, P=1): write, present */
     case 2: /* error code flag : (W/R=1, P=0): write, not present */
         if (!(vma->vm_flags & VM_WRITE)) {
@@ -338,7 +340,7 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
      * THEN
      *    continue process
      */
-    uint32_t perm = PTE_U;
+    uint32_t perm = PTE_U; // user level.
     if (vma->vm_flags & VM_WRITE) {
         perm |= PTE_W;
     }
