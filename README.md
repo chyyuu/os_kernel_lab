@@ -3,9 +3,9 @@
 
 [![Actions Status](https://github.com/rcore-os/rCore-Tutorial/workflows/CI/badge.svg?branch=master)](https://github.com/rcore-os/rCore-Tutorial/actions)
 
-本教学仓库是继 [rCore_tutorial book V2](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的 [rCore tutorial book V3.5](https://rcore-os.github.io/rCore-Tutorial-Book-v3/index.html)。
+基于Rust语言的rCore Tutorial教学仓库是继 [rCore_tutorial book V2](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的 [rCore tutorial book V3.5](https://rcore-os.github.io/rCore-Tutorial-Book-v3/index.html)。
 
-> 也可访问以前的[基于C语言的OS kernel labs](https://github.com/chyyuu/os_kernel_lab/tree/master)和[实验指导文档](https://github.com/chyyuu/ucore_os_docs)
+> 也可访问以前的[基于C语言的uCore OS kernel labs](https://github.com/chyyuu/os_kernel_lab/tree/master)和[实验指导文档](https://github.com/chyyuu/ucore_os_docs)
 
 本文档的目标主要针对「做实验的同学」，我们会对每章结束后提供完成的代码，你的练习题只需要基于我们给出的版本上增量实现即可，不需要重新按照教程写一遍。
 
