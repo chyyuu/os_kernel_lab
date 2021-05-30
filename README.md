@@ -3,7 +3,7 @@
 
 [![Actions Status](https://github.com/rcore-os/rCore-Tutorial/workflows/CI/badge.svg?branch=master)](https://github.com/rcore-os/rCore-Tutorial/actions)
 
-本教学仓库是继 [rCore_tutorial V2](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的 V3 版本。
+本教学仓库是继 [rCore_tutorial book V2](https://rcore-os.github.io/rCore_tutorial_doc/) 后重构的 [rCore tutorial book V3.5](https://rcore-os.github.io/rCore-Tutorial-Book-v3/index.html)。
 
 > 也可访问以前的[基于C语言的OS kernel labs](https://github.com/chyyuu/os_kernel_lab/tree/master)和[实验指导文档](https://github.com/chyyuu/ucore_os_docs)
 
