@@ -38,7 +38,9 @@ jobs:
         run: cargo install cargo-binutils
       - name: Install QEMU
         if: ${{ matrix.os == 'ubuntu-20.04' }}
-        run: sudo apt install qemu-utils
+        run: |
+         sudo apt update
+         sudo apt install qemu-utils
       - name: Install QEMU
         if: ${{ matrix.os == 'macos-latest' }}
         run: brew install qemu

@@ -9,7 +9,7 @@
 {% label %}os/src/interrupt/handler.rs{% endlabel %}
 ```rust
 use super::context::Context;
-use riscv::register::stvec;
+use riscv::register::{scause::Scause, stvec};
 
 global_asm!(include_str!("../asm/interrupt.asm"));
 

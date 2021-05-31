@@ -74,7 +74,7 @@ __interrupt:
     mv a0, sp
     csrr a1, scause
     csrr a2, stval
-    jal 
+    jal  handle_interrupt
 
     .globl __restore
 # 离开中断
