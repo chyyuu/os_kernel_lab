@@ -17,3 +17,10 @@ This project aims to show how to write an **Unix-like OS** running on **RISC-V**
   * an interactive shell in the userspace
 * **only 4K+ LoC**
 * [A detailed documentation in Chinese](https://rcore-os.github.io/rCore-Tutorial-Book-v3/) in spite of the lack of comments in the code(English version is not available at present)
+
+## Working in progress
+* [ ] update Rust & RustSBI to latest version
+* [ ] rewrite practice doc and remove some inproper questions
+* [ ] add a new chapter about synchronization & mutual exclusion(up or smp?)
+* [ ] format the code using official tools
+* [ ] support Allwinner's RISC-V D1 chip
