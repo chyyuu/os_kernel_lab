@@ -1,6 +1,6 @@
-use core::cell::RefCell;
 use lazy_static::*;
 use crate::trap::TrapContext;
+use crate::sync::UPSafeCell;
 
 const USER_STACK_SIZE: usize = 4096 * 2;
 const KERNEL_STACK_SIZE: usize = 4096 * 2;
@@ -39,16 +39,12 @@ impl UserStack {
 }
 
 struct AppManager {
-    inner: RefCell<AppManagerInner>,
-}
-struct AppManagerInner {
     num_app: usize,
     current_app: usize,
     app_start: [usize; MAX_APP_NUM + 1],
 }
-unsafe impl Sync for AppManager {}
 
-impl AppManagerInner {
+impl AppManager {
     pub fn print_app_info(&self) {
         println!("[kernel] num_app = {}", self.num_app);
         for i in 0..self.num_app {
@@ -64,9 +60,10 @@ impl AppManagerInner {
         // clear icache
         llvm_asm!("fence.i" :::: "volatile");
         // clear app area
-        (APP_BASE_ADDRESS..APP_BASE_ADDRESS + APP_SIZE_LIMIT).for_each(|addr| {
-            (addr as *mut u8).write_volatile(0);
-        });
+        core::slice::from_raw_parts_mut(
+            APP_BASE_ADDRESS as *mut u8,
+            APP_SIZE_LIMIT
+        ).fill(0);
         let app_src = core::slice::from_raw_parts(
             self.app_start[app_id] as *const u8,
             self.app_start[app_id + 1] - self.app_start[app_id]
@@ -86,23 +83,21 @@ impl AppManagerInner {
 }
 
 lazy_static! {
-    static ref APP_MANAGER: AppManager = AppManager {
-        inner: RefCell::new({
-            extern "C" { fn _num_app(); }
-            let num_app_ptr = _num_app as usize as *const usize;
-            let num_app = unsafe { num_app_ptr.read_volatile() };
-            let mut app_start: [usize; MAX_APP_NUM + 1] = [0; MAX_APP_NUM + 1];
-            let app_start_raw: &[usize] = unsafe {
-                core::slice::from_raw_parts(num_app_ptr.add(1), num_app + 1)
-            };
-            app_start[..=num_app].copy_from_slice(app_start_raw);
-            AppManagerInner {
-                num_app,
-                current_app: 0,
-                app_start,
-            }
-        }),
-    };
+    static ref APP_MANAGER: UPSafeCell<AppManager> = unsafe { UPSafeCell::new({
+        extern "C" { fn _num_app(); }
+        let num_app_ptr = _num_app as usize as *const usize;
+        let num_app = num_app_ptr.read_volatile();
+        let mut app_start: [usize; MAX_APP_NUM + 1] = [0; MAX_APP_NUM + 1];
+        let app_start_raw: &[usize] =  core::slice::from_raw_parts(
+            num_app_ptr.add(1), num_app + 1
+        );
+        app_start[..=num_app].copy_from_slice(app_start_raw);
+        AppManager {
+            num_app,
+            current_app: 0,
+            app_start,
+        }
+    })};
 }
 
 pub fn init() {
@@ -110,15 +105,16 @@ pub fn init() {
 }
 
 pub fn print_app_info() {
-    APP_MANAGER.inner.borrow().print_app_info();
+    APP_MANAGER.upsafe_access().print_app_info();
 }
 
 pub fn run_next_app() -> ! {
-    let current_app = APP_MANAGER.inner.borrow().get_current_app();
+    let app_manager = APP_MANAGER.upsafe_access();
+    let current_app = app_manager.get_current_app();
     unsafe {
-        APP_MANAGER.inner.borrow().load_app(current_app);
+        app_manager.load_app(current_app);
     }
-    APP_MANAGER.inner.borrow_mut().move_to_next_app();
+    app_manager.move_to_next_app();
     extern "C" { fn __restore(cx_addr: usize); }
     unsafe {
         __restore(KERNEL_STACK.push_context(
