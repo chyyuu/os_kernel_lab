@@ -22,7 +22,7 @@ fn main() -> i32 {
             println!("power_5 [{}/{}]", i, iter);
         }
     }
-    println!("{}^{} = {}", p, iter, s[cur]);
+    println!("{}^{} = {}(MOD {})", p, iter, s[cur], m);
     println!("Test power_5 OK!");
     0
 }
