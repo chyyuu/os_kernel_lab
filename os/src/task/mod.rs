@@ -25,11 +25,14 @@ lazy_static! {
     pub static ref TASK_MANAGER: TaskManager = {
         let num_app = get_num_app();
         let mut tasks = [
-            TaskControlBlock { task_cx_ptr: 0, task_status: TaskStatus::UnInit };
+            TaskControlBlock {
+                task_cx: TaskContext::zero_init(),
+                task_status: TaskStatus::UnInit 
+            };
             MAX_APP_NUM
         ];
         for i in 0..num_app {
-            tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
+            tasks[i].task_cx = TaskContext::goto_restore(init_app_cx(i));            
             tasks[i].task_status = TaskStatus::Ready;
         }
         TaskManager {
@@ -46,12 +49,12 @@ impl TaskManager {
     fn run_first_task(&self) {
         let task0 = &mut self.inner.upsafe_access().tasks[0];
         task0.task_status = TaskStatus::Running;
-        let next_task_cx_ptr2 = task0.get_task_cx_ptr2();
-        let _unused: usize = 0;
+        let next_task_cx_ptr = &task0.task_cx as *const TaskContext; 
+        let mut _unused = TaskContext::zero_init();
         unsafe {
             __switch(
-                &_unused as *const _,
-                next_task_cx_ptr2,
+                &mut _unused as *mut TaskContext,
+                next_task_cx_ptr,
             );
         }
     }
@@ -84,13 +87,13 @@ impl TaskManager {
             let current = inner.current_task;
             inner.tasks[next].task_status = TaskStatus::Running;
             inner.current_task = next;
-            let current_task_cx_ptr2 = inner.tasks[current].get_task_cx_ptr2();
-            let next_task_cx_ptr2 = inner.tasks[next].get_task_cx_ptr2();
-            core::mem::drop(inner);
+            let current_task_cx_ptr = &mut inner.tasks[current].task_cx as *mut TaskContext;
+            let next_task_cx_ptr = &inner.tasks[next].task_cx as *const TaskContext;
+            drop(inner);
             unsafe {
                 __switch(
-                    current_task_cx_ptr2,
-                    next_task_cx_ptr2,
+                    current_task_cx_ptr,
+                    next_task_cx_ptr,
                 );
             }
         } else {
