@@ -2,6 +2,7 @@
 os/target/*
 os/.idea/*
 os/src/link_app.S
+os/last-*
 os/Cargo.lock
 user/target/*
 user/.idea/*

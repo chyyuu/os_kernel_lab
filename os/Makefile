@@ -29,7 +29,14 @@ OBJCOPY := rust-objcopy --binary-architecture=riscv64
 # Disassembly
 DISASM ?= -x
 
-build: env $(KERNEL_BIN)
+build: env switch-check $(KERNEL_BIN)
+
+switch-check:
+ifeq ($(BOARD), qemu)
+	(which last-qemu) || (rm last-k210 -f && touch last-qemu && make clean)
+else ifeq ($(BOARD), k210)
+	(which last-k210) || (rm last-qemu -f && touch last-k210 && make clean)
+endif
 
 env:
 	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add $(TARGET)
@@ -85,4 +92,4 @@ debug: build
 		tmux split-window -h "riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'" && \
 		tmux -2 attach-session -d
 
-.PHONY: build env kernel clean disasm disasm-vim run-inner
+.PHONY: build env kernel clean disasm disasm-vim run-inner switch-check

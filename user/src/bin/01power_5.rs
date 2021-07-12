@@ -23,7 +23,7 @@ unsafe fn main() -> i32 {
             println!("power_5 [{}/{}]", i, iter);
         }
     }
-    println!("{}^{} = {}(mod {})", p, iter, S[cur], m);
+    println!("{}^{} = {}(MOD {})", p, iter, S[cur], m);
     println!("Test power_5 OK!");
     0
 }

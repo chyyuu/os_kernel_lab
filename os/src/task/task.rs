@@ -4,17 +4,14 @@ use crate::config::{TRAP_CONTEXT, kernel_stack_position};
 use super::TaskContext;
 
 pub struct TaskControlBlock {
-    pub task_cx_ptr: usize,
     pub task_status: TaskStatus,
+    pub task_cx: TaskContext,
     pub memory_set: MemorySet,
     pub trap_cx_ppn: PhysPageNum,
     pub base_size: usize,
 }
 
 impl TaskControlBlock {
-    pub fn get_task_cx_ptr2(&self) -> *const usize {
-        &self.task_cx_ptr as *const usize
-    }
     pub fn get_trap_cx(&self) -> &'static mut TrapContext {
         self.trap_cx_ppn.get_mut()
     }
@@ -38,11 +35,9 @@ impl TaskControlBlock {
                 kernel_stack_top.into(),
                 MapPermission::R | MapPermission::W,
             );
-        let task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
-        unsafe { *task_cx_ptr = TaskContext::goto_trap_return(); }
         let task_control_block = Self {
-            task_cx_ptr: task_cx_ptr as usize,
             task_status,
+            task_cx: TaskContext::goto_trap_return(kernel_stack_top),
             memory_set,
             trap_cx_ppn,
             base_size: user_sp,
