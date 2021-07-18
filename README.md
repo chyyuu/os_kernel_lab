@@ -39,6 +39,8 @@ Now we are still updating our project, you can find latest changes on branches `
 * [ ] adjust API of `UPSafeCell` so that it cannot be borrowed twice at a time
 * [ ] bug fix: we should call `find_pte` rather than `find_pte_create` in `PageTable::unmap`
 * [ ] add a new chapter about synchronization & mutual exclusion(uniprocessor only)
+* [ ] give every non-zero process exit code an unique and clear error type
+* [ ] effective error handling of mm module
 
 ### Todo(Low priority)
 
