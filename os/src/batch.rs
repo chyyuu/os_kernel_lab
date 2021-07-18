@@ -58,7 +58,7 @@ impl AppManager {
         }
         println!("[kernel] Loading app_{}", app_id);
         // clear icache
-        llvm_asm!("fence.i" :::: "volatile");
+        asm!("fence.i");
         // clear app area
         core::slice::from_raw_parts_mut(
             APP_BASE_ADDRESS as *mut u8,
