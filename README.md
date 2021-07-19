@@ -26,17 +26,18 @@ TODO:
 
 Now we are still updating our project, you can find latest changes on branches `chX-dev` such as `ch1-dev`. We are intended to publish first release 3.5.0 after completing most of the tasks mentioned below.
 
+Overall progress: ch4
+
 ### Completed
 
 * [x] automatically clean up and rebuild before running our project on a different platform
 * [x] fix `power` series application in early chapters, now you can find modulus in the output
-* [x] use `UPSafeCell` instead of `RefCell` or `spin::Mutex` in order to access static data structures(now ch4 completed)
+* [x] use `UPSafeCell` instead of `RefCell` or `spin::Mutex` in order to access static data structures and adjust its API so that it cannot be borrowed twice at a time(mention `& .exclusive_access().task[0]` in `run_first_task`)
 * [x] move `TaskContext` into `TaskControlBlock` instead of restoring it in place on kernel stack(since ch3), eliminating annoying `task_cx_ptr2`
 * [x] replace `llvm_asm!` with `asm!`(now ch4 completed)
 
 ### Todo(High priority)
 
-* [ ] adjust API of `UPSafeCell` so that it cannot be borrowed twice at a time
 * [ ] bug fix: we should call `find_pte` rather than `find_pte_create` in `PageTable::unmap`
 * [ ] add a new chapter about synchronization & mutual exclusion(uniprocessor only)
 * [ ] give every non-zero process exit code an unique and clear error type
