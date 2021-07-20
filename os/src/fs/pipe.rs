@@ -1,26 +1,25 @@
 use super::File;
 use alloc::sync::{Arc, Weak};
-use spin::Mutex;
-use crate::mm::{
-    UserBuffer,
-};
+use crate::sync::UPSafeCell;
+use crate::mm::UserBuffer;
+
 use crate::task::suspend_current_and_run_next;
 
 pub struct Pipe {
     readable: bool,
     writable: bool,
-    buffer: Arc<Mutex<PipeRingBuffer>>,
+    buffer: Arc<UPSafeCell<PipeRingBuffer>>,
 }
 
 impl Pipe {
-    pub fn read_end_with_buffer(buffer: Arc<Mutex<PipeRingBuffer>>) -> Self {
+    pub fn read_end_with_buffer(buffer: Arc<UPSafeCell<PipeRingBuffer>>) -> Self {
         Self {
             readable: true,
             writable: false,
             buffer,
         }
     }
-    pub fn write_end_with_buffer(buffer: Arc<Mutex<PipeRingBuffer>>) -> Self {
+    pub fn write_end_with_buffer(buffer: Arc<UPSafeCell<PipeRingBuffer>>) -> Self {
         Self {
             readable: false,
             writable: true,
@@ -101,14 +100,16 @@ impl PipeRingBuffer {
 
 /// Return (read_end, write_end)
 pub fn make_pipe() -> (Arc<Pipe>, Arc<Pipe>) {
-    let buffer = Arc::new(Mutex::new(PipeRingBuffer::new()));
+    let buffer = Arc::new(unsafe {
+        UPSafeCell::new(PipeRingBuffer::new())
+    });
     let read_end = Arc::new(
         Pipe::read_end_with_buffer(buffer.clone())
     );
     let write_end = Arc::new(
         Pipe::write_end_with_buffer(buffer.clone())
     );
-    buffer.lock().set_write_end(&write_end);
+    buffer.exclusive_access().set_write_end(&write_end);
     (read_end, write_end)
 }
 
@@ -118,7 +119,7 @@ impl File for Pipe {
         let mut buf_iter = buf.into_iter();
         let mut read_size = 0usize;
         loop {
-            let mut ring_buffer = self.buffer.lock();
+            let mut ring_buffer = self.buffer.exclusive_access();
             let loop_read = ring_buffer.available_read();
             if loop_read == 0 {
                 if ring_buffer.all_write_ends_closed() {
@@ -144,7 +145,7 @@ impl File for Pipe {
         let mut buf_iter = buf.into_iter();
         let mut write_size = 0usize;
         loop {
-            let mut ring_buffer = self.buffer.lock();
+            let mut ring_buffer = self.buffer.exclusive_access();
             let loop_write = ring_buffer.available_write();
             if loop_write == 0 {
                 drop(ring_buffer);
