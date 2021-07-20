@@ -1,9 +1,8 @@
 #![no_std]
 #![no_main]
 #![feature(global_asm)]
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![feature(panic_info_message)]
-#![feature(const_in_array_repeat_expressions)]
 #![feature(alloc_error_handler)]
 
 extern crate alloc;
@@ -21,6 +20,7 @@ mod loader;
 mod config;
 mod task;
 mod timer;
+mod sync;
 mod mm;
 
 global_asm!(include_str!("entry.asm"));
@@ -31,9 +31,12 @@ fn clear_bss() {
         fn sbss();
         fn ebss();
     }
-    (sbss as usize..ebss as usize).for_each(|a| {
-        unsafe { (a as *mut u8).write_volatile(0) }
-    });
+    unsafe {
+        core::slice::from_raw_parts_mut(
+            sbss as usize as *mut u8,
+            ebss as usize - sbss as usize,
+        ).fill(0);
+    }
 }
 
 #[no_mangle]
