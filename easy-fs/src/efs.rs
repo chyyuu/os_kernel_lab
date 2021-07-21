@@ -8,6 +8,7 @@ use super::{
     DiskInodeType,
     Inode,
     get_block_cache,
+    block_cache_sync_all,
 };
 use crate::BLOCK_SZ;
 
@@ -50,7 +51,7 @@ impl EasyFileSystem {
         // clear all blocks
         for i in 0..total_blocks {
             get_block_cache(
-                i as usize, 
+                i as usize,
                 Arc::clone(&block_device)
             )
             .lock()
@@ -82,6 +83,7 @@ impl EasyFileSystem {
         .modify(root_inode_offset, |disk_inode: &mut DiskInode| {
             disk_inode.initialize(DiskInodeType::Directory);
         });
+        block_cache_sync_all();
         Arc::new(Mutex::new(efs))
     }
 
@@ -107,7 +109,7 @@ impl EasyFileSystem {
                     data_area_start_block: 1 + inode_total_blocks + super_block.data_bitmap_blocks,
                 };
                 Arc::new(Mutex::new(efs))
-            })        
+            })
     }
 
     pub fn root_inode(efs: &Arc<Mutex<Self>>) -> Inode {

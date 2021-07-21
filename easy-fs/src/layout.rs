@@ -231,7 +231,7 @@ impl DiskInode {
                     b0 = 0;
                     a0 += 1;
                 }
-            } 
+            }
         });
     }
 
@@ -416,7 +416,7 @@ impl DirEntry {
     }
     pub fn new(name: &str, inode_number: u32) -> Self {
         let mut bytes = [0u8; NAME_LENGTH_LIMIT + 1];
-        &mut bytes[..name.len()].copy_from_slice(name.as_bytes());
+        bytes[..name.len()].copy_from_slice(name.as_bytes());
         Self {
             name: bytes,
             inode_number,

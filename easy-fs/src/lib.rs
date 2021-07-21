@@ -15,4 +15,4 @@ pub use efs::EasyFileSystem;
 pub use vfs::Inode;
 use layout::*;
 use bitmap::Bitmap;
-use block_cache::get_block_cache;
+use block_cache::{get_block_cache, block_cache_sync_all};

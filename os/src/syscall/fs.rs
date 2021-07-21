@@ -11,7 +11,7 @@ use alloc::sync::Arc;
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     let token = current_user_token();
     let task = current_task().unwrap();
-    let inner = task.acquire_inner_lock();
+    let inner = task.inner_exclusive_access();
     if fd >= inner.fd_table.len() {
         return -1;
     }
@@ -20,7 +20,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
             return -1;
         }
         let file = file.clone();
-        // release Task lock manually to avoid deadlock
+        // release current task TCB manually to avoid multi-borrow
         drop(inner);
         file.write(
             UserBuffer::new(translated_byte_buffer(token, buf, len))
@@ -33,7 +33,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
 pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
     let token = current_user_token();
     let task = current_task().unwrap();
-    let inner = task.acquire_inner_lock();
+    let inner = task.inner_exclusive_access();
     if fd >= inner.fd_table.len() {
         return -1;
     }
@@ -42,7 +42,7 @@ pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
         if !file.readable() {
             return -1;
         }
-        // release Task lock manually to avoid deadlock
+        // release current task TCB manually to avoid multi-borrow
         drop(inner);
         file.read(
             UserBuffer::new(translated_byte_buffer(token, buf, len))
@@ -60,7 +60,7 @@ pub fn sys_open(path: *const u8, flags: u32) -> isize {
         path.as_str(),
         OpenFlags::from_bits(flags).unwrap()
     ) {
-        let mut inner = task.acquire_inner_lock();
+        let mut inner = task.inner_exclusive_access();
         let fd = inner.alloc_fd();
         inner.fd_table[fd] = Some(inode);
         fd as isize
@@ -71,7 +71,7 @@ pub fn sys_open(path: *const u8, flags: u32) -> isize {
 
 pub fn sys_close(fd: usize) -> isize {
     let task = current_task().unwrap();
-    let mut inner = task.acquire_inner_lock();
+    let mut inner = task.inner_exclusive_access();
     if fd >= inner.fd_table.len() {
         return -1;
     }
@@ -85,7 +85,7 @@ pub fn sys_close(fd: usize) -> isize {
 pub fn sys_pipe(pipe: *mut usize) -> isize {
     let task = current_task().unwrap();
     let token = current_user_token();
-    let mut inner = task.acquire_inner_lock();
+    let mut inner = task.inner_exclusive_access();
     let (pipe_read, pipe_write) = make_pipe();
     let read_fd = inner.alloc_fd();
     inner.fd_table[read_fd] = Some(pipe_read);
@@ -98,7 +98,7 @@ pub fn sys_pipe(pipe: *mut usize) -> isize {
 
 pub fn sys_dup(fd: usize) -> isize {
     let task = current_task().unwrap();
-    let mut inner = task.acquire_inner_lock();
+    let mut inner = task.inner_exclusive_access();
     if fd >= inner.fd_table.len() {
         return -1;
     }
