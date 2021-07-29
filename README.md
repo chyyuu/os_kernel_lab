@@ -1,6 +1,9 @@
 # rCore-Tutorial-v3
 rCore-Tutorial version 3.5. See the [Documentation in Chinese](https://rcore-os.github.io/rCore-Tutorial-Book-v3/).
 
+## news
+- 2021.07.29: Now we are updating our labs. Please checkout chX-dev Branches for our current new labs. (Notice: please see the [Dependency] section in the end of this doc)
+
 ## Overview
 
 This project aims to show how to write an **Unix-like OS** running on **RISC-V** platforms **from scratch** in **[Rust](https://www.rust-lang.org/)** for **beginners** without any background knowledge about **computer architectures, assembly languages or operating systems**.
@@ -62,7 +65,7 @@ Overall progress: ch7
 
 ### Binaries
 
-* rustc: 1.55.0-nightly (2f391da2e 2021-07-14)
+* rustc 1.56.0-nightly (08095fc1f 2021-07-26)
 
 * qemu: 5.0.0
 
