@@ -317,14 +317,14 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
      * Get SD card data response.
      * @param  None
      * @retval The SD status: Read data response xxx0<status>1
-     *         - status 010: Data accecpted
+     *         - status 010: Data accepted
      *         - status 101: Data rejected due to a crc error
      *         - status 110: Data rejected due to a Write error.
      *         - status 111: Data rejected due to other error.
      */
     fn get_dataresponse(&self) -> u8 {
         let response = &mut [0u8];
-        /* Read resonse */
+        /* Read response */
         self.read_data(response);
         /* Mask unused bits */
         response[0] &= 0x1F;
@@ -419,7 +419,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             /* Byte 15 */
             CSD_CRC: (csd_tab[15] & 0xFE) >> 1,
             Reserved4: 1,
-            /* Return the reponse */
+            /* Return the response */
         });
     }
 
