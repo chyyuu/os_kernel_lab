@@ -5,12 +5,8 @@ rCore-Tutorial version 3.x
 
 ### Binaries
 
-* rustc 1.56.0-nightly (08095fc1f 2021-07-26)
+* rustc 1.56.0-nightly (b03ccace5 2021-08-24)
 
 * qemu: 5.0.0
 
-* rustsbi-lib: 0.2.0-alpha.4
-
-  rustsbi-qemu: d4968dd2
-
-  rustsbi-k210: b689314e
+* rustsbi: qemu[7d71bfb7] k210[563144b0]
