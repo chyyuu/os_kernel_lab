@@ -22,7 +22,7 @@ const VIRTIO0: usize = 0x10001000;
 pub struct VirtIOBlock(UPSafeCell<VirtIOBlk<'static>>);
 
 lazy_static! {
-    static ref QUEUE_FRAMES: UPSafeCell<Vec<FrameTracker>> = unsafe { 
+    static ref QUEUE_FRAMES: UPSafeCell<Vec<FrameTracker>> = unsafe {
         UPSafeCell::new(Vec::new())
     };
 }
