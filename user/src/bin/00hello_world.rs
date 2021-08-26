@@ -1,6 +1,6 @@
 #![no_std]
 #![no_main]
-#![feature(llvm_asm)]
+#![feature(asm)]
 
 #[macro_use]
 extern crate user_lib;
@@ -9,7 +9,7 @@ extern crate user_lib;
 fn main() -> i32 {
     println!("Hello, world!");
     unsafe {
-        llvm_asm!("sret");
+        asm!("sret");
     }
     0
 }
