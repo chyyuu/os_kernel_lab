@@ -3,7 +3,8 @@ mod switch;
 mod task;
 mod manager;
 mod processor;
-mod pid;
+mod id;
+mod process;
 
 use crate::fs::{open_file, OpenFlags};
 use switch::__switch;
@@ -11,8 +12,10 @@ use task::{TaskControlBlock, TaskStatus};
 use alloc::sync::Arc;
 use manager::fetch_task;
 use lazy_static::*;
-pub use context::TaskContext;
+use process::ProcessControlBlock;
+use id::RecycleAllocator;
 
+pub use context::TaskContext;
 pub use processor::{
     run_tasks,
     current_task,
@@ -22,7 +25,12 @@ pub use processor::{
     schedule,
 };
 pub use manager::add_task;
-pub use pid::{PidHandle, pid_alloc, KernelStack};
+pub use id::{
+    PidHandle,
+    pid_alloc,
+    KernelStack,
+    kstack_alloc,
+};
 
 pub fn suspend_current_and_run_next() {
     // There must be an application running.
