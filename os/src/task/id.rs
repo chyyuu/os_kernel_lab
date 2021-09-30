@@ -163,21 +163,25 @@ impl TaskUserRes {
             );
     }
 
-    pub fn dealloc_tid(&self) {
-        let mut process = self.process.inner_exclusive_access();
-        process.dealloc_tid(self.tid);
-    }
-
     fn dealloc_user_res(&self) {
         // dealloc tid
         let mut process = self.process.inner_exclusive_access();
-        process.dealloc_tid(self.tid);
         // dealloc ustack manually
         let ustack_bottom_va: VirtAddr = ustack_bottom_from_tid(self.ustack_base, self.tid).into();
         process.memory_set.remove_area_with_start_vpn(ustack_bottom_va.into());
         // dealloc trap_cx manually
         let trap_cx_bottom_va: VirtAddr = trap_cx_bottom_from_tid(self.tid).into();
         process.memory_set.remove_area_with_start_vpn(trap_cx_bottom_va.into());
+    }
+
+    #[allow(unused)]
+    pub fn alloc_tid(&mut self) {
+        self.tid = self.process.inner_exclusive_access().alloc_tid();
+    }
+
+    pub fn dealloc_tid(&self) {
+        let mut process = self.process.inner_exclusive_access();
+        process.dealloc_tid(self.tid);
     }
 
     pub fn trap_cx_user_va(&self) -> usize {
@@ -202,6 +206,7 @@ impl TaskUserRes {
 
 impl Drop for TaskUserRes {
     fn drop(&mut self) {
+        self.dealloc_tid();
         self.dealloc_user_res();
         // kstack can also be deallocated automatically 
     }

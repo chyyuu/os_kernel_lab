@@ -3,8 +3,6 @@ use crate::mm::{
     KERNEL_SPACE, 
     translated_refmut,
 };
-use crate::task::TaskContext;
-use crate::task::id::TaskUserRes;
 use crate::trap::{TrapContext, trap_handler};
 use crate::sync::UPSafeCell;
 use core::cell::RefMut;
@@ -37,6 +35,7 @@ pub struct ProcessControlBlockInner {
 }
 
 impl ProcessControlBlockInner {
+    #[allow(unused)]
     pub fn get_user_token(&self) -> usize {
         self.memory_set.token()
     }
@@ -138,9 +137,9 @@ impl ProcessControlBlock {
         // since memory_set has been changed
         let task = self.inner_exclusive_access().get_task(0);
         let mut task_inner = task.inner_exclusive_access();
-        task_inner.res.dealloc_tid();
         task_inner.res.ustack_base = ustack_base;
         task_inner.res.alloc_user_res();
+        task_inner.trap_cx_ppn = task_inner.res.trap_cx_ppn();
         // push arguments on user stack
         let mut user_sp = task_inner.res.ustack_top();
         user_sp -= (args.len() + 1) * core::mem::size_of::<usize>();
@@ -177,7 +176,6 @@ impl ProcessControlBlock {
         trap_cx.x[10] = args.len();
         trap_cx.x[11] = argv_base;
         *task_inner.get_trap_cx() = trap_cx;
-        task_inner.task_cx = TaskContext::goto_trap_return(task_inner.res.kstack_top());
     }
 
     /// Only support processes with a single thread.

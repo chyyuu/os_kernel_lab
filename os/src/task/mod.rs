@@ -55,7 +55,7 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next(exit_code: i32) {
     // take from Processor
     let task = take_current_task().unwrap();
-    let task_exit_code = task.inner_exclusive_access().exit_code;
+    task.inner_exclusive_access().exit_code = exit_code;
     let tid = task.inner_exclusive_access().res.tid;
     // remove thread 
     let process = task.process.upgrade().unwrap();
@@ -66,7 +66,7 @@ pub fn exit_current_and_run_next(exit_code: i32) {
         // mark this process as a zombie process
         process_inner.is_zombie = true;
         // record exit code of main process
-        process_inner.exit_code = task_exit_code;
+        process_inner.exit_code = exit_code;
 
         {
             // move all child processes under init process
@@ -99,5 +99,5 @@ lazy_static! {
 }
 
 pub fn add_initproc() {
-    let initproc = INITPROC.clone();
+    let _initproc = INITPROC.clone();
 }
