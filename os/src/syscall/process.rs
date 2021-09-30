@@ -2,8 +2,8 @@ use crate::task::{
     suspend_current_and_run_next,
     exit_current_and_run_next,
     current_task,
+    current_process,
     current_user_token,
-    add_task,
 };
 use crate::timer::get_time_ms;
 use crate::mm::{
@@ -34,20 +34,20 @@ pub fn sys_get_time() -> isize {
 }
 
 pub fn sys_getpid() -> isize {
-    current_task().unwrap().pid.0 as isize
+    current_task().unwrap().process.upgrade().unwrap().getpid() as isize
 }
 
 pub fn sys_fork() -> isize {
-    let current_task = current_task().unwrap();
-    let new_task = current_task.fork();
-    let new_pid = new_task.pid.0;
+    let current_process = current_process();
+    let new_process = current_process.fork();
+    let new_pid = new_process.getpid();
     // modify trap context of new_task, because it returns immediately after switching
-    let trap_cx = new_task.inner_exclusive_access().get_trap_cx();
+    let new_process_inner = new_process.inner_exclusive_access();
+    let task = new_process_inner.tasks[0].as_ref().unwrap();
+    let trap_cx = task.inner_exclusive_access().get_trap_cx();
     // we do not have to move to next instruction since we have done it before
     // for child process, fork returns 0
     trap_cx.x[10] = 0;
-    // add new task to scheduler
-    add_task(new_task);
     new_pid as isize
 }
 
@@ -65,9 +65,9 @@ pub fn sys_exec(path: *const u8, mut args: *const usize) -> isize {
     }
     if let Some(app_inode) = open_file(path.as_str(), OpenFlags::RDONLY) {
         let all_data = app_inode.read_all();
-        let task = current_task().unwrap();
+        let process = current_process();
         let argc = args_vec.len();
-        task.exec(all_data.as_slice(), args_vec);
+        process.exec(all_data.as_slice(), args_vec);
         // return argc because cx.x[10] will be covered with it later
         argc as isize
     } else {
@@ -78,11 +78,10 @@ pub fn sys_exec(path: *const u8, mut args: *const usize) -> isize {
 /// If there is not a child process whose pid is same as given, return -1.
 /// Else if there is a child process but it is still running, return -2.
 pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
-    let task = current_task().unwrap();
+    let process = current_process();
     // find a child process
 
-    // ---- access current PCB exclusively
-    let mut inner = task.inner_exclusive_access();
+    let mut inner = process.inner_exclusive_access();
     if inner.children
         .iter()
         .find(|p| {pid == -1 || pid as usize == p.getpid()})
@@ -95,7 +94,7 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         .enumerate()
         .find(|(_, p)| {
             // ++++ temporarily access child PCB exclusively
-            p.inner_exclusive_access().is_zombie() && (pid == -1 || pid as usize == p.getpid())
+            p.inner_exclusive_access().is_zombie && (pid == -1 || pid as usize == p.getpid())
             // ++++ release child PCB
         });
     if let Some((idx, _)) = pair {

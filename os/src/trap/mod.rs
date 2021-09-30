@@ -18,9 +18,10 @@ use crate::task::{
     suspend_current_and_run_next,
     current_user_token,
     current_trap_cx,
+    current_trap_cx_user_va,
 };
 use crate::timer::set_next_trigger;
-use crate::config::{TRAP_CONTEXT, TRAMPOLINE};
+use crate::config::TRAMPOLINE;
 
 global_asm!(include_str!("trap.S"));
 
@@ -46,6 +47,7 @@ pub fn enable_timer_interrupt() {
 
 #[no_mangle]
 pub fn trap_handler() -> ! {
+    println!("into trap!");
     set_kernel_trap_entry();
     let scause = scause::read();
     let stval = stval::read();
@@ -53,6 +55,7 @@ pub fn trap_handler() -> ! {
         Trap::Exception(Exception::UserEnvCall) => {
             // jump to next instruction anyway
             let mut cx = current_trap_cx();
+            println!("syscall #{}", cx.x[17]);
             cx.sepc += 4;
             // get system call return value
             let result = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]);
@@ -88,15 +91,16 @@ pub fn trap_handler() -> ! {
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }
-    //println!("before trap_return");
     trap_return();
 }
 
 #[no_mangle]
 pub fn trap_return() -> ! {
+    println!("into trap_return!");
     set_user_trap_entry();
-    let trap_cx_ptr = TRAP_CONTEXT;
+    let trap_cx_user_va = current_trap_cx_user_va();
     let user_satp = current_user_token();
+    println!("trap_cx = {:#x}, user_satp = {:#x}", trap_cx_user_va, user_satp);
     extern "C" {
         fn __alltraps();
         fn __restore();
@@ -107,7 +111,7 @@ pub fn trap_return() -> ! {
             "fence.i",
             "jr {restore_va}",
             restore_va = in(reg) restore_va,
-            in("a0") trap_cx_ptr,
+            in("a0") trap_cx_user_va,
             in("a1") user_satp,
             options(noreturn)
         );

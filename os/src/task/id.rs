@@ -1,12 +1,8 @@
 use alloc::{vec::Vec, sync::Arc};
 use lazy_static::*;
 use crate::sync::UPSafeCell;
-use crate::mm::{KERNEL_SPACE, MapPermission, VirtAddr};
-use crate::config::{
-    PAGE_SIZE,
-    TRAMPOLINE,
-    KERNEL_STACK_SIZE,
-};
+use crate::mm::{KERNEL_SPACE, MapPermission, PhysPageNum, VirtAddr};
+use crate::config::{KERNEL_STACK_SIZE, PAGE_SIZE, TRAMPOLINE, TRAP_CONTEXT_BASE, USER_STACK_SIZE};
 use super::ProcessControlBlock;
 
 pub struct RecycleAllocator {
@@ -110,17 +106,104 @@ impl KernelStack {
 
 pub struct TaskUserRes {
     pub tid: usize,
+    pub ustack_base: usize,
     pub kstack: KernelStack,
     pub process: Arc<ProcessControlBlock>,
 }
 
-impl Drop for TaskUserRes {
-    fn drop(&mut self) {
+fn trap_cx_bottom_from_tid(tid: usize) -> usize {
+    TRAP_CONTEXT_BASE - tid * PAGE_SIZE
+}
+
+fn ustack_bottom_from_tid(ustack_base: usize, tid: usize) -> usize {
+    ustack_base + tid * (PAGE_SIZE + USER_STACK_SIZE)
+}
+
+impl TaskUserRes {
+    pub fn new(
+        process: Arc<ProcessControlBlock>,
+        ustack_base: usize,
+        alloc_user_res: bool,
+    ) -> Self {
+        let tid = process.inner_exclusive_access().alloc_tid();
+        let kstack = kstack_alloc();
+        let task_user_res = Self {
+            tid,
+            ustack_base,
+            kstack,
+            process: Arc::clone(&process),
+        };
+        if alloc_user_res {
+            task_user_res.alloc_user_res();
+        }
+        task_user_res
+    }
+
+    pub fn alloc_user_res(&self) {
+        let mut process = self.process.inner_exclusive_access();
+        // alloc user stack
+        let ustack_bottom = ustack_bottom_from_tid(self.ustack_base, self.tid);
+        let ustack_top = ustack_bottom + USER_STACK_SIZE;
+        process
+            .memory_set
+            .insert_framed_area(
+                ustack_bottom.into(),
+                ustack_top.into(),
+                MapPermission::R | MapPermission::W | MapPermission::U,
+            );
+        // alloc trap_cx
+        let trap_cx_bottom = trap_cx_bottom_from_tid(self.tid);
+        let trap_cx_top = trap_cx_bottom + PAGE_SIZE;
+        process
+            .memory_set
+            .insert_framed_area(
+                trap_cx_bottom.into(),
+                trap_cx_top.into(),
+                MapPermission::R | MapPermission::W,
+            );
+    }
+
+    pub fn dealloc_tid(&self) {
+        let mut process = self.process.inner_exclusive_access();
+        process.dealloc_tid(self.tid);
+    }
+
+    fn dealloc_user_res(&self) {
         // dealloc tid
+        let mut process = self.process.inner_exclusive_access();
+        process.dealloc_tid(self.tid);
+        // dealloc ustack manually
+        let ustack_bottom_va: VirtAddr = ustack_bottom_from_tid(self.ustack_base, self.tid).into();
+        process.memory_set.remove_area_with_start_vpn(ustack_bottom_va.into());
+        // dealloc trap_cx manually
+        let trap_cx_bottom_va: VirtAddr = trap_cx_bottom_from_tid(self.tid).into();
+        process.memory_set.remove_area_with_start_vpn(trap_cx_bottom_va.into());
+    }
+
+    pub fn trap_cx_user_va(&self) -> usize {
+        trap_cx_bottom_from_tid(self.tid)
+    }
+
+    pub fn trap_cx_ppn(&self) -> PhysPageNum {
         let process = self.process.inner_exclusive_access();
-        process.task_res_allocator.dealloc(self.tid);
-        // dealloc trap_cx
-        process.dealloc_trap_cx(self.tid);
-        // kstack can be deallocated automatically 
+        let trap_cx_bottom_va: VirtAddr = trap_cx_bottom_from_tid(self.tid).into();
+        process.memory_set.translate(trap_cx_bottom_va.into()).unwrap().ppn()
+    }
+
+    pub fn ustack_base(&self) -> usize { self.ustack_base }
+    pub fn ustack_top(&self) -> usize {
+        ustack_bottom_from_tid(self.ustack_base, self.tid) + USER_STACK_SIZE 
+    }
+
+    pub fn kstack_top(&self) -> usize {
+        self.kstack.get_top()
     }
 }
+
+impl Drop for TaskUserRes {
+    fn drop(&mut self) {
+        self.dealloc_user_res();
+        // kstack can also be deallocated automatically 
+    }
+}
+
