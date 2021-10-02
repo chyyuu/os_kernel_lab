@@ -106,8 +106,8 @@ impl ProcessControlBlock {
         // prepare trap_cx of main thread
         let task_inner = task.inner_exclusive_access();
         let trap_cx = task_inner.get_trap_cx();
-        let ustack_top = task_inner.res.ustack_top();
-        let kstack_top = task_inner.res.kstack_top();
+        let ustack_top = task_inner.res.as_ref().unwrap().ustack_top();
+        let kstack_top = task.kstack.get_top();
         drop(task_inner);
         *trap_cx = TrapContext::app_init_context(
             entry_point,
@@ -137,11 +137,11 @@ impl ProcessControlBlock {
         // since memory_set has been changed
         let task = self.inner_exclusive_access().get_task(0);
         let mut task_inner = task.inner_exclusive_access();
-        task_inner.res.ustack_base = ustack_base;
-        task_inner.res.alloc_user_res();
-        task_inner.trap_cx_ppn = task_inner.res.trap_cx_ppn();
+        task_inner.res.as_mut().unwrap().ustack_base = ustack_base;
+        task_inner.res.as_mut().unwrap().alloc_user_res();
+        task_inner.trap_cx_ppn = task_inner.res.as_mut().unwrap().trap_cx_ppn();
         // push arguments on user stack
-        let mut user_sp = task_inner.res.ustack_top();
+        let mut user_sp = task_inner.res.as_mut().unwrap().ustack_top();
         user_sp -= (args.len() + 1) * core::mem::size_of::<usize>();
         let argv_base = user_sp;
         let mut argv: Vec<_> = (0..=args.len())
@@ -170,7 +170,7 @@ impl ProcessControlBlock {
             entry_point,
             user_sp,
             KERNEL_SPACE.exclusive_access().token(),
-            task_inner.res.kstack_top(),
+            task.kstack.get_top(),
             trap_handler as usize,
         );
         trap_cx.x[10] = args.len();
@@ -214,7 +214,7 @@ impl ProcessControlBlock {
         // create main thread of child process
         let task = Arc::new(TaskControlBlock::new(
             Arc::clone(&child),
-            parent.get_task(0).inner_exclusive_access().res.ustack_base(),
+            parent.get_task(0).inner_exclusive_access().res.as_ref().unwrap().ustack_base(),
             // here we do not allocate trap_cx or ustack again
             // but mention that we allocate a new kstack here
             false,
@@ -226,7 +226,7 @@ impl ProcessControlBlock {
         // modify kstack_top in trap_cx of this thread
         let task_inner = task.inner_exclusive_access();
         let trap_cx = task_inner.get_trap_cx();
-        trap_cx.kernel_sp = task_inner.res.kstack_top();
+        trap_cx.kernel_sp = task.kstack.get_top();
         drop(task_inner);
         // add this thread to scheduler
         add_task(task);

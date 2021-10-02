@@ -1,4 +1,4 @@
-use alloc::{vec::Vec, sync::Arc};
+use alloc::{vec::Vec, sync::{Arc, Weak}};
 use lazy_static::*;
 use crate::sync::UPSafeCell;
 use crate::mm::{KERNEL_SPACE, MapPermission, PhysPageNum, VirtAddr};
@@ -107,8 +107,7 @@ impl KernelStack {
 pub struct TaskUserRes {
     pub tid: usize,
     pub ustack_base: usize,
-    pub kstack: KernelStack,
-    pub process: Arc<ProcessControlBlock>,
+    pub process: Weak<ProcessControlBlock>,
 }
 
 fn trap_cx_bottom_from_tid(tid: usize) -> usize {
@@ -126,12 +125,10 @@ impl TaskUserRes {
         alloc_user_res: bool,
     ) -> Self {
         let tid = process.inner_exclusive_access().alloc_tid();
-        let kstack = kstack_alloc();
         let task_user_res = Self {
             tid,
             ustack_base,
-            kstack,
-            process: Arc::clone(&process),
+            process: Arc::downgrade(&process),
         };
         if alloc_user_res {
             task_user_res.alloc_user_res();
@@ -140,11 +137,12 @@ impl TaskUserRes {
     }
 
     pub fn alloc_user_res(&self) {
-        let mut process = self.process.inner_exclusive_access();
+        let process = self.process.upgrade().unwrap();
+        let mut process_inner = process.inner_exclusive_access();
         // alloc user stack
         let ustack_bottom = ustack_bottom_from_tid(self.ustack_base, self.tid);
         let ustack_top = ustack_bottom + USER_STACK_SIZE;
-        process
+        process_inner
             .memory_set
             .insert_framed_area(
                 ustack_bottom.into(),
@@ -154,7 +152,7 @@ impl TaskUserRes {
         // alloc trap_cx
         let trap_cx_bottom = trap_cx_bottom_from_tid(self.tid);
         let trap_cx_top = trap_cx_bottom + PAGE_SIZE;
-        process
+        process_inner
             .memory_set
             .insert_framed_area(
                 trap_cx_bottom.into(),
@@ -165,23 +163,30 @@ impl TaskUserRes {
 
     fn dealloc_user_res(&self) {
         // dealloc tid
-        let mut process = self.process.inner_exclusive_access();
+        let process = self.process.upgrade().unwrap();
+        let mut process_inner = process.inner_exclusive_access();
         // dealloc ustack manually
         let ustack_bottom_va: VirtAddr = ustack_bottom_from_tid(self.ustack_base, self.tid).into();
-        process.memory_set.remove_area_with_start_vpn(ustack_bottom_va.into());
+        process_inner.memory_set.remove_area_with_start_vpn(ustack_bottom_va.into());
         // dealloc trap_cx manually
         let trap_cx_bottom_va: VirtAddr = trap_cx_bottom_from_tid(self.tid).into();
-        process.memory_set.remove_area_with_start_vpn(trap_cx_bottom_va.into());
+        process_inner.memory_set.remove_area_with_start_vpn(trap_cx_bottom_va.into());
     }
 
     #[allow(unused)]
     pub fn alloc_tid(&mut self) {
-        self.tid = self.process.inner_exclusive_access().alloc_tid();
+        self.tid = self
+            .process
+            .upgrade()
+            .unwrap()
+            .inner_exclusive_access()
+            .alloc_tid();
     }
 
     pub fn dealloc_tid(&self) {
-        let mut process = self.process.inner_exclusive_access();
-        process.dealloc_tid(self.tid);
+        let process = self.process.upgrade().unwrap();
+        let mut process_inner = process.inner_exclusive_access();
+        process_inner.dealloc_tid(self.tid);
     }
 
     pub fn trap_cx_user_va(&self) -> usize {
@@ -189,18 +194,15 @@ impl TaskUserRes {
     }
 
     pub fn trap_cx_ppn(&self) -> PhysPageNum {
-        let process = self.process.inner_exclusive_access();
+        let process = self.process.upgrade().unwrap();
+        let process_inner = process.inner_exclusive_access();
         let trap_cx_bottom_va: VirtAddr = trap_cx_bottom_from_tid(self.tid).into();
-        process.memory_set.translate(trap_cx_bottom_va.into()).unwrap().ppn()
+        process_inner.memory_set.translate(trap_cx_bottom_va.into()).unwrap().ppn()
     }
 
     pub fn ustack_base(&self) -> usize { self.ustack_base }
     pub fn ustack_top(&self) -> usize {
         ustack_bottom_from_tid(self.ustack_base, self.tid) + USER_STACK_SIZE 
-    }
-
-    pub fn kstack_top(&self) -> usize {
-        self.kstack.get_top()
     }
 }
 
@@ -208,7 +210,6 @@ impl Drop for TaskUserRes {
     fn drop(&mut self) {
         self.dealloc_tid();
         self.dealloc_user_res();
-        // kstack can also be deallocated automatically 
     }
 }
 

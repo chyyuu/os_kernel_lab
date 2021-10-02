@@ -8,7 +8,6 @@ mod process;
 
 use crate::fs::{open_file, OpenFlags};
 use switch::__switch;
-use task::{TaskControlBlock, TaskStatus};
 use alloc::sync::Arc;
 use manager::fetch_task;
 use lazy_static::*;
@@ -26,6 +25,7 @@ pub use processor::{
     take_current_task,
     schedule,
 };
+pub use task::{TaskControlBlock, TaskStatus};
 pub use manager::add_task;
 pub use id::{
     PidHandle,
@@ -53,16 +53,21 @@ pub fn suspend_current_and_run_next() {
 }
 
 pub fn exit_current_and_run_next(exit_code: i32) {
-    // take from Processor
     let task = take_current_task().unwrap();
-    task.inner_exclusive_access().exit_code = exit_code;
-    let tid = task.inner_exclusive_access().res.tid;
-    // remove thread 
+    let mut task_inner = task.inner_exclusive_access();
     let process = task.process.upgrade().unwrap();
-    let mut process_inner = process.inner_exclusive_access();
-    process_inner.tasks.drain(tid..tid + 1);
-    // if this is the main thread of the process, then we need terminate this process
+    let tid = task_inner.res.as_ref().unwrap().tid;
+    // record exit code
+    task_inner.exit_code = Some(exit_code);
+    task_inner.res = None;
+    // here we do not remove the thread since we are still using the kstack
+    // it will be deallocated when sys_waittid is called
+    drop(task_inner);
+    drop(task);
+    // however, if this is the main thread of current process
+    // the process should terminate at once
     if tid == 0 {
+        let mut process_inner = process.inner_exclusive_access();
         // mark this process as a zombie process
         process_inner.is_zombie = true;
         // record exit code of main process
@@ -77,14 +82,20 @@ pub fn exit_current_and_run_next(exit_code: i32) {
             }
         }
 
+        // deallocate user res (including tid/trap_cx/ustack) of all threads
+        // it has to be done before we dealloc the whole memory_set
+        // otherwise they will be deallocated twice
+        for task in process_inner.tasks.iter().filter(|t| t.is_some()) {
+            let task = task.as_ref().unwrap();
+            let mut task_inner = task.inner_exclusive_access();
+            task_inner.res = None;
+        }
+
         process_inner.children.clear();
-        // deallocate user space as soon as possible
+        // deallocate other data in user space i.e. program code/data section
         process_inner.memory_set.recycle_data_pages();
     }
-    // maintain rc of process manually since we will break this context soon
-    drop(process_inner);
     drop(process);
-    drop(task);
     // we do not have to save task context
     let mut _unused = TaskContext::zero_init();
     schedule(&mut _unused as *mut _);

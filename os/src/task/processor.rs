@@ -84,11 +84,20 @@ pub fn current_trap_cx() -> &'static mut TrapContext {
 }
 
 pub fn current_trap_cx_user_va() -> usize {
-    current_task().unwrap().inner_exclusive_access().res.trap_cx_user_va()
+    current_task()
+        .unwrap()
+        .inner_exclusive_access()
+        .res
+        .as_ref()
+        .unwrap()
+        .trap_cx_user_va()
 }
 
 pub fn current_kstack_top() -> usize {
-    current_task().unwrap().inner_exclusive_access().res.kstack_top()
+    current_task()
+        .unwrap()
+        .kstack
+        .get_top()
 }
 
 pub fn schedule(switched_task_cx_ptr: *mut TaskContext) {
