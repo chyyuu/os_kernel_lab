@@ -49,7 +49,7 @@ env:
 
 sdcard: fs-img
 	@echo "Are you sure write to $(SDCARD) ? [y/N] " && read ans && [ $${ans:-N} = y ]
-	@sudo dd if=/dev/zero of=$(SDCARD) bs=1048576 count=256
+	@sudo dd if=/dev/zero of=$(SDCARD) bs=1048576 count=32
 	@sudo dd if=$(FS_IMG) of=$(SDCARD)
 
 $(KERNEL_BIN): kernel
@@ -57,7 +57,7 @@ $(KERNEL_BIN): kernel
 
 fs-img: $(APPS)
 	@cd ../user && make build
-	@rm $(FS_IMG)
+	@rm $(FS_IMG) -f
 	@cd ../easy-fs-fuse && cargo run --release -- -s ../user/src/bin/ -t ../user/target/riscv64gc-unknown-none-elf/release/
 
 $(APPS):
