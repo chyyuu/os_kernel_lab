@@ -6,12 +6,12 @@ extern crate user_lib;
 extern crate alloc;
 
 use user_lib::{exit, thread_create, waittid, get_time};
-use user_lib::{mutex_create, mutex_lock, mutex_unlock};
+use user_lib::{mutex_blocking_create, mutex_lock, mutex_unlock};
 use alloc::vec::Vec;
 
 static mut A: usize = 0;
-const PER_THREAD: usize = 1000;
-const THREAD_COUNT: usize = 16;
+const PER_THREAD: usize = 10000;
+const THREAD_COUNT: usize = 8;
 
 unsafe fn f() -> ! {
     let mut t = 2usize;
@@ -29,7 +29,7 @@ unsafe fn f() -> ! {
 #[no_mangle]
 pub fn main() -> i32 {
     let start = get_time();
-    assert_eq!(mutex_create(), 0);
+    assert_eq!(mutex_blocking_create(), 0);
     let mut v = Vec::new();    
     for _ in 0..THREAD_COUNT {
         v.push(thread_create(f as usize) as usize);

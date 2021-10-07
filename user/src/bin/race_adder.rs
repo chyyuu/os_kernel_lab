@@ -9,8 +9,8 @@ use user_lib::{exit, thread_create, waittid, get_time};
 use alloc::vec::Vec;
 
 static mut A: usize = 0;
-const PER_THREAD: usize = 10000;
-const THREAD_COUNT: usize = 8;
+const PER_THREAD: usize = 1000;
+const THREAD_COUNT: usize = 16;
 
 unsafe fn f() -> ! {
     let mut t = 2usize;

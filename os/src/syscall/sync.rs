@@ -1,8 +1,8 @@
 use crate::task::current_process;
-use crate::sync::MutexSpin;
+use crate::sync::{MutexSpin, MutexBlocking};
 use alloc::sync::Arc;
 
-pub fn sys_mutex_create() -> isize {
+pub fn sys_mutex_create(blocking: bool) -> isize {
     let process = current_process();
     let mut process_inner = process.inner_exclusive_access();
     if let Some(id) = process_inner
@@ -11,7 +11,11 @@ pub fn sys_mutex_create() -> isize {
         .enumerate()
         .find(|(_, item)| item.is_none())
         .map(|(id, _)| id) {
-        process_inner.mutex_list[id] = Some(Arc::new(MutexSpin::new())); 
+        process_inner.mutex_list[id] = if !blocking {
+            Some(Arc::new(MutexSpin::new()))
+        } else {
+            Some(Arc::new(MutexBlocking::new()))
+        };
         id as isize
     } else {
         process_inner.mutex_list.push(Some(Arc::new(MutexSpin::new())));
