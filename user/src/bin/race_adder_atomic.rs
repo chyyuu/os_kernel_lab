@@ -5,20 +5,26 @@
 extern crate user_lib;
 extern crate alloc;
 
-use user_lib::{exit, thread_create, waittid, get_time};
+use user_lib::{exit, thread_create, waittid, get_time, yield_};
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 static mut A: usize = 0;
-const PER_THREAD: usize = 10000;
+static OCCUPIED: AtomicBool = AtomicBool::new(false);
+const PER_THREAD: usize = 100000;
 const THREAD_COUNT: usize = 8;
 
 unsafe fn f() -> ! {
     let mut t = 2usize;
     for _ in 0..PER_THREAD {
+        while OCCUPIED.compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed).is_err() {
+            yield_();
+        }
         let a = &mut A as *mut usize;
         let cur = a.read_volatile();
         for _ in 0..500 { t = t * t % 10007; }
         a.write_volatile(cur + 1);
+        OCCUPIED.store(false, Ordering::Relaxed);
     }
     exit(t as i32)
 }
