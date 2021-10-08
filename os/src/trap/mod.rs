@@ -20,7 +20,7 @@ use crate::task::{
     current_trap_cx,
     current_trap_cx_user_va,
 };
-use crate::timer::set_next_trigger;
+use crate::timer::{set_next_trigger, check_timer};
 use crate::config::TRAMPOLINE;
 
 global_asm!(include_str!("trap.S"));
@@ -83,6 +83,7 @@ pub fn trap_handler() -> ! {
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
             set_next_trigger();
+            check_timer();
             suspend_current_and_run_next();
         }
         _ => {

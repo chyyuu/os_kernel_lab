@@ -1,6 +1,15 @@
-use crate::task::current_process;
+use crate::task::{current_task, current_process, block_current_and_run_next};
 use crate::sync::{MutexSpin, MutexBlocking};
+use crate::timer::{get_time_ms, add_timer};
 use alloc::sync::Arc;
+
+pub fn sys_sleep(ms: usize) -> isize {
+    let expire_ms = get_time_ms() + ms;
+    let task = current_task().unwrap();
+    add_timer(expire_ms, task);
+    block_current_and_run_next();
+    0
+}
 
 pub fn sys_mutex_create(blocking: bool) -> isize {
     let process = current_process();
