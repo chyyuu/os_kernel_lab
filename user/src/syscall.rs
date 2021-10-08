@@ -90,8 +90,8 @@ pub fn sys_waitpid(pid: isize, exit_code: *mut i32) -> isize {
     syscall(SYSCALL_WAITPID, [pid as usize, exit_code as usize, 0])
 }
 
-pub fn sys_thread_create(entry: usize) -> isize {
-    syscall(SYSCALL_THREAD_CREATE, [entry, 0, 0])
+pub fn sys_thread_create(entry: usize, arg: usize) -> isize {
+    syscall(SYSCALL_THREAD_CREATE, [entry, arg, 0])
 }
 
 pub fn sys_gettid() -> isize {

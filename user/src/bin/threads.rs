@@ -26,9 +26,9 @@ pub fn thread_c() -> ! {
 #[no_mangle]
 pub fn main() -> i32 {
     let mut v = Vec::new();
-    v.push(thread_create(thread_a as usize));
-    v.push(thread_create(thread_b as usize));
-    v.push(thread_create(thread_c as usize));
+    v.push(thread_create(thread_a as usize, 0));
+    v.push(thread_create(thread_b as usize, 0));
+    v.push(thread_create(thread_c as usize, 0));
     for tid in v.iter() {
         let exit_code = waittid(*tid as usize);
         println!("thread#{} exited with code {}", tid, exit_code);

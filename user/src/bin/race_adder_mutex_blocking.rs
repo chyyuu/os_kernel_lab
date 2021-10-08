@@ -10,8 +10,8 @@ use user_lib::{mutex_blocking_create, mutex_lock, mutex_unlock};
 use alloc::vec::Vec;
 
 static mut A: usize = 0;
-const PER_THREAD: usize = 10000;
-const THREAD_COUNT: usize = 8;
+const PER_THREAD: usize = 1000;
+const THREAD_COUNT: usize = 16;
 
 unsafe fn f() -> ! {
     let mut t = 2usize;
@@ -32,7 +32,7 @@ pub fn main() -> i32 {
     assert_eq!(mutex_blocking_create(), 0);
     let mut v = Vec::new();    
     for _ in 0..THREAD_COUNT {
-        v.push(thread_create(f as usize) as usize);
+        v.push(thread_create(f as usize, 0) as usize);
     }
     let mut time_cost = Vec::new();
     for tid in v.iter() {

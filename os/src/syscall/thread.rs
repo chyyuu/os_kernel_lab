@@ -1,7 +1,7 @@
 use alloc::sync::Arc;
 use crate::{mm::kernel_token, task::{TaskControlBlock, add_task, current_task}, trap::{TrapContext, trap_handler}};
 
-pub fn sys_thread_create(entry: usize) -> isize {
+pub fn sys_thread_create(entry: usize, arg: usize) -> isize {
     let task = current_task().unwrap();
     let process = task.process.upgrade().unwrap();
     // create a new thread
@@ -30,6 +30,7 @@ pub fn sys_thread_create(entry: usize) -> isize {
         new_task.kstack.get_top(),
         trap_handler as usize,
     );
+    (*new_task_trap_cx).x[10] = arg;
     new_task_tid as isize
 }
 
