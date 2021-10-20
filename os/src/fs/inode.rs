@@ -65,7 +65,7 @@ pub fn list_apps() {
     for app in ROOT_INODE.ls() {
         println!("{}", app);
     }
-    println!("**************/")
+    println!("**************/");
 }
 
 bitflags! {
