@@ -1,12 +1,9 @@
-pub struct TaskControlBlock {
-    pub task_cx_ptr: usize,
-    pub task_status: TaskStatus,
-}
+use super::TaskContext;
 
-impl TaskControlBlock {
-    pub fn get_task_cx_ptr2(&self) -> *const usize {
-        &self.task_cx_ptr as *const usize
-    }
+#[derive(Copy, Clone)]
+pub struct TaskControlBlock {
+    pub task_status: TaskStatus,
+    pub task_cx: TaskContext,
 }
 
 #[derive(Copy, Clone, PartialEq)]

@@ -1,13 +1,14 @@
 use crate::trap::TrapContext;
-use crate::task::TaskContext;
 use crate::config::*;
 
 #[repr(align(4096))]
+#[derive(Copy, Clone)]
 struct KernelStack {
     data: [u8; KERNEL_STACK_SIZE],
 }
 
 #[repr(align(4096))]
+#[derive(Copy, Clone)]
 struct UserStack {
     data: [u8; USER_STACK_SIZE],
 }
@@ -26,14 +27,10 @@ impl KernelStack {
     fn get_sp(&self) -> usize {
         self.data.as_ptr() as usize + KERNEL_STACK_SIZE
     }
-    pub fn push_context(&self, trap_cx: TrapContext, task_cx: TaskContext) -> &'static mut TaskContext {
-        unsafe {
-            let trap_cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
-            *trap_cx_ptr = trap_cx;
-            let task_cx_ptr = (trap_cx_ptr as usize - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
-            *task_cx_ptr = task_cx;
-            task_cx_ptr.as_mut().unwrap()
-        }
+    pub fn push_context(&self, trap_cx: TrapContext) -> usize {
+        let trap_cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
+        unsafe { *trap_cx_ptr = trap_cx; }
+        trap_cx_ptr as usize
     }
 }
 
@@ -60,7 +57,7 @@ pub fn load_apps() {
         core::slice::from_raw_parts(num_app_ptr.add(1), num_app + 1)
     };
     // clear i-cache first
-    unsafe { llvm_asm!("fence.i" :::: "volatile"); }
+    unsafe { asm!("fence.i"); }
     // load apps
     for i in 0..num_app {
         let base_i = get_base_i(i);
@@ -79,9 +76,8 @@ pub fn load_apps() {
     }
 }
 
-pub fn init_app_cx(app_id: usize) -> &'static TaskContext {
+pub fn init_app_cx(app_id: usize) -> usize {
     KERNEL_STACK[app_id].push_context(
         TrapContext::app_init_context(get_base_i(app_id), USER_STACK[app_id].get_sp()),
-        TaskContext::goto_restore(),
     )
 }
