@@ -5,7 +5,7 @@ use crate::task::{
     current_user_token,
     add_task,
 };
-use crate::timer::get_time_ms;
+use crate::timer::get_time_us;
 use crate::mm::{
     translated_str,
     translated_refmut,
@@ -19,6 +19,13 @@ use alloc::sync::Arc;
 use alloc::vec::Vec;
 use alloc::string::String;
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct TimeVal {
+    pub sec: usize,
+    pub usec: usize,
+}
+
 pub fn sys_exit(exit_code: i32) -> ! {
     exit_current_and_run_next(exit_code);
     panic!("Unreachable in sys_exit!");
@@ -29,8 +36,15 @@ pub fn sys_yield() -> isize {
     0
 }
 
-pub fn sys_get_time() -> isize {
-    get_time_ms() as isize
+pub fn sys_get_time(_ts: *mut TimeVal, _tz: usize) -> isize {
+    let _us = get_time_us();
+    // unsafe {
+    //     *ts = TimeVal {
+    //         sec: us / 1_000_000,
+    //         usec: us % 1_000_000,
+    //     };
+    // }
+    0
 }
 
 pub fn sys_getpid() -> isize {

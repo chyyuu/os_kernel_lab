@@ -32,7 +32,9 @@ OBJCOPY := rust-objcopy --binary-architecture=riscv64
 # Disassembly
 DISASM ?= -x
 
-build: env switch-check $(KERNEL_BIN) fs-img 
+TEST ?= 0
+
+build: env switch-check $(KERNEL_BIN) fs-img
 
 switch-check:
 ifeq ($(BOARD), qemu)
@@ -56,9 +58,9 @@ $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
 
 fs-img: $(APPS)
-	@cd ../user && make build
+	@cd ../user && make build TEST=$(TEST)
 	@rm $(FS_IMG) -f
-	@cd ../easy-fs-fuse && cargo run --release -- -s ../user/src/bin/ -t ../user/target/riscv64gc-unknown-none-elf/release/
+	@cd ../easy-fs-fuse && cargo run --release -- -s ../user/build/app/ -t ../user/target/riscv64gc-unknown-none-elf/release/
 
 $(APPS):
 
