@@ -5,7 +5,7 @@ step = 0x20000
 linker = 'src/linker.ld'
 
 app_id = 0
-apps = os.listdir('src/bin')
+apps = os.listdir('build/app')
 apps.sort()
 for app in apps:
     app = app[:app.find('.')]
