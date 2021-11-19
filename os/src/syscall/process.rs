@@ -22,17 +22,13 @@ pub fn sys_yield() -> isize {
     0
 }
 
-// pub fn sys_get_time() -> isize {
-//     get_time_ms() as isize
-// }
-
-pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize {
-    let us = get_time_us();
-    unsafe {
-        *ts = TimeVal {
-            sec: us / 1_000_000,
-            usec: us % 1_000_000,
-        };
-    }
+pub fn sys_get_time(_ts: *mut TimeVal, _tz: usize) -> isize {
+    let _us = get_time_us();
+    // unsafe {
+    //     *ts = TimeVal {
+    //         sec: us / 1_000_000,
+    //         usec: us % 1_000_000,
+    //     };
+    // }
     0
 }
