@@ -5,22 +5,21 @@
 extern crate user_lib;
 
 static TESTS: &[&str] = &[
-    "exit\0",
-    "fantastic_text\0",
-    "forktest\0",
-    "forktest_simple\0",
-    "hello_world\0",
-    "matrix\0",
-    "stack_overflow\0",
-    "yield\0",
-    // 正确实现 sys_get_time 后这些程序才能运行
-    // "forktest2\0",
-    // "sleep\0",
-    // "sleep_simple\0",
-    // "forktree\0",
+    "test_sleep\0",
+    "test_sleep1\0",
+    "test_mmap0\0",
+    "test_mmap1\0",
+    "test_mmap2\0",
+    "test_mmap3\0",
+    "test_unmap\0",
+    "test_unmap2\0",
+    "test_spawn0\0",
+    "test_spawn1\0",
 ];
 
 use user_lib::{exec, fork, waitpid};
+
+/// 辅助测例，运行所有其他测例。
 
 #[no_mangle]
 pub fn main() -> i32 {
@@ -40,6 +39,6 @@ pub fn main() -> i32 {
             );
         }
     }
-    println!("Usertests passed!");
+    println!("ch5 Usertests passed!");
     0
 }
