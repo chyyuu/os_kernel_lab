@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{fork, wait, exit};
+use user_lib::{exit, fork, wait};
 
 const MAX_CHILD: usize = 40;
 

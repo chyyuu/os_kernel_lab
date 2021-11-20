@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{fork, wait, yield_, exit, getpid, get_time};
+use user_lib::{exit, fork, get_time, getpid, wait, yield_};
 
 static NUM: usize = 35;
 const N: usize = 10;
@@ -27,6 +27,7 @@ fn work(times: isize) {
         for i in 0..N {
             for j in 0..N {
                 c[i][j] = 0;
+                #[allow(clippy::needless_range_loop)]
                 for k in 0..N {
                     c[i][j] = (c[i][j] + a[i][k] * b[k][j]) % P;
                 }
