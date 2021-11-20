@@ -13,7 +13,7 @@ use k210_soc::{
     sysctl,
     sleep::usleep,
 };
-use spin::Mutex;
+use crate::sync::UPSafeCell;
 use lazy_static::*;
 use super::BlockDevice;
 use core::convert::TryInto;
@@ -711,7 +711,9 @@ fn io_init() {
 }
 
 lazy_static! {
-    static ref PERIPHERALS: Mutex<Peripherals> = Mutex::new(Peripherals::take().unwrap());
+    static ref PERIPHERALS: UPSafeCell<Peripherals> = unsafe {
+        UPSafeCell::new(Peripherals::take().unwrap())
+    };
 }
 
 fn init_sdcard() -> SDCard<SPIImpl<SPI0>> {
@@ -735,19 +737,19 @@ fn init_sdcard() -> SDCard<SPIImpl<SPI0>> {
     sd
 }
 
-pub struct SDCardWrapper(Mutex<SDCard<SPIImpl<SPI0>>>);
+pub struct SDCardWrapper(UPSafeCell<SDCard<SPIImpl<SPI0>>>);
 
 impl SDCardWrapper {
     pub fn new() -> Self {
-        Self(Mutex::new(init_sdcard()))
+        unsafe { Self(UPSafeCell::new(init_sdcard())) }
     }
 }
 
 impl BlockDevice for SDCardWrapper {
     fn read_block(&self, block_id: usize, buf: &mut [u8]) {
-        self.0.lock().read_sector(buf,block_id as u32).unwrap();
+        self.0.exclusive_access().read_sector(buf,block_id as u32).unwrap();
     }
     fn write_block(&self, block_id: usize, buf: &[u8]) {
-        self.0.lock().write_sector(buf,block_id as u32).unwrap();
+        self.0.exclusive_access().write_sector(buf,block_id as u32).unwrap();
     }
 }

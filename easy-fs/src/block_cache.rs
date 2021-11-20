@@ -17,7 +17,7 @@ pub struct BlockCache {
 impl BlockCache {
     /// Load a new BlockCache from disk.
     pub fn new(
-        block_id: usize, 
+        block_id: usize,
         block_device: Arc<dyn BlockDevice>
     ) -> Self {
         let mut cache = [0u8; BLOCK_SZ];
@@ -125,4 +125,11 @@ pub fn get_block_cache(
     block_device: Arc<dyn BlockDevice>
 ) -> Arc<Mutex<BlockCache>> {
     BLOCK_CACHE_MANAGER.lock().get_block_cache(block_id, block_device)
+}
+
+pub fn block_cache_sync_all() {
+    let manager = BLOCK_CACHE_MANAGER.lock();
+    for (_, cache) in manager.queue.iter() {
+        cache.lock().sync();
+    }
 }

@@ -18,9 +18,10 @@ use crate::task::{
     suspend_current_and_run_next,
     current_user_token,
     current_trap_cx,
+    current_trap_cx_user_va,
 };
-use crate::timer::set_next_trigger;
-use crate::config::{TRAP_CONTEXT, TRAMPOLINE};
+use crate::timer::{set_next_trigger, check_timer};
+use crate::config::TRAMPOLINE;
 
 global_asm!(include_str!("trap.S"));
 
@@ -82,6 +83,7 @@ pub fn trap_handler() -> ! {
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
             set_next_trigger();
+            check_timer();
             suspend_current_and_run_next();
         }
         _ => {
@@ -95,7 +97,7 @@ pub fn trap_handler() -> ! {
 #[no_mangle]
 pub fn trap_return() -> ! {
     set_user_trap_entry();
-    let trap_cx_ptr = TRAP_CONTEXT;
+    let trap_cx_user_va = current_trap_cx_user_va();
     let user_satp = current_user_token();
     extern "C" {
         fn __alltraps();
@@ -103,15 +105,22 @@ pub fn trap_return() -> ! {
     }
     let restore_va = __restore as usize - __alltraps as usize + TRAMPOLINE;
     unsafe {
-        llvm_asm!("fence.i" :::: "volatile");
-        llvm_asm!("jr $0" :: "r"(restore_va), "{a0}"(trap_cx_ptr), "{a1}"(user_satp) :: "volatile");
+        asm!(
+            "fence.i",
+            "jr {restore_va}",
+            restore_va = in(reg) restore_va,
+            in("a0") trap_cx_user_va,
+            in("a1") user_satp,
+            options(noreturn)
+        );
     }
-    panic!("Unreachable in back_to_user!");
 }
 
 #[no_mangle]
 pub fn trap_from_kernel() -> ! {
+    use riscv::register::sepc;
+    println!("stval = {:#x}, sepc = {:#x}", stval::read(), sepc::read());
     panic!("a trap {:?} from kernel!", scause::read().cause());
 }
 
-pub use context::{TrapContext};
+pub use context::TrapContext;

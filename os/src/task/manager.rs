@@ -1,7 +1,7 @@
+use crate::sync::UPSafeCell;
 use super::TaskControlBlock;
 use alloc::collections::VecDeque;
 use alloc::sync::Arc;
-use spin::Mutex;
 use lazy_static::*;
 
 pub struct TaskManager {
@@ -22,13 +22,15 @@ impl TaskManager {
 }
 
 lazy_static! {
-    pub static ref TASK_MANAGER: Mutex<TaskManager> = Mutex::new(TaskManager::new());
+    pub static ref TASK_MANAGER: UPSafeCell<TaskManager> = unsafe {
+        UPSafeCell::new(TaskManager::new())
+    };
 }
 
 pub fn add_task(task: Arc<TaskControlBlock>) {
-    TASK_MANAGER.lock().add(task);
+    TASK_MANAGER.exclusive_access().add(task);
 }
 
 pub fn fetch_task() -> Option<Arc<TaskControlBlock>> {
-    TASK_MANAGER.lock().fetch()
+    TASK_MANAGER.exclusive_access().fetch()
 }

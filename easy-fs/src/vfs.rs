@@ -6,6 +6,7 @@ use super::{
     EasyFileSystem,
     DIRENT_SZ,
     get_block_cache,
+    block_cache_sync_all,
 };
 use alloc::sync::Arc;
 use alloc::string::String;
@@ -145,6 +146,7 @@ impl Inode {
         });
 
         let (block_id, block_offset) = fs.get_disk_inode_pos(new_inode_id);
+        block_cache_sync_all();
         // return inode
         Some(Arc::new(Self::new(
             block_id,
@@ -185,10 +187,12 @@ impl Inode {
 
     pub fn write_at(&self, offset: usize, buf: &[u8]) -> usize {
         let mut fs = self.fs.lock();
-        self.modify_disk_inode(|disk_inode| {
+        let size = self.modify_disk_inode(|disk_inode| {
             self.increase_size((offset + buf.len()) as u32, disk_inode, &mut fs);
             disk_inode.write_at(offset, buf, &self.block_device)
-        })
+        });
+        block_cache_sync_all();
+        size
     }
 
     pub fn clear(&self) {
@@ -201,5 +205,6 @@ impl Inode {
                 fs.dealloc_data(data_block);
             }
         });
+        block_cache_sync_all();
     }
 }

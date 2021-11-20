@@ -56,13 +56,13 @@ fn easy_fs_pack() -> std::io::Result<()> {
             .write(true)
             .create(true)
             .open(format!("{}{}", target_path, "fs.img"))?;
-        f.set_len(8192 * 512).unwrap();
+        f.set_len(16 * 2048 * 512).unwrap();
         f
     })));
-    // 4MiB, at most 4095 files
+    // 16MiB, at most 4095 files
     let efs = EasyFileSystem::create(
         block_file.clone(),
-        8192,
+        16 * 2048,
         1,
     );
     let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));

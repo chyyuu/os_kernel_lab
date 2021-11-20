@@ -7,13 +7,11 @@ use alloc::vec::Vec;
 use riscv::register::satp;
 use alloc::sync::Arc;
 use lazy_static::*;
-use spin::Mutex;
+use crate::sync::UPSafeCell;
 use crate::config::{
     MEMORY_END,
     PAGE_SIZE,
     TRAMPOLINE,
-    TRAP_CONTEXT,
-    USER_STACK_SIZE,
     MMIO,
 };
 
@@ -31,13 +29,13 @@ extern "C" {
 }
 
 lazy_static! {
-    pub static ref KERNEL_SPACE: Arc<Mutex<MemorySet>> = Arc::new(Mutex::new(
-        MemorySet::new_kernel()
-    ));
+    pub static ref KERNEL_SPACE: Arc<UPSafeCell<MemorySet>> = Arc::new(unsafe {
+        UPSafeCell::new(MemorySet::new_kernel())
+    });
 }
 
 pub fn kernel_token() -> usize {
-    KERNEL_SPACE.lock().token()
+    KERNEL_SPACE.exclusive_access().token()
 }
 
 pub struct MemorySet {
@@ -142,8 +140,8 @@ impl MemorySet {
         }
         memory_set
     }
-    /// Include sections in elf and trampoline and TrapContext and user stack,
-    /// also returns user_sp and entry point.
+    /// Include sections in elf and trampoline,
+    /// also returns user_sp_base and entry point.
     pub fn from_elf(elf_data: &[u8]) -> (Self, usize, usize) {
         let mut memory_set = Self::new_bare();
         // map trampoline
@@ -178,26 +176,10 @@ impl MemorySet {
                 );
             }
         }
-        // map user stack with U flags
         let max_end_va: VirtAddr = max_end_vpn.into();
-        let mut user_stack_bottom: usize = max_end_va.into();
-        // guard page
-        user_stack_bottom += PAGE_SIZE;
-        let user_stack_top = user_stack_bottom + USER_STACK_SIZE;
-        memory_set.push(MapArea::new(
-            user_stack_bottom.into(),
-            user_stack_top.into(),
-            MapType::Framed,
-            MapPermission::R | MapPermission::W | MapPermission::U,
-        ), None);
-        // map TrapContext
-        memory_set.push(MapArea::new(
-            TRAP_CONTEXT.into(),
-            TRAMPOLINE.into(),
-            MapType::Framed,
-            MapPermission::R | MapPermission::W,
-        ), None);
-        (memory_set, user_stack_top, elf.header.pt2.entry_point() as usize)
+        let mut user_stack_base: usize = max_end_va.into();
+        user_stack_base += PAGE_SIZE;
+        (memory_set, user_stack_base, elf.header.pt2.entry_point() as usize)
     }
     pub fn from_existed_user(user_space: &MemorySet) -> MemorySet {
         let mut memory_set = Self::new_bare();
@@ -220,7 +202,7 @@ impl MemorySet {
         let satp = self.page_table.token();
         unsafe {
             satp::write(satp);
-            llvm_asm!("sfence.vma" :::: "volatile");
+            asm!("sfence.vma");
         }
     }
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
@@ -338,7 +320,7 @@ bitflags! {
 
 #[allow(unused)]
 pub fn remap_test() {
-    let mut kernel_space = KERNEL_SPACE.lock();
+    let mut kernel_space = KERNEL_SPACE.exclusive_access();
     let mid_text: VirtAddr = ((stext as usize + etext as usize) / 2).into();
     let mid_rodata: VirtAddr = ((srodata as usize + erodata as usize) / 2).into();
     let mid_data: VirtAddr = ((sdata as usize + edata as usize) / 2).into();

@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![feature(linkage)]
 #![feature(panic_info_message)]
 #![feature(alloc_error_handler)]
@@ -100,9 +100,32 @@ pub fn waitpid(pid: usize, exit_code: &mut i32) -> isize {
         }
     }
 }
-pub fn sleep(period_ms: usize) {
-    let start = sys_get_time();
-    while sys_get_time() < start + period_ms as isize {
-        sys_yield();
+pub fn sleep(sleep_ms: usize) {
+    sys_sleep(sleep_ms);
+}
+
+pub fn thread_create(entry: usize, arg: usize) -> isize { sys_thread_create(entry, arg) }
+pub fn gettid() -> isize { sys_gettid() }
+pub fn waittid(tid: usize) -> isize {
+    loop {
+        match sys_waittid(tid) {
+            -2 => { yield_(); }
+            exit_code => return exit_code,
+        }
     }
 }
+
+pub fn mutex_create() -> isize { sys_mutex_create(false) }
+pub fn mutex_blocking_create() -> isize { sys_mutex_create(true) }
+pub fn mutex_lock(mutex_id: usize) { sys_mutex_lock(mutex_id); }
+pub fn mutex_unlock(mutex_id: usize) { sys_mutex_unlock(mutex_id); }
+pub fn semaphore_create(res_count: usize) -> isize {
+    sys_semaphore_create(res_count)
+}
+pub fn semaphore_up(sem_id: usize) {
+    sys_semaphore_up(sem_id);
+}
+pub fn semaphore_down(sem_id: usize) {
+    sys_semaphore_down(sem_id);
+}
+

@@ -32,24 +32,32 @@ OBJCOPY := rust-objcopy --binary-architecture=riscv64
 # Disassembly
 DISASM ?= -x
 
-build: env $(KERNEL_BIN) $(FS_IMG)
+build: env switch-check $(KERNEL_BIN) fs-img 
+
+switch-check:
+ifeq ($(BOARD), qemu)
+	(which last-qemu) || (rm last-k210 -f && touch last-qemu && make clean)
+else ifeq ($(BOARD), k210)
+	(which last-k210) || (rm last-qemu -f && touch last-k210 && make clean)
+endif
 
 env:
 	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add $(TARGET)
-	cargo install cargo-binutils --vers ~0.2
+	cargo install cargo-binutils --vers =0.3.3
 	rustup component add rust-src
 	rustup component add llvm-tools-preview
 
-sdcard: $(FS_IMG)
+sdcard: fs-img
 	@echo "Are you sure write to $(SDCARD) ? [y/N] " && read ans && [ $${ans:-N} = y ]
-	@sudo dd if=/dev/zero of=$(SDCARD) bs=1048576 count=16
+	@sudo dd if=/dev/zero of=$(SDCARD) bs=1048576 count=32
 	@sudo dd if=$(FS_IMG) of=$(SDCARD)
 
 $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
 
-$(FS_IMG): $(APPS)
+fs-img: $(APPS)
 	@cd ../user && make build
+	@rm $(FS_IMG) -f
 	@cd ../easy-fs-fuse && cargo run --release -- -s ../user/src/bin/ -t ../user/target/riscv64gc-unknown-none-elf/release/
 
 $(APPS):
@@ -72,8 +80,6 @@ disasm-vim: kernel
 	@rm $(DISASM_TMP)
 
 run: run-inner
-
-	
 
 run-inner: build
 ifeq ($(BOARD),qemu)
@@ -100,4 +106,4 @@ debug: build
 		tmux split-window -h "riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'" && \
 		tmux -2 attach-session -d
 
-.PHONY: build env kernel clean disasm disasm-vim run-inner
+.PHONY: build env kernel clean disasm disasm-vim run-inner switch-check fs-img

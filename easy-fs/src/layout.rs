@@ -231,6 +231,49 @@ impl DiskInode {
                     b0 = 0;
                     a0 += 1;
                 }
+            }
+        });
+        // alloc indirect2
+        if total_blocks > INODE_INDIRECT1_COUNT as u32 {
+            if current_blocks == INODE_INDIRECT1_COUNT as u32 {
+                self.indirect2 = new_blocks.next().unwrap();
+            }
+            current_blocks -= INODE_INDIRECT1_COUNT as u32;
+            total_blocks -= INODE_INDIRECT1_COUNT as u32;
+        } else {
+            return;
+        }
+        // fill indirect2 from (a0, b0) -> (a1, b1)
+        let mut a0 = current_blocks as usize / INODE_INDIRECT1_COUNT;
+        let mut b0 = current_blocks as usize % INODE_INDIRECT1_COUNT;
+        let a1 = total_blocks as usize / INODE_INDIRECT1_COUNT;
+        let b1 = total_blocks as usize % INODE_INDIRECT1_COUNT;
+        // alloc low-level indirect1
+        get_block_cache(
+            self.indirect2 as usize,
+            Arc::clone(block_device)
+        )
+        .lock()
+        .modify(0, |indirect2: &mut IndirectBlock| {
+            while (a0 < a1) || (a0 == a1 && b0 < b1) {
+                if b0 == 0 {
+                    indirect2[a0] = new_blocks.next().unwrap();
+                }
+                // fill current
+                get_block_cache(
+                    indirect2[a0] as usize,
+                    Arc::clone(block_device)
+                )
+                .lock()
+                .modify(0, |indirect1: &mut IndirectBlock| {
+                    indirect1[b0] = new_blocks.next().unwrap();
+                });
+                // move to next
+                b0 += 1;
+                if b0 == INODE_INDIRECT1_COUNT {
+                    b0 = 0;
+                    a0 += 1;
+                }
             } 
         });
     }
@@ -416,7 +459,7 @@ impl DirEntry {
     }
     pub fn new(name: &str, inode_number: u32) -> Self {
         let mut bytes = [0u8; NAME_LENGTH_LIMIT + 1];
-        &mut bytes[..name.len()].copy_from_slice(name.as_bytes());
+        bytes[..name.len()].copy_from_slice(name.as_bytes());
         Self {
             name: bytes,
             inode_number,
