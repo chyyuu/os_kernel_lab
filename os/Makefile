@@ -36,9 +36,9 @@ build: env switch-check $(KERNEL_BIN) fs-img
 
 switch-check:
 ifeq ($(BOARD), qemu)
-	(which last-qemu) || (rm last-k210 -f && touch last-qemu && make clean)
+	(which last-qemu) || (rm -f last-k210 && touch last-qemu && make clean)
 else ifeq ($(BOARD), k210)
-	(which last-k210) || (rm last-qemu -f && touch last-k210 && make clean)
+	(which last-k210) || (rm -f last-qemu && touch last-k210 && make clean)
 endif
 
 env:
@@ -57,7 +57,7 @@ $(KERNEL_BIN): kernel
 
 fs-img: $(APPS)
 	@cd ../user && make build
-	@rm $(FS_IMG) -f
+	@rm -f $(FS_IMG)
 	@cd ../easy-fs-fuse && cargo run --release -- -s ../user/src/bin/ -t ../user/target/riscv64gc-unknown-none-elf/release/
 
 $(APPS):
