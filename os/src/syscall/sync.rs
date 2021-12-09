@@ -1,5 +1,5 @@
 use crate::task::{current_task, current_process, block_current_and_run_next};
-use crate::sync::{MutexSpin, MutexBlocking, Semaphore};
+use crate::sync::{Mutex, MutexSpin, MutexBlocking, Semaphore};
 use crate::timer::{get_time_ms, add_timer};
 use alloc::sync::Arc;
 
@@ -13,6 +13,11 @@ pub fn sys_sleep(ms: usize) -> isize {
 
 pub fn sys_mutex_create(blocking: bool) -> isize {
     let process = current_process();
+    let mutex: Option<Arc<dyn Mutex>> = if !blocking {
+        Some(Arc::new(MutexSpin::new()))
+    } else {
+        Some(Arc::new(MutexBlocking::new()))
+    };
     let mut process_inner = process.inner_exclusive_access();
     if let Some(id) = process_inner
         .mutex_list
@@ -20,14 +25,10 @@ pub fn sys_mutex_create(blocking: bool) -> isize {
         .enumerate()
         .find(|(_, item)| item.is_none())
         .map(|(id, _)| id) {
-        process_inner.mutex_list[id] = if !blocking {
-            Some(Arc::new(MutexSpin::new()))
-        } else {
-            Some(Arc::new(MutexBlocking::new()))
-        };
+        process_inner.mutex_list[id] = mutex;
         id as isize
     } else {
-        process_inner.mutex_list.push(Some(Arc::new(MutexSpin::new())));
+        process_inner.mutex_list.push(mutex);
         process_inner.mutex_list.len() as isize - 1
     }
 }
