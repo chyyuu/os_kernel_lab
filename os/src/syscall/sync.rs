@@ -53,7 +53,7 @@ pub fn sys_mutex_unlock(mutex_id: usize) -> isize {
     0
 }
 
-pub fn sys_semaphore_creare(res_count: usize) -> isize {
+pub fn sys_semaphore_create(res_count: usize) -> isize {
     let process = current_process();
     let mut process_inner = process.inner_exclusive_access();
     let id = if let Some(id) = process_inner
