@@ -4,7 +4,7 @@ use crate::mm::{
     translated_refmut,
 };
 use crate::trap::{TrapContext, trap_handler};
-use crate::sync::{UPSafeCell, Mutex, Semaphore};
+use crate::sync::{UPSafeCell, Mutex, Semaphore, Condvar};
 use core::cell::RefMut;
 use super::id::RecycleAllocator;
 use super::TaskControlBlock;
@@ -34,6 +34,7 @@ pub struct ProcessControlBlockInner {
     pub task_res_allocator: RecycleAllocator,
     pub mutex_list: Vec<Option<Arc<dyn Mutex>>>,
     pub semaphore_list: Vec<Option<Arc<Semaphore>>>,
+    pub condvar_list:  Vec<Option<Arc<Condvar>>>,
 }
 
 impl ProcessControlBlockInner {
@@ -99,6 +100,7 @@ impl ProcessControlBlock {
                 task_res_allocator: RecycleAllocator::new(),
                 mutex_list: Vec::new(),
                 semaphore_list: Vec::new(),
+                condvar_list: Vec::new(),
             })}
         });
         // create a main thread, we should allocate ustack and trap_cx here
@@ -213,6 +215,7 @@ impl ProcessControlBlock {
                  task_res_allocator: RecycleAllocator::new(),
                  mutex_list: Vec::new(),
                  semaphore_list: Vec::new(),
+                 condvar_list: Vec::new(),
             })}
         });
         // add child
