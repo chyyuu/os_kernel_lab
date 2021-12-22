@@ -1,5 +1,6 @@
 # rCore-Tutorial-v3
 rCore-Tutorial version 3.5. See the [Documentation in Chinese](https://rcore-os.github.io/rCore-Tutorial-Book-v3/).
+Official QQ group number: 735045051
 
 ## news
 - 2021.11.20: Now we are updating our labs. Please checkout chX-dev Branches for our current new labs. (Notice: please see the [Dependency] section in the end of this doc)
