@@ -3,6 +3,7 @@
 #![feature(linkage)]
 #![feature(panic_info_message)]
 #![feature(alloc_error_handler)]
+#![feature(core_intrinsics)]
 
 #[macro_use]
 pub mod console;
@@ -129,3 +130,23 @@ pub fn semaphore_down(sem_id: usize) {
     sys_semaphore_down(sem_id);
 }
 
+#[macro_export]
+macro_rules! store {
+    ($var_ref: expr, $value: expr) => { 
+        unsafe { core::intrinsics::volatile_store($var_ref as *const _ as _, $value) }
+    };
+}
+
+#[macro_export]
+macro_rules! load {
+    ($var_ref: expr) => { 
+        unsafe { core::intrinsics::volatile_load($var_ref as *const _ as _) }
+    };
+}
+
+#[macro_export]
+macro_rules! memory_fence {
+    () => {
+        core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst)
+    };
+}
