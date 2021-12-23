@@ -131,14 +131,14 @@ pub fn semaphore_down(sem_id: usize) {
 }
 
 #[macro_export]
-macro_rules! store {
+macro_rules! vstore {
     ($var_ref: expr, $value: expr) => { 
         unsafe { core::intrinsics::volatile_store($var_ref as *const _ as _, $value) }
     };
 }
 
 #[macro_export]
-macro_rules! load {
+macro_rules! vload {
     ($var_ref: expr) => { 
         unsafe { core::intrinsics::volatile_load($var_ref as *const _ as _) }
     };
