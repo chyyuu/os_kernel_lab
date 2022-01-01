@@ -1,3 +1,5 @@
+use core::arch::asm;
+
 const SYSCALL_CLOSE: usize = 57;
 const SYSCALL_PIPE: usize = 59;
 const SYSCALL_READ: usize = 63;
