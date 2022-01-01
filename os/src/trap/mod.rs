@@ -12,6 +12,7 @@ use riscv::register::{
 };
 use crate::syscall::syscall;
 use crate::batch::run_next_app;
+use core::arch::global_asm;
 
 global_asm!(include_str!("trap.S"));
 
