@@ -16,6 +16,7 @@ use crate::config::{
     USER_STACK_SIZE,
     MMIO,
 };
+use core::arch::asm;
 
 extern "C" {
     fn stext();
