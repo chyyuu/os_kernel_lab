@@ -18,6 +18,7 @@ use crate::task::{
     suspend_current_and_run_next,
 };
 use crate::timer::set_next_trigger;
+use core::arch::global_asm;
 
 global_asm!(include_str!("trap.S"));
 

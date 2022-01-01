@@ -1,5 +1,6 @@
 use crate::trap::TrapContext;
 use crate::config::*;
+use core::arch::asm;
 
 #[repr(align(4096))]
 #[derive(Copy, Clone)]
