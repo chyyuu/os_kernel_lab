@@ -21,6 +21,7 @@ use crate::task::{
 };
 use crate::timer::set_next_trigger;
 use crate::config::{TRAP_CONTEXT, TRAMPOLINE};
+use core::arch::{global_asm, asm};
 
 global_asm!(include_str!("trap.S"));
 

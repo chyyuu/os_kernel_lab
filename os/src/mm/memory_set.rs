@@ -15,6 +15,7 @@ use crate::config::{
     TRAP_CONTEXT,
     USER_STACK_SIZE
 };
+use core::arch::asm;
 
 extern "C" {
     fn stext();
