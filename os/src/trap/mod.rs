@@ -11,6 +11,7 @@ use riscv::register::{
     stval,
 };
 use crate::syscall::syscall;
+use core::arch::global_asm;
 
 global_asm!(include_str!("trap.S"));
 
