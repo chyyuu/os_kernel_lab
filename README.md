@@ -14,7 +14,7 @@ This project aims to show how to write an **Unix-like OS** running on **RISC-V**
 
 * Platform supported: `qemu-system-riscv64` simulator or dev boards based on [Kendryte K210 SoC](https://canaan.io/product/kendryteai) such as [Maix Dock](https://www.seeedstudio.com/Sipeed-MAIX-Dock-p-4815.html)
 * OS
-  * concurrency of multiple processes
+  * concurrency of multiple processes each of which contains mutiple native threads
   * preemptive scheduling(Round-Robin algorithm)
   * dynamic memory management in kernel
   * virtual memory
@@ -29,9 +29,15 @@ TODO:
 
 ## Working in progress
 
-Now we are still updating our project, you can find latest changes on branches `chX-dev` such as `ch1-dev`. We are intended to publish first release 3.5.0 after completing most of the tasks mentioned below.
+Our first release 3.5.0 (chapter 1-7) has been published.
 
-Overall progress: ch7
+There will be 9 chapters in our next release 3.6.0, where 2 new chapters will be added:
+* chapter 8: synchronization on a uniprocessor
+* chapter 9: I/O devices
+
+Current version is 3.6.0-alpha.1 and we are still working on it.
+
+Here are the updates since 3.5.0:
 
 ### Completed
 
@@ -45,12 +51,15 @@ Overall progress: ch7
 * [x] flush all block cache to disk after a fs transaction which involves write operation
 * [x] replace `spin::Mutex` with `UPSafeCell` before SMP chapter
 * [x] add codes for a new chapter about synchronization & mutual exclusion(uniprocessor only)
+* [x] bug fix: we should call `find_pte` rather than `find_pte_create` in `PageTable::unmap`
+* [x] clarify: "check validity of level-3 pte in `find_pte` instead of checking it outside this function" should not be a bug
+* [x] code of chapter 8: synchronization on a uniprocessor
 
 ### Todo(High priority)
 
-* [ ] support Allwinner's RISC-V D1 chip
-* [ ] bug fix: we should call `find_pte` rather than `find_pte_create` in `PageTable::unmap`
-* [ ] bug fix: check validity of level-3 pte in `find_pte` instead of checking it outside this function
+* [ ] review documentation, current progress: 5/9
+* [ ] switch the code of chapter 6 and chapter 7
+* [ ] code of chapter 9: device drivers based on interrupts, including UART and block devices
 * [ ] use old fs image optionally, do not always rebuild the image
 * [ ] add new system calls: getdents64/fstat
 * [ ] shell functionality improvement(to be continued...)
@@ -62,6 +71,7 @@ Overall progress: ch7
 * [ ] rewrite practice doc and remove some inproper questions
 * [ ] provide smooth debug experience at a Rust source code level
 * [ ] format the code using official tools
+* [ ] support other platforms
 
 
 ### Crates
