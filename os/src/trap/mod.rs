@@ -89,6 +89,7 @@ pub fn trap_handler() -> ! {
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }
+    //println!("before trap_return");
     trap_return();
 }
 
@@ -116,7 +117,9 @@ pub fn trap_return() -> ! {
 
 #[no_mangle]
 pub fn trap_from_kernel() -> ! {
+    use riscv::register::sepc;
+    println!("stval = {:#x}, sepc = {:#x}", stval::read(), sepc::read());
     panic!("a trap {:?} from kernel!", scause::read().cause());
 }
 
-pub use context::{TrapContext};
+pub use context::TrapContext;
