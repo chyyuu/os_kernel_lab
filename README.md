@@ -58,6 +58,7 @@ Here are the updates since 3.5.0:
 ### Todo(High priority)
 
 * [ ] review documentation, current progress: 5/9
+* [ ] support signal mechanism in chapter 7
 * [ ] switch the code of chapter 6 and chapter 7
 * [ ] code of chapter 9: device drivers based on interrupts, including UART and block devices
 * [ ] use old fs image optionally, do not always rebuild the image
