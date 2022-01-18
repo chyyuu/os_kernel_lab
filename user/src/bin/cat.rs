@@ -11,7 +11,6 @@ use user_lib::{
     close,
     read,
 };
-use alloc::string::String;
 
 #[no_mangle]
 pub fn main(argc: usize, argv: &[&str]) -> i32 {
@@ -22,13 +21,11 @@ pub fn main(argc: usize, argv: &[&str]) -> i32 {
     }
     let fd = fd as usize;
     let mut buf = [0u8; 16];
-    let mut s = String::new();
     loop {
         let size = read(fd, &mut buf) as usize;
         if size == 0 { break; }
-        s.push_str(core::str::from_utf8(&buf[..size]).unwrap());
+        println!("{}", core::str::from_utf8(&buf[..size]).unwrap());
     }
-    println!("{}", s);
     close(fd);
     0
 }
