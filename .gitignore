@@ -2,6 +2,7 @@
 Cargo.lock
 target
 os/src/link_app.S
+os/src/linker.ld
 os/last-*
 os/Cargo.lock
 user/build
