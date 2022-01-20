@@ -6,7 +6,7 @@ extern crate user_lib;
 
 use user_lib::{fork, wait, yield_, exit, getpid, get_time};
 
-static NUM: usize = 35;
+static NUM: usize = 30;
 const N: usize = 10;
 static P: i32 = 10007;
 type Arr = [[i32; N]; N];
