@@ -23,9 +23,168 @@ This project aims to show how to write an **Unix-like OS** running on **RISC-V**
 * **only 4K+ LoC**
 * [A detailed documentation in Chinese](https://rcore-os.github.io/rCore-Tutorial-Book-v3/) in spite of the lack of comments in the code(English version is not available at present)
 
+## Prerequisites
+
+### Install Rust
+
+See [official guide](https://www.rust-lang.org/tools/install).
+
+Install some tools:
+
+```sh
+$ rustup target add riscv64gc-unknown-none-elf
+$ cargo install cargo-binutils --vers =0.3.3
+$ rustup component add llvm-tools-preview
+$ rustup component add rust-src
+```
+
+### Install Qemu
+
+Here we manually compile and install Qemu 5.0.0. For example, on Ubuntu 18.04:
+
+```sh
+# install dependency packages
+$ sudo apt install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev libgmp-dev \
+              gawk build-essential bison flex texinfo gperf libtool patchutils bc \
+              zlib1g-dev libexpat-dev pkg-config  libglib2.0-dev libpixman-1-dev git tmux python3 python3-pip
+# download Qemu source code
+$ wget https://download.qemu.org/qemu-5.0.0.tar.xz
+# extract to qemu-5.0.0/
+$ tar xvJf qemu-5.0.0.tar.xz
+$ cd qemu-5.0.0
+# build
+$ ./configure --target-list=riscv64-softmmu,riscv64-linux-user
+$ make -j$(nproc)
+```
+
+Then, add following contents to `~/.bashrc`(please adjust these paths according to your environment):
+
+```
+export PATH=$PATH:/home/shinbokuow/Downloads/built/qemu-5.0.0
+export PATH=$PATH:/home/shinbokuow/Downloads/built/qemu-5.0.0/riscv64-softmmu
+export PATH=$PATH:/home/shinbokuow/Downloads/built/qemu-5.0.0/riscv64-linux-user
+```
+
+Finally, update the current shell:
+
+```sh
+$ source ~/.bashrc
+```
+
+Now we can check the version of Qemu:
+
+```sh
+$ qemu-system-riscv64 --version
+QEMU emulator version 5.0.0
+Copyright (c) 2003-2020 Fabrice Bellard and the QEMU Project developers
+```
+
+### Install RISC-V GNU Embedded Toolchain(including GDB)
+
+Download the compressed file according to your platform From [Sifive website](https://www.sifive.com/software)(Ctrl+F 'toolchain').
+
+Extract it and append the location of the 'bin' directory under its root directory to `$PATH`.
+
+For example, we can check the version of GDB:
+
+```sh
+$ riscv64-unknown-elf-gdb --version
+GNU gdb (SiFive GDB-Metal 10.1.0-2020.12.7) 10.1
+Copyright (C) 2020 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+```
+
+### Install serial tools(Optional, if you want to run on K210)
+
+```sh
+$ pip3 install pyserial
+$ sudo apt install python3-serial
+```
+
 ## Run our project
 
-TODO:
+### Qemu
+
+```sh
+$ git clone https://github.com/rcore-os/rCore-Tutorial-v3.git
+$ cd rCore-Tutorial-v3/os
+$ make run
+```
+
+After outputing some debug messages, the kernel lists all the applications available and enter the user shell:
+
+```
+/**** APPS ****
+mpsc_sem
+usertests
+pipetest
+forktest2
+cat
+initproc
+race_adder_loop
+threads_arg
+race_adder_mutex_spin
+race_adder_mutex_blocking
+forktree
+user_shell
+huge_write
+race_adder
+race_adder_atomic
+threads
+stack_overflow
+filetest_simple
+forktest_simple
+cmdline_args
+run_pipe_test
+forktest
+matrix
+exit
+fantastic_text
+sleep_simple
+yield
+hello_world
+pipe_large_test
+sleep
+phil_din_mutex
+**************/
+Rust user shell
+>> 
+```
+
+You can run any application except for `initproc` and `user_shell` itself. To run an application, just input its filename and hit enter. `usertests` can run a bunch of applications, thus it is recommended.
+
+Type `Ctrl+a` then `x` to exit Qemu.
+
+### K210
+
+Before chapter 6, you do not need a SD card:
+
+```sh
+$ git clone https://github.com/rcore-os/rCore-Tutorial-v3.git
+$ cd rCore-Tutorial-v3/os
+$ make run BOARD=k210
+```
+
+From chapter 6, before running the kernel, we should insert a SD card into PC and manually write the filesystem image to it:
+
+```sh
+$ cd rCore-Tutorial-v3/os
+$ make sdcard
+```
+
+By default it will overwrite the device `/dev/sdb` which is the SD card, but you can provide another location. For example, `make sdcard SDCARD=/dev/sdc`.
+
+After that, remove the SD card from PC and insert it to the slot of K210. Connect the K210 to PC and then:
+
+```sh
+$ git clone https://github.com/rcore-os/rCore-Tutorial-v3.git
+$ cd rCore-Tutorial-v3/os
+$ make run BOARD=k210
+```
+
+Type `Ctrl+]` to disconnect from K210.
 
 ## Working in progress
 
