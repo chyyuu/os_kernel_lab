@@ -29,7 +29,7 @@ unsafe fn f(count:usize) -> ! {
 
 #[no_mangle]
 pub fn main(argc: usize, argv: &[&str]) -> i32 {
-    let mut count = 0;
+    let count: usize;
     if argc == 1 {
         count = THREAD_COUNT;
     } else if argc == 2 {
