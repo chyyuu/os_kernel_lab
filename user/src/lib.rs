@@ -4,8 +4,8 @@
 
 #[macro_use]
 pub mod console;
-mod syscall;
 mod lang_items;
+mod syscall;
 
 #[no_mangle]
 #[link_section = ".text.entry"]
@@ -26,14 +26,22 @@ fn clear_bss() {
         fn start_bss();
         fn end_bss();
     }
-    (start_bss as usize..end_bss as usize).for_each(|addr| {
-        unsafe { (addr as *mut u8).write_volatile(0); }
+    (start_bss as usize..end_bss as usize).for_each(|addr| unsafe {
+        (addr as *mut u8).write_volatile(0);
     });
 }
 
 use syscall::*;
 
-pub fn write(fd: usize, buf: &[u8]) -> isize { sys_write(fd, buf) }
-pub fn exit(exit_code: i32) -> isize { sys_exit(exit_code) }
-pub fn yield_() -> isize { sys_yield() }
-pub fn get_time() -> isize { sys_get_time() }
+pub fn write(fd: usize, buf: &[u8]) -> isize {
+    sys_write(fd, buf)
+}
+pub fn exit(exit_code: i32) -> isize {
+    sys_exit(exit_code)
+}
+pub fn yield_() -> isize {
+    sys_yield()
+}
+pub fn get_time() -> isize {
+    sys_get_time()
+}
