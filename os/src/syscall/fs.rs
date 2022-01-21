@@ -11,7 +11,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
                 print!("{}", core::str::from_utf8(buffer).unwrap());
             }
             len as isize
-        },
+        }
         _ => {
             panic!("Unsupported fd in sys_write!");
         }

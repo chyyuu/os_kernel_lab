@@ -10,16 +10,16 @@ extern crate bitflags;
 
 #[macro_use]
 mod console;
-mod lang_items;
-mod sbi;
-mod syscall;
-mod trap;
-mod loader;
 mod config;
+mod lang_items;
+mod loader;
+mod mm;
+mod sbi;
+mod sync;
+mod syscall;
 mod task;
 mod timer;
-mod sync;
-mod mm;
+mod trap;
 
 use core::arch::global_asm;
 
@@ -32,10 +32,8 @@ fn clear_bss() {
         fn ebss();
     }
     unsafe {
-        core::slice::from_raw_parts_mut(
-            sbss as usize as *mut u8,
-            ebss as usize - sbss as usize,
-        ).fill(0);
+        core::slice::from_raw_parts_mut(sbss as usize as *mut u8, ebss as usize - sbss as usize)
+            .fill(0);
     }
 }
 
