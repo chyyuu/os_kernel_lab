@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![allow(clippy::println_empty_string)]
 
 extern crate alloc;
 
@@ -12,8 +13,8 @@ const DL: u8 = 0x7fu8;
 const BS: u8 = 0x08u8;
 
 use alloc::string::String;
-use user_lib::{fork, exec, waitpid};
 use user_lib::console::getchar;
+use user_lib::{exec, fork, waitpid};
 
 #[no_mangle]
 pub fn main() -> i32 {

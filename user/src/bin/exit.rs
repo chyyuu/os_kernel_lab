@@ -3,7 +3,7 @@
 
 #[macro_use]
 extern crate user_lib;
-use user_lib::{fork, yield_, waitpid, exit, wait};
+use user_lib::{exit, fork, wait, waitpid, yield_};
 
 const MAGIC: i32 = -0x10384;
 
@@ -13,7 +13,9 @@ pub fn main() -> i32 {
     let pid = fork();
     if pid == 0 {
         println!("I am the child.");
-        for _ in 0..7 { yield_(); }
+        for _ in 0..7 {
+            yield_();
+        }
         exit(MAGIC);
     } else {
         println!("I am parent, fork a child pid {}", pid);
@@ -26,4 +28,3 @@ pub fn main() -> i32 {
     println!("exit pass.");
     0
 }
-

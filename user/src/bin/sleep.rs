@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{sleep, exit, get_time, fork, waitpid};
+use user_lib::{exit, fork, get_time, sleep, waitpid};
 
 fn sleepy() {
     let time: usize = 100;

@@ -1,9 +1,9 @@
 use super::{PhysAddr, PhysPageNum};
-use alloc::vec::Vec;
-use crate::sync::UPSafeCell;
 use crate::config::MEMORY_END;
-use lazy_static::*;
+use crate::sync::UPSafeCell;
+use alloc::vec::Vec;
 use core::fmt::{self, Debug, Formatter};
+use lazy_static::*;
 
 pub struct FrameTracker {
     pub ppn: PhysPageNum,
@@ -62,22 +62,17 @@ impl FrameAllocator for StackFrameAllocator {
     fn alloc(&mut self) -> Option<PhysPageNum> {
         if let Some(ppn) = self.recycled.pop() {
             Some(ppn.into())
+        } else if self.current == self.end {
+            None
         } else {
-            if self.current == self.end {
-                None
-            } else {
-                self.current += 1;
-                Some((self.current - 1).into())
-            }
+            self.current += 1;
+            Some((self.current - 1).into())
         }
     }
     fn dealloc(&mut self, ppn: PhysPageNum) {
         let ppn = ppn.0;
         // validity check
-        if ppn >= self.current || self.recycled
-            .iter()
-            .find(|&v| {*v == ppn})
-            .is_some() {
+        if ppn >= self.current || self.recycled.iter().find(|&v| *v == ppn).is_some() {
             panic!("Frame ppn={:#x} has not been allocated!", ppn);
         }
         // recycle
@@ -88,18 +83,18 @@ impl FrameAllocator for StackFrameAllocator {
 type FrameAllocatorImpl = StackFrameAllocator;
 
 lazy_static! {
-    pub static ref FRAME_ALLOCATOR: UPSafeCell<FrameAllocatorImpl> = unsafe {
-        UPSafeCell::new(FrameAllocatorImpl::new())
-    };
+    pub static ref FRAME_ALLOCATOR: UPSafeCell<FrameAllocatorImpl> =
+        unsafe { UPSafeCell::new(FrameAllocatorImpl::new()) };
 }
 
 pub fn init_frame_allocator() {
     extern "C" {
         fn ekernel();
     }
-    FRAME_ALLOCATOR
-        .exclusive_access()
-        .init(PhysAddr::from(ekernel as usize).ceil(), PhysAddr::from(MEMORY_END).floor());
+    FRAME_ALLOCATOR.exclusive_access().init(
+        PhysAddr::from(ekernel as usize).ceil(),
+        PhysAddr::from(MEMORY_END).floor(),
+    );
 }
 
 pub fn frame_alloc() -> Option<FrameTracker> {
@@ -110,9 +105,7 @@ pub fn frame_alloc() -> Option<FrameTracker> {
 }
 
 fn frame_dealloc(ppn: PhysPageNum) {
-    FRAME_ALLOCATOR
-        .exclusive_access()
-        .dealloc(ppn);
+    FRAME_ALLOCATOR.exclusive_access().dealloc(ppn);
 }
 
 #[allow(unused)]

@@ -1,16 +1,10 @@
+use crate::loader::get_app_data_by_name;
+use crate::mm::{translated_refmut, translated_str};
 use crate::task::{
+    add_task, current_task, current_user_token, exit_current_and_run_next,
     suspend_current_and_run_next,
-    exit_current_and_run_next,
-    current_task,
-    current_user_token,
-    add_task,
 };
 use crate::timer::get_time_ms;
-use crate::mm::{
-    translated_str,
-    translated_refmut,
-};
-use crate::loader::get_app_data_by_name;
 use alloc::sync::Arc;
 
 pub fn sys_exit(exit_code: i32) -> ! {
@@ -65,21 +59,20 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
 
     // ---- access current TCB exclusively
     let mut inner = task.inner_exclusive_access();
-    if inner.children
+    if inner
+        .children
         .iter()
-        .find(|p| {pid == -1 || pid as usize == p.getpid()})
-        .is_none() {
+        .find(|p| pid == -1 || pid as usize == p.getpid())
+        .is_none()
+    {
         return -1;
         // ---- release current PCB
     }
-    let pair = inner.children
-        .iter()
-        .enumerate()
-        .find(|(_, p)| {
-            // ++++ temporarily access child PCB lock exclusively
-            p.inner_exclusive_access().is_zombie() && (pid == -1 || pid as usize == p.getpid())
-            // ++++ release child PCB
-        });
+    let pair = inner.children.iter().enumerate().find(|(_, p)| {
+        // ++++ temporarily access child PCB lock exclusively
+        p.inner_exclusive_access().is_zombie() && (pid == -1 || pid as usize == p.getpid())
+        // ++++ release child PCB
+    });
     if let Some((idx, _)) = pair {
         let child = inner.children.remove(idx);
         // confirm that child will be deallocated after removing from children list
