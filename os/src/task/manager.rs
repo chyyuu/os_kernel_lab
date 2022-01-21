@@ -1,5 +1,5 @@
-use crate::sync::UPSafeCell;
 use super::TaskControlBlock;
+use crate::sync::UPSafeCell;
 use alloc::collections::VecDeque;
 use alloc::sync::Arc;
 use lazy_static::*;
@@ -11,7 +11,9 @@ pub struct TaskManager {
 /// A simple FIFO scheduler.
 impl TaskManager {
     pub fn new() -> Self {
-        Self { ready_queue: VecDeque::new(), }
+        Self {
+            ready_queue: VecDeque::new(),
+        }
     }
     pub fn add(&mut self, task: Arc<TaskControlBlock>) {
         self.ready_queue.push_back(task);
@@ -22,9 +24,8 @@ impl TaskManager {
 }
 
 lazy_static! {
-    pub static ref TASK_MANAGER: UPSafeCell<TaskManager> = unsafe {
-        UPSafeCell::new(TaskManager::new())
-    };
+    pub static ref TASK_MANAGER: UPSafeCell<TaskManager> =
+        unsafe { UPSafeCell::new(TaskManager::new()) };
 }
 
 pub fn add_task(task: Arc<TaskControlBlock>) {
