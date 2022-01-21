@@ -25,7 +25,7 @@ const SYSCALL_SEMAPHORE_DOWN: usize = 1022;
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
     unsafe {
-        asm!(
+        core::arch::asm!(
             "ecall",
             inlateout("x10") args[0] => ret,
             in("x11") args[1],

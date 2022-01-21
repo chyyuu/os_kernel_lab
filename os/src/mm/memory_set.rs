@@ -14,6 +14,7 @@ use crate::config::{
     TRAMPOLINE,
     MMIO,
 };
+use core::arch::asm;
 
 extern "C" {
     fn stext();

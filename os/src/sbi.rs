@@ -14,7 +14,7 @@ const SBI_SHUTDOWN: usize = 8;
 fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
     let mut ret;
     unsafe {
-        asm!(
+        core::arch::asm!(
             "ecall",
             inlateout("x10") arg0 => ret,
             in("x11") arg1,
