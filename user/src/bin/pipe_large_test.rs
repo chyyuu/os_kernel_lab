@@ -40,8 +40,8 @@ pub fn main() -> i32 {
         // close write end of up pipe
         close(up_pipe_fd[1]);
         // generate a long random string
-        for i in 0..LENGTH {
-            random_str[i] = get_time() as u8;
+        for ch in random_str.iter_mut() {
+            *ch = get_time() as u8;
         }
         // send it
         assert_eq!(write(down_pipe_fd[1], &random_str) as usize, random_str.len());

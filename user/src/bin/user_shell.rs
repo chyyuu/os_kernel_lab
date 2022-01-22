@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![allow(clippy::println_empty_string)]
 
 extern crate alloc;
 
@@ -72,7 +73,7 @@ impl ProcessArguments {
             .iter()
             .map(|arg| arg.as_ptr())
             .collect();
-        args_addr.push(0 as *const u8);
+        args_addr.push(core::ptr::null::<u8>());
 
         Self {
             input,
@@ -105,10 +106,8 @@ pub fn main() -> i32 {
                             if !process_args.output.is_empty() { valid = false; }
                         } else if i == process_arguments_list.len() - 1 {
                             if !process_args.input.is_empty() { valid = false; }
-                        } else {
-                            if !process_args.output.is_empty() || !process_args.input.is_empty() {
-                                valid = false;
-                            }
+                        } else if !process_args.output.is_empty() || !process_args.input.is_empty() {
+                            valid = false;
                         }
                     }
                     if process_arguments_list.len() == 1 { valid = true; }

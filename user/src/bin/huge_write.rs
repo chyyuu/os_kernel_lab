@@ -15,8 +15,8 @@ use user_lib::{
 #[no_mangle]
 pub fn main() -> i32 {
     let mut buffer = [0u8; 1024]; // 1KiB
-    for i in 0..buffer.len() {
-        buffer[i] = i as u8;
+    for (i, ch) in buffer.iter_mut().enumerate() {
+        *ch = i as u8;
     }
     let f = open("testf\0", OpenFlags::CREATE | OpenFlags::WRONLY);
     if f < 0 {

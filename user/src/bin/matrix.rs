@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![allow(clippy::needless_range_loop)]
 
 #[macro_use]
 extern crate user_lib;
