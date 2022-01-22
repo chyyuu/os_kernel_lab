@@ -289,35 +289,26 @@ impl DiskInode {
         .lock()
         .modify(0, |indirect2: &mut IndirectBlock| {
             // full indirect1 blocks
-            for i in 0..a1 {
-                v.push(indirect2[i]);
-                get_block_cache(
-                    indirect2[i] as usize,
-                    Arc::clone(block_device),
-                )
-                .lock()
-                .modify(0, |indirect1: &mut IndirectBlock| {
-                    for j in 0..INODE_INDIRECT1_COUNT {
-                        v.push(indirect1[j]);
-                        //indirect1[j] = 0;
-                    }
-                });
-                //indirect2[i] = 0;
+            for entry in indirect2.iter_mut().take(a1) {
+                v.push(*entry);
+                get_block_cache(*entry as usize, Arc::clone(block_device))
+                    .lock()
+                    .modify(0, |indirect1: &mut IndirectBlock| {
+                        for entry in indirect1.iter() {
+                            v.push(*entry);
+                        }
+                    });
             }
             // last indirect1 block
             if b1 > 0 {
                 v.push(indirect2[a1]);
-                get_block_cache(
-                    indirect2[a1] as usize,
-                    Arc::clone(block_device),
-                )
-                .lock()
-                .modify(0, |indirect1: &mut IndirectBlock| {
-                    for j in 0..b1 {
-                        v.push(indirect1[j]);
-                        //indirect1[j] = 0;
-                    }
-                });
+                get_block_cache(indirect2[a1] as usize, Arc::clone(block_device))
+                    .lock()
+                    .modify(0, |indirect1: &mut IndirectBlock| {
+                        for entry in indirect1.iter().take(b1) {
+                            v.push(*entry);
+                        }
+                    });
                 //indirect2[a1] = 0;
             }
         });

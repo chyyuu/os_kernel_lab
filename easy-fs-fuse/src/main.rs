@@ -61,7 +61,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
     })));
     // 16MiB, at most 4095 files
     let efs = EasyFileSystem::create(
-        block_file.clone(),
+        block_file,
         16 * 2048,
         1,
     );

@@ -78,12 +78,10 @@ impl PipeRingBuffer {
     pub fn available_read(&self) -> usize {
         if self.status == RingBufferStatus::EMPTY {
             0
+        } else if self.tail > self.head {
+            self.tail - self.head
         } else {
-            if self.tail > self.head {
-                self.tail - self.head
-            } else {
-                self.tail + RING_BUFFER_SIZE - self.head
-            }
+            self.tail + RING_BUFFER_SIZE - self.head
         }
     }
     pub fn available_write(&self) -> usize {

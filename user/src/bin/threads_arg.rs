@@ -27,8 +27,8 @@ pub fn main() -> i32 {
         Argument { ch: 'b', rc: 2, },
         Argument { ch: 'c', rc: 3, },
     ]; 
-    for i in 0..3 {
-        v.push(thread_create(thread_print as usize, &args[i] as *const _ as usize));
+    for arg in args.iter() {
+        v.push(thread_create(thread_print as usize, arg as *const _ as usize));
     }
     for tid in v.iter() {
         let exit_code = waittid(*tid as usize);

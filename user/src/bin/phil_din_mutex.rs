@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![allow(clippy::println_empty_string)]
 
 #[macro_use]
 extern crate user_lib;
@@ -73,17 +74,17 @@ pub fn main() -> i32 {
         print!("#{}:", id); 
         for j in 0..time_cost/GRAPH_SCALE {
             let current_time = j * GRAPH_SCALE + start;
-            if (0..ROUND).find(|round| unsafe {
+            if (0..ROUND).any(|round| unsafe {
                 let start_thinking = THINK[id][2 * round];
                 let end_thinking = THINK[id][2 * round + 1];
                 start_thinking <= current_time && current_time <= end_thinking
-            }).is_some() {
+            }) {
                 print!("-");
-            } else if (0..ROUND).find(|round| unsafe {
+            } else if (0..ROUND).any(|round| unsafe {
                 let start_eating = EAT[id][2 * round];
                 let end_eating = EAT[id][2 * round + 1];
                 start_eating <= current_time && current_time <= end_eating
-            }).is_some() {
+            }) {
                 print!("x");
             } else {
                 print!(" ");
