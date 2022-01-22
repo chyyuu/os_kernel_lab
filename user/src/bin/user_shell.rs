@@ -15,17 +15,8 @@ const LINE_START: &str = ">> ";
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use user_lib::{
-    fork,
-    exec,
-    waitpid,
-    open,
-    OpenFlags,
-    close,
-    dup,
-    pipe,
-};
 use user_lib::console::getchar;
+use user_lib::{close, dup, exec, fork, open, pipe, waitpid, OpenFlags};
 
 #[derive(Debug)]
 struct ProcessArguments {
@@ -37,10 +28,10 @@ struct ProcessArguments {
 
 impl ProcessArguments {
     pub fn new(command: &str) -> Self {
-        let args: Vec<_> = command.split(' ').collect(); 
+        let args: Vec<_> = command.split(' ').collect();
         let mut args_copy: Vec<String> = args
             .iter()
-            .filter(|&arg| { !arg.is_empty() })
+            .filter(|&arg| !arg.is_empty())
             .map(|&arg| {
                 let mut string = String::new();
                 string.push_str(arg);
@@ -52,9 +43,10 @@ impl ProcessArguments {
         // redirect input
         let mut input = String::new();
         if let Some((idx, _)) = args_copy
-        .iter()
-        .enumerate()
-        .find(|(_, arg)| arg.as_str() == "<\0") {
+            .iter()
+            .enumerate()
+            .find(|(_, arg)| arg.as_str() == "<\0")
+        {
             input = args_copy[idx + 1].clone();
             args_copy.drain(idx..=idx + 1);
         }
@@ -62,17 +54,15 @@ impl ProcessArguments {
         // redirect output
         let mut output = String::new();
         if let Some((idx, _)) = args_copy
-        .iter()
-        .enumerate()
-        .find(|(_, arg)| arg.as_str() == ">\0") {
+            .iter()
+            .enumerate()
+            .find(|(_, arg)| arg.as_str() == ">\0")
+        {
             output = args_copy[idx + 1].clone();
             args_copy.drain(idx..=idx + 1);
         }
 
-        let mut args_addr: Vec<*const u8> = args_copy
-            .iter()
-            .map(|arg| arg.as_ptr())
-            .collect();
+        let mut args_addr: Vec<*const u8> = args_copy.iter().map(|arg| arg.as_ptr()).collect();
         args_addr.push(core::ptr::null::<u8>());
 
         Self {
@@ -103,30 +93,35 @@ pub fn main() -> i32 {
                     let mut valid = true;
                     for (i, process_args) in process_arguments_list.iter().enumerate() {
                         if i == 0 {
-                            if !process_args.output.is_empty() { valid = false; }
+                            if !process_args.output.is_empty() {
+                                valid = false;
+                            }
                         } else if i == process_arguments_list.len() - 1 {
-                            if !process_args.input.is_empty() { valid = false; }
-                        } else if !process_args.output.is_empty() || !process_args.input.is_empty() {
+                            if !process_args.input.is_empty() {
+                                valid = false;
+                            }
+                        } else if !process_args.output.is_empty() || !process_args.input.is_empty()
+                        {
                             valid = false;
                         }
                     }
-                    if process_arguments_list.len() == 1 { valid = true; }
+                    if process_arguments_list.len() == 1 {
+                        valid = true;
+                    }
                     if !valid {
                         println!("Invalid command: Inputs/Outputs cannot be correctly binded!");
                     } else {
                         // create pipes
                         let mut pipes_fd: Vec<[usize; 2]> = Vec::new();
                         if !process_arguments_list.is_empty() {
-                            for _ in 0..process_arguments_list.len()-1 {
+                            for _ in 0..process_arguments_list.len() - 1 {
                                 let mut pipe_fd = [0usize; 2];
-                                pipe(&mut pipe_fd);                         
+                                pipe(&mut pipe_fd);
                                 pipes_fd.push(pipe_fd);
                             }
                         }
                         let mut children: Vec<_> = Vec::new();
-                        for (i, process_argument) in process_arguments_list
-                        .iter()
-                        .enumerate() {
+                        for (i, process_argument) in process_arguments_list.iter().enumerate() {
                             let pid = fork();
                             if pid == 0 {
                                 let input = &process_argument.input;
@@ -149,7 +144,7 @@ pub fn main() -> i32 {
                                 if !output.is_empty() {
                                     let output_fd = open(
                                         output.as_str(),
-                                        OpenFlags::CREATE | OpenFlags::WRONLY
+                                        OpenFlags::CREATE | OpenFlags::WRONLY,
                                     );
                                     if output_fd == -1 {
                                         println!("Error when opening file {}", output);
@@ -159,15 +154,15 @@ pub fn main() -> i32 {
                                     close(1);
                                     assert_eq!(dup(output_fd), 1);
                                     close(output_fd);
-                                }           
+                                }
                                 // receive input from the previous process
                                 if i > 0 {
                                     close(0);
-                                    let read_end = pipes_fd.get(i-1).unwrap()[0];
+                                    let read_end = pipes_fd.get(i - 1).unwrap()[0];
                                     assert_eq!(dup(read_end), 0);
                                 }
                                 // send output to the next process
-                                if i < process_arguments_list.len()-1 {
+                                if i < process_arguments_list.len() - 1 {
                                     close(1);
                                     let write_end = pipes_fd.get(i).unwrap()[1];
                                     assert_eq!(dup(write_end), 1);
@@ -195,9 +190,9 @@ pub fn main() -> i32 {
                         for pid in children.into_iter() {
                             let exit_pid = waitpid(pid as usize, &mut exit_code);
                             assert_eq!(pid, exit_pid);
-                            //println!("Shell: Process {} exited with code {}", pid, exit_code);    
+                            //println!("Shell: Process {} exited with code {}", pid, exit_code);
                         }
-                    } 
+                    }
                     line.clear();
                 }
                 print!("{}", LINE_START);

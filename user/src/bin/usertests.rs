@@ -32,7 +32,10 @@ pub fn main() -> i32 {
             let mut exit_code: i32 = Default::default();
             let wait_pid = waitpid(pid as usize, &mut exit_code);
             assert_eq!(pid, wait_pid);
-            println!("\x1b[32mUsertests: Test {} in Process {} exited with code {}\x1b[0m", test, pid, exit_code);
+            println!(
+                "\x1b[32mUsertests: Test {} in Process {} exited with code {}\x1b[0m",
+                test, pid, exit_code
+            );
         }
     }
     println!("Usertests passed!");

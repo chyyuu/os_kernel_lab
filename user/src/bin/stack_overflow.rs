@@ -5,7 +5,7 @@
 extern crate user_lib;
 
 fn f(d: usize) {
-    println!("d = {}",d);
+    println!("d = {}", d);
     f(d + 1);
 }
 

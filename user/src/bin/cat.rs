@@ -5,12 +5,7 @@
 extern crate user_lib;
 extern crate alloc;
 
-use user_lib::{
-    open,
-    OpenFlags,
-    close,
-    read,
-};
+use user_lib::{close, open, read, OpenFlags};
 
 #[no_mangle]
 pub fn main(argc: usize, argv: &[&str]) -> i32 {
@@ -23,7 +18,9 @@ pub fn main(argc: usize, argv: &[&str]) -> i32 {
     let mut buf = [0u8; 256];
     loop {
         let size = read(fd, &mut buf) as usize;
-        if size == 0 { break; }
+        if size == 0 {
+            break;
+        }
         println!("{}", core::str::from_utf8(&buf[..size]).unwrap());
     }
     close(fd);

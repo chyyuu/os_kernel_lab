@@ -1,28 +1,23 @@
 mod context;
+mod manager;
+mod pid;
+mod processor;
 mod switch;
 mod task;
-mod manager;
-mod processor;
-mod pid;
 
 use crate::fs::{open_file, OpenFlags};
+use alloc::sync::Arc;
+pub use context::TaskContext;
+use lazy_static::*;
+use manager::fetch_task;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
-use alloc::sync::Arc;
-use manager::fetch_task;
-use lazy_static::*;
-pub use context::TaskContext;
 
-pub use processor::{
-    run_tasks,
-    current_task,
-    current_user_token,
-    current_trap_cx,
-    take_current_task,
-    schedule,
-};
 pub use manager::add_task;
-pub use pid::{PidHandle, pid_alloc, KernelStack};
+pub use pid::{pid_alloc, KernelStack, PidHandle};
+pub use processor::{
+    current_task, current_trap_cx, current_user_token, run_tasks, schedule, take_current_task,
+};
 
 pub fn suspend_current_and_run_next() {
     // There must be an application running.
