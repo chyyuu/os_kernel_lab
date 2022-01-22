@@ -1,5 +1,5 @@
 use super::TaskContext;
-use super::{pid_alloc, KernelStack, PidHandle};
+use super::{pid_alloc, KernelStack, PidHandle, SignalFlags};
 use crate::config::TRAP_CONTEXT;
 use crate::fs::{File, Stdin, Stdout};
 use crate::mm::{translated_refmut, MemorySet, PhysPageNum, VirtAddr, KERNEL_SPACE};
@@ -29,6 +29,7 @@ pub struct TaskControlBlockInner {
     pub children: Vec<Arc<TaskControlBlock>>,
     pub exit_code: i32,
     pub fd_table: Vec<Option<Arc<dyn File + Send + Sync>>>,
+    pub signals: SignalFlags,
 }
 
 impl TaskControlBlockInner {
@@ -90,6 +91,7 @@ impl TaskControlBlock {
                         // 2 -> stderr
                         Some(Arc::new(Stdout)),
                     ],
+                    signals: SignalFlags::empty(),
                 })
             },
         };
@@ -191,6 +193,7 @@ impl TaskControlBlock {
                     children: Vec::new(),
                     exit_code: 0,
                     fd_table: new_fd_table,
+                    signals: SignalFlags::empty(),
                 })
             },
         });
