@@ -5,21 +5,27 @@
 extern crate user_lib;
 extern crate alloc;
 
-use user_lib::{thread_create, waittid, exit};
 use alloc::vec;
+use user_lib::{exit, thread_create, waittid};
 
 pub fn thread_a() -> ! {
-    for _ in 0..1000 { print!("a"); }
+    for _ in 0..1000 {
+        print!("a");
+    }
     exit(1)
 }
 
 pub fn thread_b() -> ! {
-    for _ in 0..1000 { print!("b"); }
-    exit(2) 
+    for _ in 0..1000 {
+        print!("b");
+    }
+    exit(2)
 }
 
 pub fn thread_c() -> ! {
-    for _ in 0..1000 { print!("c"); }
+    for _ in 0..1000 {
+        print!("c");
+    }
     exit(3)
 }
 

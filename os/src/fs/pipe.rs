@@ -1,7 +1,7 @@
 use super::File;
-use alloc::sync::{Arc, Weak};
-use crate::sync::UPSafeCell;
 use crate::mm::UserBuffer;
+use crate::sync::UPSafeCell;
+use alloc::sync::{Arc, Weak};
 
 use crate::task::suspend_current_and_run_next;
 
@@ -98,22 +98,20 @@ impl PipeRingBuffer {
 
 /// Return (read_end, write_end)
 pub fn make_pipe() -> (Arc<Pipe>, Arc<Pipe>) {
-    let buffer = Arc::new(unsafe {
-        UPSafeCell::new(PipeRingBuffer::new())
-    });
-    let read_end = Arc::new(
-        Pipe::read_end_with_buffer(buffer.clone())
-    );
-    let write_end = Arc::new(
-        Pipe::write_end_with_buffer(buffer.clone())
-    );
+    let buffer = Arc::new(unsafe { UPSafeCell::new(PipeRingBuffer::new()) });
+    let read_end = Arc::new(Pipe::read_end_with_buffer(buffer.clone()));
+    let write_end = Arc::new(Pipe::write_end_with_buffer(buffer.clone()));
     buffer.exclusive_access().set_write_end(&write_end);
     (read_end, write_end)
 }
 
 impl File for Pipe {
-    fn readable(&self) -> bool { self.readable }
-    fn writable(&self) -> bool { self.writable }
+    fn readable(&self) -> bool {
+        self.readable
+    }
+    fn writable(&self) -> bool {
+        self.writable
+    }
     fn read(&self, buf: UserBuffer) -> usize {
         assert_eq!(self.readable(), true);
         let mut buf_iter = buf.into_iter();
@@ -132,7 +130,9 @@ impl File for Pipe {
             // read at most loop_read bytes
             for _ in 0..loop_read {
                 if let Some(byte_ref) = buf_iter.next() {
-                    unsafe { *byte_ref = ring_buffer.read_byte(); }
+                    unsafe {
+                        *byte_ref = ring_buffer.read_byte();
+                    }
                     read_size += 1;
                 } else {
                     return read_size;

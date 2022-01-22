@@ -5,16 +5,15 @@
 extern crate user_lib;
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::alloc::string::ToString;
+use alloc::vec::Vec;
 use user_lib::{exit, get_time, thread_create, waittid};
-
 
 static mut A: usize = 0;
 const PER_THREAD: usize = 1000;
 const THREAD_COUNT: usize = 16;
 
-unsafe fn f(count:usize) -> ! {
+unsafe fn f(count: usize) -> ! {
     let mut t = 2usize;
     for _ in 0..PER_THREAD {
         let a = &mut A as *mut usize;

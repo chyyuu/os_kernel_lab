@@ -1,9 +1,9 @@
-mod up;
+mod condvar;
 mod mutex;
 mod semaphore;
-mod condvar;
+mod up;
 
-pub use up::UPSafeCell;
-pub use mutex::{Mutex, MutexSpin, MutexBlocking};
-pub use semaphore::Semaphore;
 pub use condvar::Condvar;
+pub use mutex::{Mutex, MutexBlocking, MutexSpin};
+pub use semaphore::Semaphore;
+pub use up::UPSafeCell;

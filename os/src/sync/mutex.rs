@@ -1,8 +1,8 @@
 use super::UPSafeCell;
-use crate::task::{block_current_and_run_next, suspend_current_and_run_next};
 use crate::task::TaskControlBlock;
 use crate::task::{add_task, current_task};
-use alloc::{sync::Arc, collections::VecDeque};
+use crate::task::{block_current_and_run_next, suspend_current_and_run_next};
+use alloc::{collections::VecDeque, sync::Arc};
 
 pub trait Mutex: Sync + Send {
     fn lock(&self);
@@ -77,7 +77,7 @@ impl Mutex for MutexBlocking {
     }
 
     fn unlock(&self) {
-        let mut mutex_inner = self.inner.exclusive_access(); 
+        let mut mutex_inner = self.inner.exclusive_access();
         assert_eq!(mutex_inner.locked, true);
         if let Some(waking_task) = mutex_inner.wait_queue.pop_front() {
             add_task(waking_task);

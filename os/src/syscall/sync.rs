@@ -1,6 +1,6 @@
-use crate::task::{current_task, current_process, block_current_and_run_next};
-use crate::sync::{Mutex, MutexSpin, MutexBlocking, Semaphore, Condvar};
-use crate::timer::{get_time_ms, add_timer};
+use crate::sync::{Condvar, Mutex, MutexBlocking, MutexSpin, Semaphore};
+use crate::task::{block_current_and_run_next, current_process, current_task};
+use crate::timer::{add_timer, get_time_ms};
 use alloc::sync::Arc;
 
 pub fn sys_sleep(ms: usize) -> isize {
@@ -24,7 +24,8 @@ pub fn sys_mutex_create(blocking: bool) -> isize {
         .iter()
         .enumerate()
         .find(|(_, item)| item.is_none())
-        .map(|(id, _)| id) {
+        .map(|(id, _)| id)
+    {
         process_inner.mutex_list[id] = mutex;
         id as isize
     } else {
@@ -61,11 +62,14 @@ pub fn sys_semaphore_create(res_count: usize) -> isize {
         .iter()
         .enumerate()
         .find(|(_, item)| item.is_none())
-        .map(|(id, _)| id) {
-        process_inner.semaphore_list[id] = Some(Arc::new(Semaphore::new(res_count)));    
+        .map(|(id, _)| id)
+    {
+        process_inner.semaphore_list[id] = Some(Arc::new(Semaphore::new(res_count)));
         id
     } else {
-        process_inner.semaphore_list.push(Some(Arc::new(Semaphore::new(res_count))));
+        process_inner
+            .semaphore_list
+            .push(Some(Arc::new(Semaphore::new(res_count))));
         process_inner.semaphore_list.len() - 1
     };
     id as isize
@@ -89,7 +93,6 @@ pub fn sys_semaphore_down(sem_id: usize) -> isize {
     0
 }
 
-
 pub fn sys_condvar_create(_arg: usize) -> isize {
     let process = current_process();
     let mut process_inner = process.inner_exclusive_access();
@@ -98,11 +101,14 @@ pub fn sys_condvar_create(_arg: usize) -> isize {
         .iter()
         .enumerate()
         .find(|(_, item)| item.is_none())
-        .map(|(id, _)| id) {
-        process_inner.condvar_list[id] = Some(Arc::new(Condvar::new()));    
+        .map(|(id, _)| id)
+    {
+        process_inner.condvar_list[id] = Some(Arc::new(Condvar::new()));
         id
     } else {
-        process_inner.condvar_list.push(Some(Arc::new(Condvar::new())));
+        process_inner
+            .condvar_list
+            .push(Some(Arc::new(Condvar::new())));
         process_inner.condvar_list.len() - 1
     };
     id as isize

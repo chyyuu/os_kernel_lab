@@ -6,13 +6,12 @@ extern crate user_lib;
 
 extern crate alloc;
 
-use user_lib::{semaphore_create, semaphore_up, semaphore_down};
-use user_lib::{thread_create, waittid, sleep};
-use user_lib::exit;
 use alloc::vec;
+use user_lib::exit;
+use user_lib::{semaphore_create, semaphore_down, semaphore_up};
+use user_lib::{sleep, thread_create, waittid};
 
 const SEM_SYNC: usize = 0;
-
 
 unsafe fn first() -> ! {
     sleep(10);

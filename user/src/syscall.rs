@@ -58,7 +58,10 @@ pub fn sys_pipe(pipe: &mut [usize]) -> isize {
 }
 
 pub fn sys_read(fd: usize, buffer: &mut [u8]) -> isize {
-    syscall(SYSCALL_READ, [fd, buffer.as_mut_ptr() as usize, buffer.len()])
+    syscall(
+        SYSCALL_READ,
+        [fd, buffer.as_mut_ptr() as usize, buffer.len()],
+    )
 }
 
 pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
@@ -91,7 +94,10 @@ pub fn sys_fork() -> isize {
 }
 
 pub fn sys_exec(path: &str, args: &[*const u8]) -> isize {
-    syscall(SYSCALL_EXEC, [path.as_ptr() as usize, args.as_ptr() as usize, 0])
+    syscall(
+        SYSCALL_EXEC,
+        [path.as_ptr() as usize, args.as_ptr() as usize, 0],
+    )
 }
 
 pub fn sys_waitpid(pid: isize, exit_code: *mut i32) -> isize {
@@ -142,6 +148,6 @@ pub fn sys_condvar_signal(condvar_id: usize) -> isize {
     syscall(SYSCALL_CONDVAR_SIGNAL, [condvar_id, 0, 0])
 }
 
-pub fn sys_condvar_wait(condvar_id: usize, mutex_id:usize) -> isize {
+pub fn sys_condvar_wait(condvar_id: usize, mutex_id: usize) -> isize {
     syscall(SYSCALL_CONDVAR_WAIT, [condvar_id, mutex_id, 0])
 }

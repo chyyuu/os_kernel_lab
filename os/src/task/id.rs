@@ -1,9 +1,12 @@
-use alloc::{vec::Vec, sync::{Arc, Weak}};
-use lazy_static::*;
-use crate::sync::UPSafeCell;
-use crate::mm::{KERNEL_SPACE, MapPermission, PhysPageNum, VirtAddr};
-use crate::config::{KERNEL_STACK_SIZE, PAGE_SIZE, TRAMPOLINE, TRAP_CONTEXT_BASE, USER_STACK_SIZE};
 use super::ProcessControlBlock;
+use crate::config::{KERNEL_STACK_SIZE, PAGE_SIZE, TRAMPOLINE, TRAP_CONTEXT_BASE, USER_STACK_SIZE};
+use crate::mm::{MapPermission, PhysPageNum, VirtAddr, KERNEL_SPACE};
+use crate::sync::UPSafeCell;
+use alloc::{
+    sync::{Arc, Weak},
+    vec::Vec,
+};
+use lazy_static::*;
 
 pub struct RecycleAllocator {
     current: usize,
@@ -29,20 +32,18 @@ impl RecycleAllocator {
         assert!(id < self.current);
         assert!(
             self.recycled.iter().find(|i| **i == id).is_none(),
-            "id {} has been deallocated!", id
+            "id {} has been deallocated!",
+            id
         );
         self.recycled.push(id);
     }
 }
 
 lazy_static! {
-    static ref PID_ALLOCATOR: UPSafeCell<RecycleAllocator> = unsafe {
-        UPSafeCell::new(RecycleAllocator::new())
-    };
-
-    static ref KSTACK_ALLOCATOR: UPSafeCell<RecycleAllocator> = unsafe {
-        UPSafeCell::new(RecycleAllocator::new())
-    };
+    static ref PID_ALLOCATOR: UPSafeCell<RecycleAllocator> =
+        unsafe { UPSafeCell::new(RecycleAllocator::new()) };
+    static ref KSTACK_ALLOCATOR: UPSafeCell<RecycleAllocator> =
+        unsafe { UPSafeCell::new(RecycleAllocator::new()) };
 }
 
 pub struct PidHandle(pub usize);
@@ -69,13 +70,11 @@ pub struct KernelStack(pub usize);
 pub fn kstack_alloc() -> KernelStack {
     let kstack_id = KSTACK_ALLOCATOR.exclusive_access().alloc();
     let (kstack_bottom, kstack_top) = kernel_stack_position(kstack_id);
-    KERNEL_SPACE
-        .exclusive_access()
-        .insert_framed_area(
-            kstack_bottom.into(),
-            kstack_top.into(),
-            MapPermission::R | MapPermission::W,
-        );
+    KERNEL_SPACE.exclusive_access().insert_framed_area(
+        kstack_bottom.into(),
+        kstack_top.into(),
+        MapPermission::R | MapPermission::W,
+    );
     KernelStack(kstack_id)
 }
 
@@ -91,11 +90,15 @@ impl Drop for KernelStack {
 
 impl KernelStack {
     #[allow(unused)]
-    pub fn push_on_top<T>(&self, value: T) -> *mut T where
-        T: Sized, {
+    pub fn push_on_top<T>(&self, value: T) -> *mut T
+    where
+        T: Sized,
+    {
         let kernel_stack_top = self.get_top();
         let ptr_mut = (kernel_stack_top - core::mem::size_of::<T>()) as *mut T;
-        unsafe { *ptr_mut = value; }
+        unsafe {
+            *ptr_mut = value;
+        }
         ptr_mut
     }
     pub fn get_top(&self) -> usize {
@@ -142,23 +145,19 @@ impl TaskUserRes {
         // alloc user stack
         let ustack_bottom = ustack_bottom_from_tid(self.ustack_base, self.tid);
         let ustack_top = ustack_bottom + USER_STACK_SIZE;
-        process_inner
-            .memory_set
-            .insert_framed_area(
-                ustack_bottom.into(),
-                ustack_top.into(),
-                MapPermission::R | MapPermission::W | MapPermission::U,
-            );
+        process_inner.memory_set.insert_framed_area(
+            ustack_bottom.into(),
+            ustack_top.into(),
+            MapPermission::R | MapPermission::W | MapPermission::U,
+        );
         // alloc trap_cx
         let trap_cx_bottom = trap_cx_bottom_from_tid(self.tid);
         let trap_cx_top = trap_cx_bottom + PAGE_SIZE;
-        process_inner
-            .memory_set
-            .insert_framed_area(
-                trap_cx_bottom.into(),
-                trap_cx_top.into(),
-                MapPermission::R | MapPermission::W,
-            );
+        process_inner.memory_set.insert_framed_area(
+            trap_cx_bottom.into(),
+            trap_cx_top.into(),
+            MapPermission::R | MapPermission::W,
+        );
     }
 
     fn dealloc_user_res(&self) {
@@ -167,10 +166,14 @@ impl TaskUserRes {
         let mut process_inner = process.inner_exclusive_access();
         // dealloc ustack manually
         let ustack_bottom_va: VirtAddr = ustack_bottom_from_tid(self.ustack_base, self.tid).into();
-        process_inner.memory_set.remove_area_with_start_vpn(ustack_bottom_va.into());
+        process_inner
+            .memory_set
+            .remove_area_with_start_vpn(ustack_bottom_va.into());
         // dealloc trap_cx manually
         let trap_cx_bottom_va: VirtAddr = trap_cx_bottom_from_tid(self.tid).into();
-        process_inner.memory_set.remove_area_with_start_vpn(trap_cx_bottom_va.into());
+        process_inner
+            .memory_set
+            .remove_area_with_start_vpn(trap_cx_bottom_va.into());
     }
 
     #[allow(unused)]
@@ -197,12 +200,18 @@ impl TaskUserRes {
         let process = self.process.upgrade().unwrap();
         let process_inner = process.inner_exclusive_access();
         let trap_cx_bottom_va: VirtAddr = trap_cx_bottom_from_tid(self.tid).into();
-        process_inner.memory_set.translate(trap_cx_bottom_va.into()).unwrap().ppn()
+        process_inner
+            .memory_set
+            .translate(trap_cx_bottom_va.into())
+            .unwrap()
+            .ppn()
     }
 
-    pub fn ustack_base(&self) -> usize { self.ustack_base }
+    pub fn ustack_base(&self) -> usize {
+        self.ustack_base
+    }
     pub fn ustack_top(&self) -> usize {
-        ustack_bottom_from_tid(self.ustack_base, self.tid) + USER_STACK_SIZE 
+        ustack_bottom_from_tid(self.ustack_base, self.tid) + USER_STACK_SIZE
     }
 }
 
@@ -212,4 +221,3 @@ impl Drop for TaskUserRes {
         self.dealloc_user_res();
     }
 }
-

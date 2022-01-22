@@ -1,6 +1,6 @@
-use alloc::{sync::Arc, collections::VecDeque};
-use crate::task::{add_task, TaskControlBlock, current_task, block_current_and_run_next};
 use crate::sync::{Mutex, UPSafeCell};
+use crate::task::{add_task, block_current_and_run_next, current_task, TaskControlBlock};
+use alloc::{collections::VecDeque, sync::Arc};
 
 pub struct Condvar {
     pub inner: UPSafeCell<CondvarInner>,
@@ -13,11 +13,11 @@ pub struct CondvarInner {
 impl Condvar {
     pub fn new() -> Self {
         Self {
-            inner: unsafe { UPSafeCell::new(
-                CondvarInner {
+            inner: unsafe {
+                UPSafeCell::new(CondvarInner {
                     wait_queue: VecDeque::new(),
-                }
-            )},
+                })
+            },
         }
     }
 
@@ -28,7 +28,7 @@ impl Condvar {
         }
     }
 
-    pub fn wait(&self, mutex:Arc<dyn Mutex>) {
+    pub fn wait(&self, mutex: Arc<dyn Mutex>) {
         mutex.unlock();
         let mut inner = self.inner.exclusive_access();
         inner.wait_queue.push_back(current_task().unwrap());

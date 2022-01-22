@@ -1,8 +1,8 @@
-use alloc::sync::{Arc, Weak};
-use crate::{mm::PhysPageNum, sync::UPSafeCell};
-use crate::trap::TrapContext;
 use super::id::TaskUserRes;
-use super::{KernelStack, ProcessControlBlock, TaskContext, kstack_alloc};
+use super::{kstack_alloc, KernelStack, ProcessControlBlock, TaskContext};
+use crate::trap::TrapContext;
+use crate::{mm::PhysPageNum, sync::UPSafeCell};
+use alloc::sync::{Arc, Weak};
 use core::cell::RefMut;
 
 pub struct TaskControlBlock {
@@ -37,7 +37,7 @@ impl TaskControlBlockInner {
     pub fn get_trap_cx(&self) -> &'static mut TrapContext {
         self.trap_cx_ppn.get_mut()
     }
-    
+
     #[allow(unused)]
     fn get_status(&self) -> TaskStatus {
         self.task_status
@@ -48,7 +48,7 @@ impl TaskControlBlock {
     pub fn new(
         process: Arc<ProcessControlBlock>,
         ustack_base: usize,
-        alloc_user_res: bool
+        alloc_user_res: bool,
     ) -> Self {
         let res = TaskUserRes::new(Arc::clone(&process), ustack_base, alloc_user_res);
         let trap_cx_ppn = res.trap_cx_ppn();
@@ -57,15 +57,15 @@ impl TaskControlBlock {
         Self {
             process: Arc::downgrade(&process),
             kstack,
-            inner: unsafe { UPSafeCell::new(
-                TaskControlBlockInner {
+            inner: unsafe {
+                UPSafeCell::new(TaskControlBlockInner {
                     res: Some(res),
                     trap_cx_ppn,
                     task_cx: TaskContext::goto_trap_return(kstack_top),
                     task_status: TaskStatus::Ready,
                     exit_code: None,
-                }
-            )},
+                })
+            },
         }
     }
 }

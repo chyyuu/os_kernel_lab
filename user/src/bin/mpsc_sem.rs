@@ -7,10 +7,10 @@ extern crate user_lib;
 
 extern crate alloc;
 
-use user_lib::{semaphore_create, semaphore_up, semaphore_down};
-use user_lib::{thread_create, waittid};
-use user_lib::exit;
 use alloc::vec::Vec;
+use user_lib::exit;
+use user_lib::{semaphore_create, semaphore_down, semaphore_up};
+use user_lib::{thread_create, waittid};
 
 const SEM_MUTEX: usize = 0;
 const SEM_EMPTY: usize = 1;
@@ -58,7 +58,10 @@ pub fn main() -> i32 {
     let ids: Vec<_> = (0..PRODUCER_COUNT).collect();
     let mut threads = Vec::new();
     for i in 0..PRODUCER_COUNT {
-        threads.push(thread_create(producer as usize, &ids.as_slice()[i] as *const _ as usize));
+        threads.push(thread_create(
+            producer as usize,
+            &ids.as_slice()[i] as *const _ as usize,
+        ));
     }
     threads.push(thread_create(consumer as usize, 0));
     // wait for all threads to complete

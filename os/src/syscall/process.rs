@@ -1,23 +1,13 @@
+use crate::fs::{open_file, OpenFlags};
+use crate::mm::{translated_ref, translated_refmut, translated_str};
 use crate::task::{
+    current_process, current_task, current_user_token, exit_current_and_run_next,
     suspend_current_and_run_next,
-    exit_current_and_run_next,
-    current_task,
-    current_process,
-    current_user_token,
 };
 use crate::timer::get_time_ms;
-use crate::mm::{
-    translated_str,
-    translated_refmut,
-    translated_ref,
-};
-use crate::fs::{
-    open_file,
-    OpenFlags,
-};
+use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use alloc::string::String;
 
 pub fn sys_exit(exit_code: i32) -> ! {
     exit_current_and_run_next(exit_code);
@@ -61,7 +51,9 @@ pub fn sys_exec(path: *const u8, mut args: *const usize) -> isize {
             break;
         }
         args_vec.push(translated_str(token, arg_str_ptr as *const u8));
-        unsafe { args = args.add(1); }
+        unsafe {
+            args = args.add(1);
+        }
     }
     if let Some(app_inode) = open_file(path.as_str(), OpenFlags::RDONLY) {
         let all_data = app_inode.read_all();
@@ -82,21 +74,20 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
     // find a child process
 
     let mut inner = process.inner_exclusive_access();
-    if inner.children
+    if inner
+        .children
         .iter()
-        .find(|p| {pid == -1 || pid as usize == p.getpid()})
-        .is_none() {
+        .find(|p| pid == -1 || pid as usize == p.getpid())
+        .is_none()
+    {
         return -1;
         // ---- release current PCB
     }
-    let pair = inner.children
-        .iter()
-        .enumerate()
-        .find(|(_, p)| {
-            // ++++ temporarily access child PCB exclusively
-            p.inner_exclusive_access().is_zombie && (pid == -1 || pid as usize == p.getpid())
-            // ++++ release child PCB
-        });
+    let pair = inner.children.iter().enumerate().find(|(_, p)| {
+        // ++++ temporarily access child PCB exclusively
+        p.inner_exclusive_access().is_zombie && (pid == -1 || pid as usize == p.getpid())
+        // ++++ release child PCB
+    });
     if let Some((idx, _)) = pair {
         let child = inner.children.remove(idx);
         // confirm that child will be deallocated after being removed from children list

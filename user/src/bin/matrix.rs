@@ -5,7 +5,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{fork, wait, yield_, exit, getpid, get_time};
+use user_lib::{exit, fork, get_time, getpid, wait, yield_};
 
 static NUM: usize = 30;
 const N: usize = 10;

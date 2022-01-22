@@ -6,10 +6,10 @@
 extern crate user_lib;
 extern crate alloc;
 
+use alloc::vec::Vec;
+use user_lib::{exit, get_time, sleep};
 use user_lib::{mutex_blocking_create, mutex_lock, mutex_unlock};
 use user_lib::{thread_create, waittid};
-use user_lib::{sleep, exit, get_time};
-use alloc::vec::Vec;
 
 const N: usize = 5;
 const ROUND: usize = 4;
@@ -39,16 +39,24 @@ fn philosopher_dining_problem(id: *const usize) {
     let max = left + right - min;
     for round in 0..ROUND {
         // thinking
-        unsafe { THINK[id][2 * round] = get_time_u(); }
+        unsafe {
+            THINK[id][2 * round] = get_time_u();
+        }
         sleep(ARR[id][2 * round]);
-        unsafe { THINK[id][2 * round + 1] = get_time_u(); }
+        unsafe {
+            THINK[id][2 * round + 1] = get_time_u();
+        }
         // wait for forks
         mutex_lock(min);
         mutex_lock(max);
         // eating
-        unsafe { EAT[id][2 * round] = get_time_u(); }
+        unsafe {
+            EAT[id][2 * round] = get_time_u();
+        }
         sleep(ARR[id][2 * round + 1]);
-        unsafe { EAT[id][2 * round + 1] = get_time_u(); }
+        unsafe {
+            EAT[id][2 * round + 1] = get_time_u();
+        }
         mutex_unlock(max);
         mutex_unlock(min);
     }
@@ -62,7 +70,10 @@ pub fn main() -> i32 {
     let start = get_time_u();
     for i in 0..N {
         assert_eq!(mutex_blocking_create(), i as isize);
-        v.push(thread_create(philosopher_dining_problem as usize, &ids.as_slice()[i] as *const _ as usize)); 
+        v.push(thread_create(
+            philosopher_dining_problem as usize,
+            &ids.as_slice()[i] as *const _ as usize,
+        ));
     }
     for tid in v.iter() {
         waittid(*tid as usize);
@@ -71,8 +82,8 @@ pub fn main() -> i32 {
     println!("time cost = {}", time_cost);
     println!("'-' -> THINKING; 'x' -> EATING; ' ' -> WAITING ");
     for id in (0..N).into_iter().chain(0..=0) {
-        print!("#{}:", id); 
-        for j in 0..time_cost/GRAPH_SCALE {
+        print!("#{}:", id);
+        for j in 0..time_cost / GRAPH_SCALE {
             let current_time = j * GRAPH_SCALE + start;
             if (0..ROUND).any(|round| unsafe {
                 let start_thinking = THINK[id][2 * round];
