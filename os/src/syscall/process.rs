@@ -1,8 +1,8 @@
 use crate::fs::{open_file, OpenFlags};
 use crate::mm::{translated_ref, translated_refmut, translated_str};
 use crate::task::{
-    add_task, current_task, current_user_token, exit_current_and_run_next,
-    suspend_current_and_run_next,
+    add_task, current_task, current_user_token, exit_current_and_run_next, pid2task,
+    suspend_current_and_run_next, SignalFlags,
 };
 use crate::timer::get_time_ms;
 use alloc::string::String;
@@ -103,4 +103,17 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         -2
     }
     // ---- release current PCB automatically
+}
+
+pub fn sys_kill(pid: usize, signal: u32) -> isize {
+    if let Some(task) = pid2task(pid) {
+        if let Some(flag) = SignalFlags::from_bits(signal) {
+            task.inner_exclusive_access().signals |= flag;
+            0
+        } else {
+            -1
+        }
+    } else {
+        -1
+    }
 }

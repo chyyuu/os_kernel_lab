@@ -11,10 +11,11 @@ use alloc::sync::Arc;
 pub use context::TaskContext;
 use lazy_static::*;
 use manager::fetch_task;
+use manager::remove_from_pid2task;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 
-pub use manager::add_task;
+pub use manager::{add_task, pid2task};
 pub use pid::{pid_alloc, KernelStack, PidHandle};
 pub use processor::{
     current_task, current_trap_cx, current_user_token, run_tasks, schedule, take_current_task,
@@ -42,6 +43,8 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next(exit_code: i32) {
     // take from Processor
     let task = take_current_task().unwrap();
+    // remove from pid2task
+    remove_from_pid2task(task.getpid());
     // **** access current TCB exclusively
     let mut inner = task.inner_exclusive_access();
     // Change status to Zombie
