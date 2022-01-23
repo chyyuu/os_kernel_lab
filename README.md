@@ -214,11 +214,12 @@ Here are the updates since 3.5.0:
 * [x] clarify: "check validity of level-3 pte in `find_pte` instead of checking it outside this function" should not be a bug
 * [x] code of chapter 8: synchronization on a uniprocessor
 * [x] switch the code of chapter 6 and chapter 7
+* [x] support signal mechanism in chapter 7
 
 ### Todo(High priority)
 
 * [ ] review documentation, current progress: 5/9
-* [ ] support signal mechanism in chapter 7
+* [ ] support signal mechanism in chapter 8
 * [ ] code of chapter 9: device drivers based on interrupts, including UART and block devices
 * [ ] use old fs image optionally, do not always rebuild the image
 * [ ] add new system calls: getdents64/fstat
