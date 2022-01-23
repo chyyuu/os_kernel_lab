@@ -127,6 +127,25 @@ pub fn waitpid(pid: usize, exit_code: &mut i32) -> isize {
         }
     }
 }
+
+pub fn waitpid_nb(pid: usize, exit_code: &mut i32) -> isize {
+    sys_waitpid(pid as isize, exit_code as *mut _)
+}
+
+bitflags! {
+    pub struct SignalFlags: i32 {
+        const SIGINT    = 1 << 2;
+        const SIGILL    = 1 << 4;
+        const SIGABRT   = 1 << 6;
+        const SIGFPE    = 1 << 8;
+        const SIGSEGV   = 1 << 11;
+    }
+}
+
+pub fn kill(pid: usize, signal: i32) -> isize {
+    sys_kill(pid, signal)
+}
+
 pub fn sleep(sleep_ms: usize) {
     sys_sleep(sleep_ms);
 }

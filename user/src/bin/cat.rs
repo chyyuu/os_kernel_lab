@@ -15,7 +15,7 @@ pub fn main(argc: usize, argv: &[&str]) -> i32 {
         panic!("Error occured when opening file");
     }
     let fd = fd as usize;
-    let mut buf = [0u8; 16];
+    let mut buf = [0u8; 256];
     loop {
         let size = read(fd, &mut buf) as usize;
         if size == 0 {
