@@ -4,12 +4,14 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{fork, exec, kill, waitpid_nb, waitpid, get_time, SignalFlags};
+use user_lib::{exec, fork, get_time, kill, waitpid, waitpid_nb, SignalFlags};
 
 #[no_mangle]
 pub fn main(argc: usize, argv: &[&str]) -> i32 {
     assert_eq!(argc, 3, "argc must be 3!");
-    let timeout_ms = argv[2].parse::<isize>().expect("Error when parsing timeout!");
+    let timeout_ms = argv[2]
+        .parse::<isize>()
+        .expect("Error when parsing timeout!");
     let pid = fork() as usize;
     if pid == 0 {
         if exec(argv[1], &[core::ptr::null::<u8>()]) != 0 {
@@ -34,7 +36,7 @@ pub fn main(argc: usize, argv: &[&str]) -> i32 {
             }
         }
         if !child_exited {
-            println!("child has run for {}ms, kill it!", timeout_ms); 
+            println!("child has run for {}ms, kill it!", timeout_ms);
             kill(pid, SignalFlags::SIGINT.bits());
             assert_eq!(waitpid(pid, &mut exit_code) as usize, pid);
             println!("exit code of the child is {}", exit_code);
