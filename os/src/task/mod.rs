@@ -1,5 +1,6 @@
 mod context;
 mod switch;
+#[allow(clippy::module_inception)]
 mod task;
 
 use crate::config::MAX_APP_NUM;
@@ -28,9 +29,9 @@ lazy_static! {
             task_cx: TaskContext::zero_init(),
             task_status: TaskStatus::UnInit,
         }; MAX_APP_NUM];
-        for i in 0..num_app {
-            tasks[i].task_cx = TaskContext::goto_restore(init_app_cx(i));
-            tasks[i].task_status = TaskStatus::Ready;
+        for (i, task) in tasks.iter_mut().enumerate() {
+            task.task_cx = TaskContext::goto_restore(init_app_cx(i));
+            task.task_status = TaskStatus::Ready;
         }
         TaskManager {
             num_app,
