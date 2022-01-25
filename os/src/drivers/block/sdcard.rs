@@ -314,7 +314,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             timeout -= 1;
         }
         /* After time out */
-        return 0xFF;
+        0xFF
     }
 
     /*
@@ -341,7 +341,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             self.read_data(response);
         }
         /* Return response */
-        return 0;
+        0
     }
 
     /*
@@ -371,7 +371,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
         self.read_data(&mut csd_tab);
         self.end_cmd();
         /* see also: https://cdn-shop.adafruit.com/datasheets/TS16GUSDHC6.pdf */
-        return Ok(SDCardCSD {
+        Ok(SDCardCSD {
             /* Byte 0 */
             CSDStruct: (csd_tab[0] & 0xC0) >> 6,
             SysSpecVersion: (csd_tab[0] & 0x3C) >> 2,
@@ -424,7 +424,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             CSD_CRC: (csd_tab[15] & 0xFE) >> 1,
             Reserved4: 1,
             /* Return the reponse */
-        });
+        })
     }
 
     /*
@@ -453,7 +453,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
         /* Get CRC bytes (not really needed by us, but required by SD) */
         self.read_data(&mut cid_tab);
         self.end_cmd();
-        return Ok(SDCardCID {
+        Ok(SDCardCID {
             /* Byte 0 */
             ManufacturerID: cid_tab[0],
             /* Byte 1, 2 */
@@ -478,7 +478,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             /* Byte 15 */
             CID_CRC: (cid_tab[15] & 0xFE) >> 1,
             Reserved2: 1,
-        });
+        })
     }
 
     /*
@@ -684,7 +684,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
                 *a = b;
             }
             //self.write_data_dma(&mut dma_chunk);
-            self.write_data(&mut tmp_chunk);
+            self.write_data(&tmp_chunk);
             /* Put dummy CRC bytes */
             self.write_data(&[0xff, 0xff]);
             /* Read data response */
