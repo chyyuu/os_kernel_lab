@@ -3,6 +3,7 @@ mod manager;
 mod pid;
 mod processor;
 mod switch;
+#[allow(clippy::module_inception)]
 mod task;
 
 use crate::loader::get_app_data_by_name;

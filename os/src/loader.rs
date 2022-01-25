@@ -35,7 +35,7 @@ lazy_static! {
         unsafe {
             for _ in 0..num_app {
                 let mut end = start;
-                while end.read_volatile() != '\0' as u8 {
+                while end.read_volatile() != b'\0' {
                     end = end.add(1);
                 }
                 let slice = core::slice::from_raw_parts(start, end as usize - start as usize);
@@ -53,7 +53,7 @@ pub fn get_app_data_by_name(name: &str) -> Option<&'static [u8]> {
     let num_app = get_num_app();
     (0..num_app)
         .find(|&i| APP_NAMES[i] == name)
-        .map(|i| get_app_data(i))
+        .map(get_app_data)
 }
 
 pub fn list_apps() {
