@@ -25,7 +25,7 @@ impl Processor {
         self.current.take()
     }
     pub fn current(&self) -> Option<Arc<TaskControlBlock>> {
-        self.current.as_ref().map(|task| Arc::clone(task))
+        self.current.as_ref().map(Arc::clone)
     }
 }
 
@@ -70,8 +70,7 @@ pub fn current_process() -> Arc<ProcessControlBlock> {
 
 pub fn current_user_token() -> usize {
     let task = current_task().unwrap();
-    let token = task.get_user_token();
-    token
+    task.get_user_token()
 }
 
 pub fn current_trap_cx() -> &'static mut TrapContext {

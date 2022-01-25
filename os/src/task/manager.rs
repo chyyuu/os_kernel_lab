@@ -40,7 +40,7 @@ pub fn fetch_task() -> Option<Arc<TaskControlBlock>> {
 
 pub fn pid2process(pid: usize) -> Option<Arc<ProcessControlBlock>> {
     let map = PID2PCB.exclusive_access();
-    map.get(&pid).map(|task| Arc::clone(task))
+    map.get(&pid).map(Arc::clone)
 }
 
 pub fn insert_into_pid2process(pid: usize, process: Arc<ProcessControlBlock>) {

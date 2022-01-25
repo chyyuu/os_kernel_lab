@@ -78,7 +78,7 @@ impl Mutex for MutexBlocking {
 
     fn unlock(&self) {
         let mut mutex_inner = self.inner.exclusive_access();
-        assert_eq!(mutex_inner.locked, true);
+        assert!(mutex_inner.locked);
         if let Some(waking_task) = mutex_inner.wait_queue.pop_front() {
             add_task(waking_task);
         } else {

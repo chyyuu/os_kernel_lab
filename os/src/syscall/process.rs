@@ -74,11 +74,10 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
     // find a child process
 
     let mut inner = process.inner_exclusive_access();
-    if inner
+    if !inner
         .children
         .iter()
-        .find(|p| pid == -1 || pid as usize == p.getpid())
-        .is_none()
+        .any(|p| pid == -1 || pid as usize == p.getpid())
     {
         return -1;
         // ---- release current PCB

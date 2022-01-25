@@ -5,6 +5,7 @@ mod process;
 mod processor;
 mod signal;
 mod switch;
+#[allow(clippy::module_inception)]
 mod task;
 
 use crate::fs::{open_file, OpenFlags};

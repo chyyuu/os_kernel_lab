@@ -32,9 +32,9 @@ const RING_BUFFER_SIZE: usize = 32;
 
 #[derive(Copy, Clone, PartialEq)]
 enum RingBufferStatus {
-    FULL,
-    EMPTY,
-    NORMAL,
+    Full,
+    Empty,
+    Normal,
 }
 
 pub struct PipeRingBuffer {
@@ -51,7 +51,7 @@ impl PipeRingBuffer {
             arr: [0; RING_BUFFER_SIZE],
             head: 0,
             tail: 0,
-            status: RingBufferStatus::EMPTY,
+            status: RingBufferStatus::Empty,
             write_end: None,
         }
     }
@@ -59,24 +59,24 @@ impl PipeRingBuffer {
         self.write_end = Some(Arc::downgrade(write_end));
     }
     pub fn write_byte(&mut self, byte: u8) {
-        self.status = RingBufferStatus::NORMAL;
+        self.status = RingBufferStatus::Normal;
         self.arr[self.tail] = byte;
         self.tail = (self.tail + 1) % RING_BUFFER_SIZE;
         if self.tail == self.head {
-            self.status = RingBufferStatus::FULL;
+            self.status = RingBufferStatus::Full;
         }
     }
     pub fn read_byte(&mut self) -> u8 {
-        self.status = RingBufferStatus::NORMAL;
+        self.status = RingBufferStatus::Normal;
         let c = self.arr[self.head];
         self.head = (self.head + 1) % RING_BUFFER_SIZE;
         if self.head == self.tail {
-            self.status = RingBufferStatus::EMPTY;
+            self.status = RingBufferStatus::Empty;
         }
         c
     }
     pub fn available_read(&self) -> usize {
-        if self.status == RingBufferStatus::EMPTY {
+        if self.status == RingBufferStatus::Empty {
             0
         } else if self.tail > self.head {
             self.tail - self.head
@@ -85,7 +85,7 @@ impl PipeRingBuffer {
         }
     }
     pub fn available_write(&self) -> usize {
-        if self.status == RingBufferStatus::FULL {
+        if self.status == RingBufferStatus::Full {
             0
         } else {
             RING_BUFFER_SIZE - self.available_read()
@@ -113,7 +113,7 @@ impl File for Pipe {
         self.writable
     }
     fn read(&self, buf: UserBuffer) -> usize {
-        assert_eq!(self.readable(), true);
+        assert!(self.readable());
         let mut buf_iter = buf.into_iter();
         let mut read_size = 0usize;
         loop {
@@ -141,7 +141,7 @@ impl File for Pipe {
         }
     }
     fn write(&self, buf: UserBuffer) -> usize {
-        assert_eq!(self.writable(), true);
+        assert!(self.writable());
         let mut buf_iter = buf.into_iter();
         let mut write_size = 0usize;
         loop {

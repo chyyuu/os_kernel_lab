@@ -65,7 +65,6 @@ pub fn check_timer() {
     while let Some(timer) = timers.peek() {
         if timer.expire_ms <= current_ms {
             add_task(Arc::clone(&timer.task));
-            drop(timer);
             timers.pop();
         } else {
             break;
