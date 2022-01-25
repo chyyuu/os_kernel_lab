@@ -4,7 +4,7 @@ rCore-Tutorial version 3.5. See the [Documentation in Chinese](https://rcore-os.
 Official QQ group number: 735045051
 
 ## news
-- 2021.11.20: Now we are updating our labs. Please checkout chX-dev Branches for our current new labs. (Notice: please see the [Dependency] section in the end of this doc)
+- 25/01/2022: Version 3.6.0 is on the way! Now we directly update the code on chX branches, please periodically check if there are any updates.
 
 ## Overview
 
@@ -186,6 +186,12 @@ $ make run BOARD=k210
 
 Type `Ctrl+]` to disconnect from K210.
 
+## Rustdoc
+
+Currently it can only help you view the code since only a tiny part of the code has been documented.
+
+You can open a doc html of `os` using `cargo doc --no-deps --open` under `os` directory.
+
 ## Working in progress
 
 Our first release 3.5.0 (chapter 1-7) has been published.
@@ -215,6 +221,7 @@ Here are the updates since 3.5.0:
 * [x] code of chapter 8: synchronization on a uniprocessor
 * [x] switch the code of chapter 6 and chapter 7
 * [x] support signal mechanism in chapter 7/8(only works for apps with a single thread)
+* [x] Add boards/ directory and support rustdoc, for example you can use `cargo doc --no-deps --open` to view the documentation of a crate
 
 ### Todo(High priority)
 
