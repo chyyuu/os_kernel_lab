@@ -1,11 +1,6 @@
-use crate::mm::{
-    UserBuffer,
-    translated_byte_buffer,
-    translated_refmut,
-    translated_str,
-};
-use crate::task::{current_user_token, current_process};
-use crate::fs::{make_pipe, OpenFlags, open_file};
+use crate::fs::{make_pipe, open_file, OpenFlags};
+use crate::mm::{translated_byte_buffer, translated_refmut, translated_str, UserBuffer};
+use crate::task::{current_process, current_user_token};
 use alloc::sync::Arc;
 
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
@@ -22,9 +17,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
         let file = file.clone();
         // release current task TCB manually to avoid multi-borrow
         drop(inner);
-        file.write(
-            UserBuffer::new(translated_byte_buffer(token, buf, len))
-        ) as isize
+        file.write(UserBuffer::new(translated_byte_buffer(token, buf, len))) as isize
     } else {
         -1
     }
@@ -44,9 +37,7 @@ pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
         }
         // release current task TCB manually to avoid multi-borrow
         drop(inner);
-        file.read(
-            UserBuffer::new(translated_byte_buffer(token, buf, len))
-        ) as isize
+        file.read(UserBuffer::new(translated_byte_buffer(token, buf, len))) as isize
     } else {
         -1
     }
@@ -56,10 +47,7 @@ pub fn sys_open(path: *const u8, flags: u32) -> isize {
     let process = current_process();
     let token = current_user_token();
     let path = translated_str(token, path);
-    if let Some(inode) = open_file(
-        path.as_str(),
-        OpenFlags::from_bits(flags).unwrap()
-    ) {
+    if let Some(inode) = open_file(path.as_str(), OpenFlags::from_bits(flags).unwrap()) {
         let mut inner = process.inner_exclusive_access();
         let fd = inner.alloc_fd();
         inner.fd_table[fd] = Some(inode);

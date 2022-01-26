@@ -1,28 +1,18 @@
 mod context;
 
+use crate::config::TRAMPOLINE;
+use crate::syscall::syscall;
+use crate::task::{
+    check_signals_of_current, current_add_signal, current_trap_cx, current_trap_cx_user_va,
+    current_user_token, exit_current_and_run_next, suspend_current_and_run_next, SignalFlags,
+};
+use crate::timer::{check_timer, set_next_trigger};
 use core::arch::{asm, global_asm};
 use riscv::register::{
     mtvec::TrapMode,
-    stvec,
-    scause::{
-        self,
-        Trap,
-        Exception,
-        Interrupt,
-    },
-    stval,
-    sie,
+    scause::{self, Exception, Interrupt, Trap},
+    sie, stval, stvec,
 };
-use crate::syscall::syscall;
-use crate::task::{
-    exit_current_and_run_next,
-    suspend_current_and_run_next,
-    current_user_token,
-    current_trap_cx,
-    current_trap_cx_user_va,
-};
-use crate::timer::{set_next_trigger, check_timer};
-use crate::config::TRAMPOLINE;
 
 global_asm!(include_str!("trap.S"));
 
@@ -43,7 +33,9 @@ fn set_user_trap_entry() {
 }
 
 pub fn enable_timer_interrupt() {
-    unsafe { sie::set_stimer(); }
+    unsafe {
+        sie::set_stimer();
+    }
 }
 
 #[no_mangle]
@@ -62,25 +54,24 @@ pub fn trap_handler() -> ! {
             cx = current_trap_cx();
             cx.x[10] = result as usize;
         }
-        Trap::Exception(Exception::StoreFault) |
-        Trap::Exception(Exception::StorePageFault) |
-        Trap::Exception(Exception::InstructionFault) |
-        Trap::Exception(Exception::InstructionPageFault) |
-        Trap::Exception(Exception::LoadFault) |
-        Trap::Exception(Exception::LoadPageFault) => {
+        Trap::Exception(Exception::StoreFault)
+        | Trap::Exception(Exception::StorePageFault)
+        | Trap::Exception(Exception::InstructionFault)
+        | Trap::Exception(Exception::InstructionPageFault)
+        | Trap::Exception(Exception::LoadFault)
+        | Trap::Exception(Exception::LoadPageFault) => {
+            /*
             println!(
-                "[kernel] {:?} in application, bad addr = {:#x}, bad instruction = {:#x}, core dumped.",
+                "[kernel] {:?} in application, bad addr = {:#x}, bad instruction = {:#x}, kernel killed it.",
                 scause.cause(),
                 stval,
                 current_trap_cx().sepc,
             );
-            // page fault exit code
-            exit_current_and_run_next(-2);
+            */
+            current_add_signal(SignalFlags::SIGSEGV);
         }
         Trap::Exception(Exception::IllegalInstruction) => {
-            println!("[kernel] IllegalInstruction in application, core dumped.");
-            // illegal instruction exit code
-            exit_current_and_run_next(-3);
+            current_add_signal(SignalFlags::SIGILL);
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
             set_next_trigger();
@@ -88,10 +79,18 @@ pub fn trap_handler() -> ! {
             suspend_current_and_run_next();
         }
         _ => {
-            panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
+            panic!(
+                "Unsupported trap {:?}, stval = {:#x}!",
+                scause.cause(),
+                stval
+            );
         }
     }
-    //println!("before trap_return");
+    // check signals
+    if let Some((errno, msg)) = check_signals_of_current() {
+        println!("[kernel] {}", msg);
+        exit_current_and_run_next(errno);
+    }
     trap_return();
 }
 

@@ -239,7 +239,6 @@ Here are the updates since 3.5.0:
 * [ ] rewrite practice doc and remove some inproper questions
 * [ ] provide smooth debug experience at a Rust source code level
 * [ ] format the code using official tools
-* [ ] support other platforms
 
 ### Crates
 

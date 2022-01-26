@@ -5,8 +5,8 @@
 extern crate user_lib;
 extern crate alloc;
 
-use user_lib::{exit, thread_create, waittid, get_time};
 use alloc::vec::Vec;
+use user_lib::{exit, get_time, thread_create, waittid};
 
 static mut A: usize = 0;
 const PER_THREAD: usize = 1000;
@@ -17,7 +17,9 @@ unsafe fn f() -> ! {
     for _ in 0..PER_THREAD {
         let a = &mut A as *mut usize;
         let cur = a.read_volatile();
-        for _ in 0..500 { t = t * t % 10007; }
+        for _ in 0..500 {
+            t = t * t % 10007;
+        }
         a.write_volatile(cur + 1);
     }
     exit(t as i32)
@@ -26,7 +28,7 @@ unsafe fn f() -> ! {
 #[no_mangle]
 pub fn main() -> i32 {
     let start = get_time();
-    let mut v = Vec::new();    
+    let mut v = Vec::new();
     for _ in 0..THREAD_COUNT {
         v.push(thread_create(f as usize, 0) as usize);
     }

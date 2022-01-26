@@ -6,8 +6,8 @@ extern crate user_lib;
 
 extern crate alloc;
 
-use user_lib::{fork, close, pipe, read, write, wait, get_time};
 use alloc::format;
+use user_lib::{close, fork, get_time, pipe, read, wait, write};
 
 const LENGTH: usize = 3000;
 #[no_mangle]
@@ -40,11 +40,14 @@ pub fn main() -> i32 {
         // close write end of up pipe
         close(up_pipe_fd[1]);
         // generate a long random string
-        for i in 0..LENGTH {
-            random_str[i] = get_time() as u8;
+        for ch in random_str.iter_mut() {
+            *ch = get_time() as u8;
         }
         // send it
-        assert_eq!(write(down_pipe_fd[1], &random_str) as usize, random_str.len());
+        assert_eq!(
+            write(down_pipe_fd[1], &random_str) as usize,
+            random_str.len()
+        );
         // close write end of down pipe
         close(down_pipe_fd[1]);
         // calculate sum(parent)
@@ -57,9 +60,8 @@ pub fn main() -> i32 {
         // check
         assert_eq!(
             sum,
-            str::parse::<usize>(
-                core::str::from_utf8(&child_result[..result_len]).unwrap()
-            ).unwrap()
+            str::parse::<usize>(core::str::from_utf8(&child_result[..result_len]).unwrap())
+                .unwrap()
         );
         let mut _unused: i32 = 0;
         wait(&mut _unused);

@@ -1,38 +1,29 @@
 mod context;
-mod switch;
-mod task;
-mod manager;
-mod processor;
 mod id;
+mod manager;
 mod process;
+mod processor;
+mod signal;
+mod switch;
+#[allow(clippy::module_inception)]
+mod task;
 
 use crate::fs::{open_file, OpenFlags};
-use switch::__switch;
 use alloc::sync::Arc;
-use manager::fetch_task;
 use lazy_static::*;
+use manager::fetch_task;
 use process::ProcessControlBlock;
+use switch::__switch;
 
 pub use context::TaskContext;
+pub use id::{kstack_alloc, pid_alloc, KernelStack, PidHandle};
+pub use manager::{add_task, pid2process, remove_from_pid2process};
 pub use processor::{
-    run_tasks,
-    current_task,
-    current_process,
-    current_user_token,
-    current_trap_cx_user_va,
-    current_trap_cx,
-    current_kstack_top,
-    take_current_task,
-    schedule,
+    current_kstack_top, current_process, current_task, current_trap_cx, current_trap_cx_user_va,
+    current_user_token, run_tasks, schedule, take_current_task,
 };
+pub use signal::SignalFlags;
 pub use task::{TaskControlBlock, TaskStatus};
-pub use manager::add_task;
-pub use id::{
-    PidHandle,
-    pid_alloc,
-    KernelStack,
-    kstack_alloc,
-};
 
 pub fn suspend_current_and_run_next() {
     // There must be an application running.
@@ -76,6 +67,7 @@ pub fn exit_current_and_run_next(exit_code: i32) {
     // however, if this is the main thread of current process
     // the process should terminate at once
     if tid == 0 {
+        remove_from_pid2process(process.getpid());
         let mut process_inner = process.inner_exclusive_access();
         // mark this process as a zombie process
         process_inner.is_zombie = true;
@@ -86,7 +78,7 @@ pub fn exit_current_and_run_next(exit_code: i32) {
             // move all child processes under init process
             let mut initproc_inner = INITPROC.inner_exclusive_access();
             for child in process_inner.children.iter() {
-                child.inner_exclusive_access().parent = Some(Arc::downgrade(&INITPROC)); 
+                child.inner_exclusive_access().parent = Some(Arc::downgrade(&INITPROC));
                 initproc_inner.children.push(child.clone());
             }
         }
@@ -103,6 +95,8 @@ pub fn exit_current_and_run_next(exit_code: i32) {
         process_inner.children.clear();
         // deallocate other data in user space i.e. program code/data section
         process_inner.memory_set.recycle_data_pages();
+        // drop file descriptors
+        process_inner.fd_table.clear();
     }
     drop(process);
     // we do not have to save task context
@@ -120,4 +114,16 @@ lazy_static! {
 
 pub fn add_initproc() {
     let _initproc = INITPROC.clone();
+}
+
+pub fn check_signals_of_current() -> Option<(i32, &'static str)> {
+    let process = current_process();
+    let process_inner = process.inner_exclusive_access();
+    process_inner.signals.check_error()
+}
+
+pub fn current_add_signal(signal: SignalFlags) {
+    let process = current_process();
+    let mut process_inner = process.inner_exclusive_access();
+    process_inner.signals |= signal;
 }

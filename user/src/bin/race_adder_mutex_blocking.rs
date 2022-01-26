@@ -5,9 +5,9 @@
 extern crate user_lib;
 extern crate alloc;
 
-use user_lib::{exit, thread_create, waittid, get_time};
-use user_lib::{mutex_blocking_create, mutex_lock, mutex_unlock};
 use alloc::vec::Vec;
+use user_lib::{exit, get_time, thread_create, waittid};
+use user_lib::{mutex_blocking_create, mutex_lock, mutex_unlock};
 
 static mut A: usize = 0;
 const PER_THREAD: usize = 1000;
@@ -19,7 +19,9 @@ unsafe fn f() -> ! {
         mutex_lock(0);
         let a = &mut A as *mut usize;
         let cur = a.read_volatile();
-        for _ in 0..500 { t = t * t % 10007; }
+        for _ in 0..500 {
+            t = t * t % 10007;
+        }
         a.write_volatile(cur + 1);
         mutex_unlock(0);
     }
@@ -30,7 +32,7 @@ unsafe fn f() -> ! {
 pub fn main() -> i32 {
     let start = get_time();
     assert_eq!(mutex_blocking_create(), 0);
-    let mut v = Vec::new();    
+    let mut v = Vec::new();
     for _ in 0..THREAD_COUNT {
         v.push(thread_create(f as usize, 0) as usize);
     }

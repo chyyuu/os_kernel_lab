@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{fork, close, pipe, read, write, wait};
+use user_lib::{close, fork, pipe, read, wait, write};
 
 static STR: &str = "Hello, world!";
 

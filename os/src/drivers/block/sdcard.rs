@@ -2,21 +2,21 @@
 #![allow(non_camel_case_types)]
 #![allow(unused)]
 
-use k210_pac::{Peripherals, SPI0};
+use super::BlockDevice;
+use crate::sync::UPSafeCell;
+use core::convert::TryInto;
 use k210_hal::prelude::*;
+use k210_pac::{Peripherals, SPI0};
 use k210_soc::{
+    fpioa::{self, io},
     //dmac::{dma_channel, DMAC, DMACExt},
     gpio,
     gpiohs,
-    spi::{aitm, frame_format, tmod, work_mode, SPI, SPIExt, SPIImpl},
-    fpioa::{self, io},
-    sysctl,
     sleep::usleep,
+    spi::{aitm, frame_format, tmod, work_mode, SPIExt, SPIImpl, SPI},
+    sysctl,
 };
-use crate::sync::UPSafeCell;
 use lazy_static::*;
-use super::BlockDevice;
-use core::convert::TryInto;
 
 pub struct SDCard<SPI> {
     spi: SPI,
@@ -160,7 +160,11 @@ pub struct SDCardInfo {
 }
 
 impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
-    pub fn new(spi: X, spi_cs: u32, cs_gpionum: u8/*, dmac: &'a DMAC, channel: dma_channel*/) -> Self {
+    pub fn new(
+        spi: X,
+        spi_cs: u32,
+        cs_gpionum: u8, /*, dmac: &'a DMAC, channel: dma_channel*/
+    ) -> Self {
         Self {
             spi,
             spi_cs,
@@ -310,7 +314,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             timeout -= 1;
         }
         /* After time out */
-        return 0xFF;
+        0xFF
     }
 
     /*
@@ -337,7 +341,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             self.read_data(response);
         }
         /* Return response */
-        return 0;
+        0
     }
 
     /*
@@ -367,7 +371,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
         self.read_data(&mut csd_tab);
         self.end_cmd();
         /* see also: https://cdn-shop.adafruit.com/datasheets/TS16GUSDHC6.pdf */
-        return Ok(SDCardCSD {
+        Ok(SDCardCSD {
             /* Byte 0 */
             CSDStruct: (csd_tab[0] & 0xC0) >> 6,
             SysSpecVersion: (csd_tab[0] & 0x3C) >> 2,
@@ -419,8 +423,8 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             /* Byte 15 */
             CSD_CRC: (csd_tab[15] & 0xFE) >> 1,
             Reserved4: 1,
-            /* Return the response */
-        });
+            /* Return the reponse */
+        })
     }
 
     /*
@@ -449,7 +453,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
         /* Get CRC bytes (not really needed by us, but required by SD) */
         self.read_data(&mut cid_tab);
         self.end_cmd();
-        return Ok(SDCardCID {
+        Ok(SDCardCID {
             /* Byte 0 */
             ManufacturerID: cid_tab[0],
             /* Byte 1, 2 */
@@ -474,7 +478,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             /* Byte 15 */
             CID_CRC: (cid_tab[15] & 0xFE) >> 1,
             Reserved2: 1,
-        });
+        })
     }
 
     /*
@@ -606,7 +610,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
         }
         let mut error = false;
         //let mut dma_chunk = [0u32; SEC_LEN];
-        let mut tmp_chunk= [0u8; SEC_LEN];
+        let mut tmp_chunk = [0u8; SEC_LEN];
         for chunk in data_buf.chunks_mut(SEC_LEN) {
             if self.get_response() != SD_START_DATA_SINGLE_BLOCK_READ {
                 error = true;
@@ -616,7 +620,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             //self.read_data_dma(&mut dma_chunk);
             self.read_data(&mut tmp_chunk);
             /* Place the data received as u32 units from DMA into the u8 target buffer */
-            for (a, b) in chunk.iter_mut().zip(/*dma_chunk*/tmp_chunk.iter()) {
+            for (a, b) in chunk.iter_mut().zip(/*dma_chunk*/ tmp_chunk.iter()) {
                 //*a = (b & 0xff) as u8;
                 *a = *b;
             }
@@ -675,12 +679,12 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             /* Send the data token to signify the start of the data */
             self.write_data(&frame);
             /* Write the block data to SD : write count data by block */
-            for (a, &b) in /*dma_chunk*/tmp_chunk.iter_mut().zip(chunk.iter()) {
+            for (a, &b) in /*dma_chunk*/ tmp_chunk.iter_mut().zip(chunk.iter()) {
                 //*a = b.into();
                 *a = b;
             }
             //self.write_data_dma(&mut dma_chunk);
-            self.write_data(&mut tmp_chunk);
+            self.write_data(&tmp_chunk);
             /* Put dummy CRC bytes */
             self.write_data(&[0xff, 0xff]);
             /* Read data response */
@@ -711,9 +715,8 @@ fn io_init() {
 }
 
 lazy_static! {
-    static ref PERIPHERALS: UPSafeCell<Peripherals> = unsafe {
-        UPSafeCell::new(Peripherals::take().unwrap())
-    };
+    static ref PERIPHERALS: UPSafeCell<Peripherals> =
+        unsafe { UPSafeCell::new(Peripherals::take().unwrap()) };
 }
 
 fn init_sdcard() -> SDCard<SPIImpl<SPI0>> {
@@ -747,9 +750,15 @@ impl SDCardWrapper {
 
 impl BlockDevice for SDCardWrapper {
     fn read_block(&self, block_id: usize, buf: &mut [u8]) {
-        self.0.exclusive_access().read_sector(buf,block_id as u32).unwrap();
+        self.0
+            .exclusive_access()
+            .read_sector(buf, block_id as u32)
+            .unwrap();
     }
     fn write_block(&self, block_id: usize, buf: &[u8]) {
-        self.0.exclusive_access().write_sector(buf,block_id as u32).unwrap();
+        self.0
+            .exclusive_access()
+            .write_sector(buf, block_id as u32)
+            .unwrap();
     }
 }
