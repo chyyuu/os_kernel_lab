@@ -28,7 +28,14 @@ impl Condvar {
         }
     }
 
-    pub fn wait(&self, mutex: Arc<dyn Mutex>) {
+    pub fn wait(&self) {
+        let mut inner =self.inner.exclusive_access();
+        inner.wait_queue.push_back(current_task().unwrap());
+        drop(inner);
+        block_current_and_run_next();
+    }
+
+    pub fn wait_with_mutex(&self, mutex: Arc<dyn Mutex>) {
         mutex.unlock();
         let mut inner = self.inner.exclusive_access();
         inner.wait_queue.push_back(current_task().unwrap());

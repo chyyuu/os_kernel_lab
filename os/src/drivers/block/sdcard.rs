@@ -761,4 +761,5 @@ impl BlockDevice for SDCardWrapper {
             .write_sector(buf, block_id as u32)
             .unwrap();
     }
+    fn handle_irq(&self) { unimplemented!(); }
 }
