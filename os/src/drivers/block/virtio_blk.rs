@@ -5,7 +5,7 @@ use crate::mm::{
 };
 use crate::sync::{UPSafeCell, Condvar};
 use lazy_static::*;
-use virtio_drivers::{VirtIOBlk, VirtIOHeader};
+use virtio_drivers::{VirtIOBlk, VirtIOHeader, BlkResp, RespStatus};
 use crate::DEV_NON_BLOCKING_ACCESS;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
@@ -27,11 +27,13 @@ impl BlockDevice for VirtIOBlock {
         let nb = *DEV_NON_BLOCKING_ACCESS.exclusive_access();
         if nb {
             let mut blk = self.virtio_blk.exclusive_access();
-            let mut resp = 0xffu8;
-            let token = blk.read_block_nb(block_id, buf, &mut resp).unwrap();
+            let mut resp = BlkResp::default();
+            let token = unsafe {
+                blk.read_block_nb(block_id, buf, &mut resp).unwrap()
+            };
             drop(blk);
             self.condvars.get(&token).unwrap().wait();
-            assert_eq!(resp, 0x0, "Error when reading VirtIOBlk");
+            assert_eq!(resp.status(), RespStatus::Ok, "Error when reading VirtIOBlk");
         } else {
             self.virtio_blk
                 .exclusive_access()
@@ -43,11 +45,13 @@ impl BlockDevice for VirtIOBlock {
         let nb = *DEV_NON_BLOCKING_ACCESS.exclusive_access();
         if nb {
             let mut blk = self.virtio_blk.exclusive_access();
-            let mut resp = 0xffu8;
-            let token = blk.write_block_nb(block_id, buf, &mut resp).unwrap();
+            let mut resp = BlkResp::default();
+            let token = unsafe {
+                blk.write_block_nb(block_id, buf, &mut resp).unwrap()
+            };
             drop(blk);
             self.condvars.get(&token).unwrap().wait();
-            assert_eq!(resp, 0x0, "Error when reading VirtIOBlk");
+            assert_eq!(resp.status(), RespStatus::Ok, "Error when writing VirtIOBlk");
         } else {
             self.virtio_blk
                 .exclusive_access()
