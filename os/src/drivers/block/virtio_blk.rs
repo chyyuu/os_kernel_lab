@@ -3,12 +3,12 @@ use crate::mm::{
     frame_alloc, frame_dealloc, kernel_token, FrameTracker, PageTable, PhysAddr, PhysPageNum,
     StepByOne, VirtAddr,
 };
-use crate::sync::{UPSafeCell, Condvar};
-use lazy_static::*;
-use virtio_drivers::{VirtIOBlk, VirtIOHeader, BlkResp, RespStatus};
+use crate::sync::{Condvar, UPSafeCell};
 use crate::DEV_NON_BLOCKING_ACCESS;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
+use lazy_static::*;
+use virtio_drivers::{BlkResp, RespStatus, VirtIOBlk, VirtIOHeader};
 
 #[allow(unused)]
 const VIRTIO0: usize = 0x10001000;
@@ -28,12 +28,14 @@ impl BlockDevice for VirtIOBlock {
         if nb {
             let mut blk = self.virtio_blk.exclusive_access();
             let mut resp = BlkResp::default();
-            let token = unsafe {
-                blk.read_block_nb(block_id, buf, &mut resp).unwrap()
-            };
+            let token = unsafe { blk.read_block_nb(block_id, buf, &mut resp).unwrap() };
             drop(blk);
             self.condvars.get(&token).unwrap().wait();
-            assert_eq!(resp.status(), RespStatus::Ok, "Error when reading VirtIOBlk");
+            assert_eq!(
+                resp.status(),
+                RespStatus::Ok,
+                "Error when reading VirtIOBlk"
+            );
         } else {
             self.virtio_blk
                 .exclusive_access()
@@ -46,12 +48,14 @@ impl BlockDevice for VirtIOBlock {
         if nb {
             let mut blk = self.virtio_blk.exclusive_access();
             let mut resp = BlkResp::default();
-            let token = unsafe {
-                blk.write_block_nb(block_id, buf, &mut resp).unwrap()
-            };
+            let token = unsafe { blk.write_block_nb(block_id, buf, &mut resp).unwrap() };
             drop(blk);
             self.condvars.get(&token).unwrap().wait();
-            assert_eq!(resp.status(), RespStatus::Ok, "Error when writing VirtIOBlk");
+            assert_eq!(
+                resp.status(),
+                RespStatus::Ok,
+                "Error when writing VirtIOBlk"
+            );
         } else {
             self.virtio_blk
                 .exclusive_access()
@@ -60,7 +64,7 @@ impl BlockDevice for VirtIOBlock {
         }
     }
     fn handle_irq(&self) {
-        let mut blk = self.virtio_blk.exclusive_access(); 
+        let mut blk = self.virtio_blk.exclusive_access();
         while let Ok(token) = blk.pop_used() {
             self.condvars.get(&token).unwrap().signal();
         }
@@ -69,20 +73,18 @@ impl BlockDevice for VirtIOBlock {
 
 impl VirtIOBlock {
     pub fn new() -> Self {
-        unsafe {
-            let virtio_blk = UPSafeCell::new(
-                VirtIOBlk::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap(),
-            );
-            let mut condvars = BTreeMap::new();
-            let channels = virtio_blk.exclusive_access().virt_queue_size();
-            for i in 0..channels {
-                let condvar = Condvar::new(); 
-                condvars.insert(i, condvar);
-            }
-            Self {
-                virtio_blk,
-                condvars,
-            }
+        let virtio_blk = unsafe {
+            UPSafeCell::new(VirtIOBlk::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap())
+        };
+        let mut condvars = BTreeMap::new();
+        let channels = virtio_blk.exclusive_access().virt_queue_size();
+        for i in 0..channels {
+            let condvar = Condvar::new();
+            condvars.insert(i, condvar);
+        }
+        Self {
+            virtio_blk,
+            condvars,
         }
     }
 }

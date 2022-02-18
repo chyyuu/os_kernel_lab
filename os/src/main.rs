@@ -46,17 +46,13 @@ use lazy_static::*;
 use sync::UPSafeCell;
 
 lazy_static! {
-    pub static ref DEV_NON_BLOCKING_ACCESS: UPSafeCell<bool> = unsafe {
-        UPSafeCell::new(false)
-    };
+    pub static ref DEV_NON_BLOCKING_ACCESS: UPSafeCell<bool> = unsafe { UPSafeCell::new(false) };
 }
 
 #[no_mangle]
 pub fn rust_main() -> ! {
     clear_bss();
-    println!("[kernel] Hello, world!");
     mm::init();
-    mm::remap_test();
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
