@@ -3,7 +3,8 @@ use crate::mm::{
     frame_alloc, frame_dealloc, kernel_token, FrameTracker, PageTable, PhysAddr, PhysPageNum,
     StepByOne, VirtAddr,
 };
-use crate::sync::{Condvar, UPSafeCell};
+use crate::sync::{Condvar, UPIntrFreeCell};
+use crate::task::schedule;
 use crate::DEV_NON_BLOCKING_ACCESS;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
@@ -14,23 +15,24 @@ use virtio_drivers::{BlkResp, RespStatus, VirtIOBlk, VirtIOHeader};
 const VIRTIO0: usize = 0x10001000;
 
 pub struct VirtIOBlock {
-    virtio_blk: UPSafeCell<VirtIOBlk<'static>>,
+    virtio_blk: UPIntrFreeCell<VirtIOBlk<'static>>,
     condvars: BTreeMap<u16, Condvar>,
 }
 
 lazy_static! {
-    static ref QUEUE_FRAMES: UPSafeCell<Vec<FrameTracker>> = unsafe { UPSafeCell::new(Vec::new()) };
+    static ref QUEUE_FRAMES: UPIntrFreeCell<Vec<FrameTracker>> = unsafe { UPIntrFreeCell::new(Vec::new()) };
 }
 
 impl BlockDevice for VirtIOBlock {
     fn read_block(&self, block_id: usize, buf: &mut [u8]) {
         let nb = *DEV_NON_BLOCKING_ACCESS.exclusive_access();
         if nb {
-            let mut blk = self.virtio_blk.exclusive_access();
             let mut resp = BlkResp::default();
-            let token = unsafe { blk.read_block_nb(block_id, buf, &mut resp).unwrap() };
-            drop(blk);
-            self.condvars.get(&token).unwrap().wait();
+            let task_cx_ptr = self.virtio_blk.exclusive_session(|blk| {
+                let token = unsafe { blk.read_block_nb(block_id, buf, &mut resp).unwrap() };
+                self.condvars.get(&token).unwrap().wait_no_sched()
+            });
+            schedule(task_cx_ptr);
             assert_eq!(
                 resp.status(),
                 RespStatus::Ok,
@@ -46,11 +48,12 @@ impl BlockDevice for VirtIOBlock {
     fn write_block(&self, block_id: usize, buf: &[u8]) {
         let nb = *DEV_NON_BLOCKING_ACCESS.exclusive_access();
         if nb {
-            let mut blk = self.virtio_blk.exclusive_access();
             let mut resp = BlkResp::default();
-            let token = unsafe { blk.write_block_nb(block_id, buf, &mut resp).unwrap() };
-            drop(blk);
-            self.condvars.get(&token).unwrap().wait();
+            let task_cx_ptr = self.virtio_blk.exclusive_session(|blk| {
+                let token = unsafe { blk.write_block_nb(block_id, buf, &mut resp).unwrap() };
+                self.condvars.get(&token).unwrap().wait_no_sched()
+            });
+            schedule(task_cx_ptr);
             assert_eq!(
                 resp.status(),
                 RespStatus::Ok,
@@ -64,17 +67,21 @@ impl BlockDevice for VirtIOBlock {
         }
     }
     fn handle_irq(&self) {
-        let mut blk = self.virtio_blk.exclusive_access();
-        while let Ok(token) = blk.pop_used() {
-            self.condvars.get(&token).unwrap().signal();
-        }
+        //println!("into handle_irq");
+        self.virtio_blk.exclusive_session(|blk| {
+            //println!("not panic here");
+            while let Ok(token) = blk.pop_used() {
+                //println!("wakeup virtio.token {}", token);
+                self.condvars.get(&token).unwrap().signal();
+            }
+        });
     }
 }
 
 impl VirtIOBlock {
     pub fn new() -> Self {
         let virtio_blk = unsafe {
-            UPSafeCell::new(VirtIOBlk::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap())
+            UPIntrFreeCell::new(VirtIOBlk::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap())
         };
         let mut condvars = BTreeMap::new();
         let channels = virtio_blk.exclusive_access().virt_queue_size();

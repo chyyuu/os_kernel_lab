@@ -1,5 +1,5 @@
 use super::{ProcessControlBlock, TaskControlBlock};
-use crate::sync::UPSafeCell;
+use crate::sync::UPIntrFreeCell;
 use alloc::collections::{BTreeMap, VecDeque};
 use alloc::sync::Arc;
 use lazy_static::*;
@@ -24,10 +24,10 @@ impl TaskManager {
 }
 
 lazy_static! {
-    pub static ref TASK_MANAGER: UPSafeCell<TaskManager> =
-        unsafe { UPSafeCell::new(TaskManager::new()) };
-    pub static ref PID2PCB: UPSafeCell<BTreeMap<usize, Arc<ProcessControlBlock>>> =
-        unsafe { UPSafeCell::new(BTreeMap::new()) };
+    pub static ref TASK_MANAGER: UPIntrFreeCell<TaskManager> =
+        unsafe { UPIntrFreeCell::new(TaskManager::new()) };
+    pub static ref PID2PCB: UPIntrFreeCell<BTreeMap<usize, Arc<ProcessControlBlock>>> =
+        unsafe { UPIntrFreeCell::new(BTreeMap::new()) };
 }
 
 pub fn add_task(task: Arc<TaskControlBlock>) {

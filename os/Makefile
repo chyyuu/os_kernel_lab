@@ -76,7 +76,7 @@ disasm: kernel
 
 disasm-vim: kernel
 	@$(OBJDUMP) $(DISASM) $(KERNEL_ELF) > $(DISASM_TMP)
-	@vim $(DISASM_TMP)
+	@nvim $(DISASM_TMP)
 	@rm $(DISASM_TMP)
 
 run: run-inner

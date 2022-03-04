@@ -3,7 +3,7 @@
 #![allow(unused)]
 
 use super::BlockDevice;
-use crate::sync::UPSafeCell;
+use crate::sync::UPIntrFreeCell;
 use core::convert::TryInto;
 use k210_hal::prelude::*;
 use k210_pac::{Peripherals, SPI0};
@@ -715,8 +715,8 @@ fn io_init() {
 }
 
 lazy_static! {
-    static ref PERIPHERALS: UPSafeCell<Peripherals> =
-        unsafe { UPSafeCell::new(Peripherals::take().unwrap()) };
+    static ref PERIPHERALS: UPIntrFreeCell<Peripherals> =
+        unsafe { UPIntrFreeCell::new(Peripherals::take().unwrap()) };
 }
 
 fn init_sdcard() -> SDCard<SPIImpl<SPI0>> {
@@ -740,11 +740,11 @@ fn init_sdcard() -> SDCard<SPIImpl<SPI0>> {
     sd
 }
 
-pub struct SDCardWrapper(UPSafeCell<SDCard<SPIImpl<SPI0>>>);
+pub struct SDCardWrapper(UPIntrFreeCell<SDCard<SPIImpl<SPI0>>>);
 
 impl SDCardWrapper {
     pub fn new() -> Self {
-        unsafe { Self(UPSafeCell::new(init_sdcard())) }
+        unsafe { Self(UPIntrFreeCell::new(init_sdcard())) }
     }
 }
 

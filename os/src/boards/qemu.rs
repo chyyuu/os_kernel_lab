@@ -44,12 +44,15 @@ pub fn device_init() {
 }
 
 pub fn irq_handler() {
+    //crate::println!("->irq_handler");
     let mut plic = unsafe { PLIC::new(VIRT_PLIC) };
     let intr_src_id = plic.claim(0, IntrTargetPriority::Supervisor);
+    //crate::println!("intr_src={}", intr_src_id);
     match intr_src_id {
         1 => BLOCK_DEVICE.handle_irq(),
         10 => UART.handle_irq(),
         _ => panic!("unsupported IRQ {}", intr_src_id),
     }
     plic.complete(0, IntrTargetPriority::Supervisor, intr_src_id);
+    //crate::println!("irq_handler->");
 }
