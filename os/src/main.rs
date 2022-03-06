@@ -1,8 +1,9 @@
 #![no_std]
 #![no_main]
-#![feature(llvm_asm)]
-#![feature(global_asm)]
 #![feature(panic_info_message)]
+
+use core::arch::asm;
+use core::arch::global_asm;
 
 //=====================SHARE PARTS============================
 const STDOUT: usize = 1;
@@ -49,11 +50,12 @@ pub fn shutdown() -> ! {
 fn sbicall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
     unsafe {
-        llvm_asm!("ecall"
-            : "={x10}" (ret)
-            : "{x10}" (args[0]), "{x11}" (args[1]), "{x12}" (args[2]), "{x17}" (id)
-            : "memory"
-            : "volatile"
+        asm!(
+            "ecall",
+            inlateout("x10") args[0] => ret,
+            in("x11") args[1],
+            in("x12") args[2],
+            in("x17") id,
         );
     }
     ret
@@ -136,7 +138,7 @@ pub struct TrapContext {
 
 impl TrapContext {
     pub fn set_sp(&mut self, sp: usize) {
-        self.x[2] = sp;  //x2 reg is sp reg
+        self.x[2] = sp; //x2 reg is sp reg
     }
     pub fn app_init_context(entry: usize, sp: usize) -> Self {
         let mut sstatus = sstatus::read();
@@ -250,11 +252,12 @@ extern "C" fn rust_main() {
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
     unsafe {
-        llvm_asm!("ecall"
-            : "={x10}" (ret)
-            : "{x10}" (args[0]), "{x11}" (args[1]), "{x12}" (args[2]), "{x17}" (id)
-            : "memory"
-            : "volatile"
+        asm!(
+            "ecall",
+            inlateout("x10") args[0] => ret,
+            in("x11") args[1],
+            in("x12") args[2],
+            in("x17") id,
         );
     }
     ret
