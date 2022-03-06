@@ -175,6 +175,10 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             cx.sepc += 4;
             cx.x[10] = do_syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
+        Trap::Exception(Exception::IllegalInstruction) => {
+            kprint!("[kernel] IllegalInstruction in application, core dumped.\n");
+            do_exit(-1);
+        }
         _ => {
             panic!(
                 "Unsupported trap {:?}, stval = {:#x}!",
@@ -304,5 +308,16 @@ macro_rules! uprintln {
 #[link_section = ".text.entry"]
 extern "C" fn usr_app_main() {
     uprintln!("Usrapp: Hello, world!");
+    // you can uncomment below codes
+    // unsafe {
+    //     asm!(
+    //         "sret",
+    //     );
+    // }
+    // you can uncomment below codes
+    // unsafe {
+    //     sstatus::set_spp(SPP::User);
+    // }
+
     sys_exit(9);
 }
