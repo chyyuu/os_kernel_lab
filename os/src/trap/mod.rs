@@ -50,6 +50,12 @@ fn enable_supervisor_interrupt() {
     }
 }
 
+fn disable_supervisor_interrupt() {
+    unsafe {
+        sstatus::clear_sie(); 
+    }
+}
+
 #[no_mangle]
 pub fn trap_handler() -> ! {
     set_kernel_trap_entry();
@@ -62,8 +68,6 @@ pub fn trap_handler() -> ! {
             let mut cx = current_trap_cx();
             cx.sepc += 4;
             
-            //println!("syscall id={}", cx.x[17]);
-            //println!("after setting sstatus.sie");
             enable_supervisor_interrupt();
 
             // get system call return value
@@ -117,6 +121,7 @@ pub fn trap_handler() -> ! {
 
 #[no_mangle]
 pub fn trap_return() -> ! {
+    disable_supervisor_interrupt();
     set_user_trap_entry();
     let trap_cx_user_va = current_trap_cx_user_va();
     let user_satp = current_user_token();
@@ -139,17 +144,7 @@ pub fn trap_return() -> ! {
 }
 
 #[no_mangle]
-pub fn trap_from_kernel(trap_cx: &TrapContext) {
-    /*
-    use riscv::register::sepc;
-    println!("a trap {:?} from kernel!", scause::read().cause());
-    println!("stval = {:#x}, sepc = {:#x}", stval::read(), sepc::read());
-    //panic!("a trap {:?} from kernel!", scause::read().cause());
-    */
-    //panic!("a trap {:?} from kernel!", scause::read().cause());
-    //println!("->trap_from_kernel");
-    //println!("a trap {:?} from kernel!", scause::read().cause());
-    //println!("sepc = {:#x}", trap_cx.sepc);
+pub fn trap_from_kernel(_trap_cx: &TrapContext) {
     let scause = scause::read();
     let stval = stval::read();
     match scause.cause() {
@@ -169,7 +164,6 @@ pub fn trap_from_kernel(trap_cx: &TrapContext) {
             );
         },
     }
-    //println!("trap_from_kernel->");
 }
 
 pub use context::TrapContext;

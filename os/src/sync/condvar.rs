@@ -36,9 +36,14 @@ impl Condvar {
     }
 
     pub fn wait_no_sched(&self) -> *mut TaskContext {
+        /*
         self.inner.exclusive_session(|inner| {
             inner.wait_queue.push_back(current_task().unwrap());
         });
+        */
+        let mut inner = self.inner.exclusive_access();
+        inner.wait_queue.push_back(current_task().unwrap());
+        drop(inner);
         block_current_task()
     }
 

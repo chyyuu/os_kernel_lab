@@ -3,6 +3,7 @@ use core::ops::{Deref, DerefMut};
 use riscv::register::sstatus;
 use lazy_static::*;
 
+/*
 /// Wrap a static data structure inside it so that we are
 /// able to access it without any `unsafe`.
 ///
@@ -30,6 +31,7 @@ impl<T> UPSafeCell<T> {
         self.inner.borrow_mut()
     }
 }
+*/
 
 pub struct UPSafeCellRaw<T> {
     inner: UnsafeCell<T>,
@@ -105,10 +107,12 @@ impl<T> UPIntrFreeCell<T> {
         UPIntrRefMut(Some(self.inner.borrow_mut()))
     }
 
+    /*
     pub fn exclusive_session<F, V>(&self, f: F) -> V where F: FnOnce(&mut T) -> V {
         let mut inner = self.exclusive_access();
         f(inner.deref_mut())
     }
+    */
 }
 
 impl<'a, T> Drop for UPIntrRefMut<'a, T> {
