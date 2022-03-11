@@ -62,6 +62,7 @@ impl PLIC {
             self.priority_ptr(intr_source_id).write_volatile(priority);
         }
     }
+    #[allow(unused)]
     pub fn get_priority(&mut self, intr_source_id: usize) -> u32 {
         unsafe { self.priority_ptr(intr_source_id).read_volatile() & 7 }
     }
@@ -100,6 +101,7 @@ impl PLIC {
             threshold_ptr.write_volatile(threshold);
         }
     }
+    #[allow(unused)]
     pub fn get_threshold(&mut self, hart_id: usize, target_priority: IntrTargetPriority) -> u32 {
         let threshold_ptr = self.threshold_ptr_of_hart_with_priority(hart_id, target_priority);
         unsafe { threshold_ptr.read_volatile() & 7 }

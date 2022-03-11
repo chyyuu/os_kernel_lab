@@ -107,12 +107,10 @@ impl<T> UPIntrFreeCell<T> {
         UPIntrRefMut(Some(self.inner.borrow_mut()))
     }
 
-    /*
     pub fn exclusive_session<F, V>(&self, f: F) -> V where F: FnOnce(&mut T) -> V {
         let mut inner = self.exclusive_access();
         f(inner.deref_mut())
     }
-    */
 }
 
 impl<'a, T> Drop for UPIntrRefMut<'a, T> {

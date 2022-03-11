@@ -28,17 +28,10 @@ impl BlockDevice for VirtIOBlock {
         let nb = *DEV_NON_BLOCKING_ACCESS.exclusive_access();
         if nb {
             let mut resp = BlkResp::default();
-            /*
             let task_cx_ptr = self.virtio_blk.exclusive_session(|blk| {
                 let token = unsafe { blk.read_block_nb(block_id, buf, &mut resp).unwrap() };
                 self.condvars.get(&token).unwrap().wait_no_sched()
             });
-            */
-            let mut blk = self.virtio_blk.exclusive_access();
-            let token = unsafe { blk.read_block_nb(block_id, buf, &mut resp).unwrap() };
-            //println!("waiting on token {}", token);
-            let task_cx_ptr = self.condvars.get(&token).unwrap().wait_no_sched();
-            drop(blk);
             schedule(task_cx_ptr);
             assert_eq!(
                 resp.status(),
@@ -56,16 +49,10 @@ impl BlockDevice for VirtIOBlock {
         let nb = *DEV_NON_BLOCKING_ACCESS.exclusive_access();
         if nb {
             let mut resp = BlkResp::default();
-            /*
             let task_cx_ptr = self.virtio_blk.exclusive_session(|blk| {
                 let token = unsafe { blk.write_block_nb(block_id, buf, &mut resp).unwrap() };
                 self.condvars.get(&token).unwrap().wait_no_sched()
             });
-            */
-            let mut blk = self.virtio_blk.exclusive_access();
-            let token = unsafe { blk.write_block_nb(block_id, buf, &mut resp).unwrap() };
-            let task_cx_ptr = self.condvars.get(&token).unwrap().wait_no_sched();
-            drop(blk);
             schedule(task_cx_ptr);
             assert_eq!(
                 resp.status(),
@@ -80,21 +67,11 @@ impl BlockDevice for VirtIOBlock {
         }
     }
     fn handle_irq(&self) {
-        //println!("into handle_irq");
-        /*
         self.virtio_blk.exclusive_session(|blk| {
-            //println!("not panic here");
             while let Ok(token) = blk.pop_used() {
-                //println!("wakeup virtio.token {}", token);
                 self.condvars.get(&token).unwrap().signal();
             }
         });
-        */
-        let mut blk = self.virtio_blk.exclusive_access();
-        while let Ok(token) = blk.pop_used() {
-            //println!("wakeup virtio.token {}", token);
-            self.condvars.get(&token).unwrap().signal();
-        }
     }
 }
 

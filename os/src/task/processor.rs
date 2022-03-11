@@ -39,11 +39,10 @@ pub fn run_tasks() {
         if let Some(task) = fetch_task() {
             let idle_task_cx_ptr = processor.get_idle_task_cx_ptr();
             // access coming task TCB exclusively
-            let mut task_inner = task.inner_exclusive_access();
-            let next_task_cx_ptr = &task_inner.task_cx as *const TaskContext;
-            task_inner.task_status = TaskStatus::Running;
-            drop(task_inner);
-            // release coming task TCB manually
+            let next_task_cx_ptr = task.inner.exclusive_session(|task_inner| {
+                task_inner.task_status = TaskStatus::Running;
+                &task_inner.task_cx as *const TaskContext
+            });
             processor.current = Some(task);
             // release processor manually
             drop(processor);
@@ -95,9 +94,9 @@ pub fn current_kstack_top() -> usize {
 }
 
 pub fn schedule(switched_task_cx_ptr: *mut TaskContext) {
-    let mut processor = PROCESSOR.exclusive_access();
-    let idle_task_cx_ptr = processor.get_idle_task_cx_ptr();
-    drop(processor);
+    let idle_task_cx_ptr = PROCESSOR.exclusive_session(|processor| {
+        processor.get_idle_task_cx_ptr()
+    });
     unsafe {
         __switch(switched_task_cx_ptr, idle_task_cx_ptr);
     }

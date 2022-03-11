@@ -9,7 +9,7 @@ pub struct TaskControlBlock {
     pub process: Weak<ProcessControlBlock>,
     pub kstack: KernelStack,
     // mutable
-    inner: UPIntrFreeCell<TaskControlBlockInner>,
+    pub inner: UPIntrFreeCell<TaskControlBlockInner>,
 }
 
 impl TaskControlBlock {

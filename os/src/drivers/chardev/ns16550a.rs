@@ -146,7 +146,6 @@ impl<const BASE_ADDR: usize> NS16550a<BASE_ADDR> {
 
 impl<const BASE_ADDR: usize> CharDevice for NS16550a<BASE_ADDR> {
     fn read(&self) -> u8 {
-        //println!("NS16550a::read");
         loop {
             let mut inner = self.inner.exclusive_access();
             if let Some(ch) = inner.read_buffer.pop_front() {
@@ -154,7 +153,6 @@ impl<const BASE_ADDR: usize> CharDevice for NS16550a<BASE_ADDR> {
             } else {
                 let task_cx_ptr = self.condvar.wait_no_sched();
                 drop(inner);
-                //println!("before scheduling");
                 schedule(task_cx_ptr);
             }
         }
@@ -164,15 +162,13 @@ impl<const BASE_ADDR: usize> CharDevice for NS16550a<BASE_ADDR> {
         inner.ns16550a.write(ch);
     }
     fn handle_irq(&self) {
-        let mut inner = self.inner.exclusive_access();
         let mut count = 0;
-        while let Some(ch) = inner.ns16550a.read() {
-            //println!("got {}", ch as char);
-            count += 1;
-            inner.read_buffer.push_back(ch);
-        }
-        drop(inner);
-        //assert_eq!(count, 1);
+        self.inner.exclusive_session(|inner| {
+            while let Some(ch) = inner.ns16550a.read() {
+                count += 1;
+                inner.read_buffer.push_back(ch);
+            }
+        });
         if count > 0 {
             self.condvar.signal();
         }
