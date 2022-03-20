@@ -22,10 +22,10 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./os/target/riscv64gc-unknown-none-elf/doc
-          destination_dir: ./public/${{ github.ref_name }}
+          destination_dir: ./docs/${{ github.ref_name }}
       - name: Deploy index.html to Github Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          destination_dir: ./public   
+          destination_dir: ./docs
