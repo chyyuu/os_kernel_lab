@@ -24,7 +24,7 @@ pub fn main() -> i32 {
     }
     close(f);
     let time_ms = (get_time() - start) as usize;
-    let speed_kbs = size_mb * 1000000 / time_ms;
+    let speed_kbs = (size_mb << 20) / time_ms;
     println!(
         "{}MiB written, time cost = {}ms, write speed = {}KiB/s",
         size_mb, time_ms, speed_kbs

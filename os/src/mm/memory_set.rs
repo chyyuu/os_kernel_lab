@@ -3,7 +3,7 @@ use super::{PTEFlags, PageTable, PageTableEntry};
 use super::{PhysAddr, PhysPageNum, VirtAddr, VirtPageNum};
 use super::{StepByOne, VPNRange};
 use crate::config::{MEMORY_END, MMIO, PAGE_SIZE, TRAMPOLINE};
-use crate::sync::UPSafeCell;
+use crate::sync::UPIntrFreeCell;
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
@@ -25,8 +25,8 @@ extern "C" {
 }
 
 lazy_static! {
-    pub static ref KERNEL_SPACE: Arc<UPSafeCell<MemorySet>> =
-        Arc::new(unsafe { UPSafeCell::new(MemorySet::new_kernel()) });
+    pub static ref KERNEL_SPACE: Arc<UPIntrFreeCell<MemorySet>> =
+        Arc::new(unsafe { UPIntrFreeCell::new(MemorySet::new_kernel()) });
 }
 
 pub fn kernel_token() -> usize {
@@ -351,26 +351,20 @@ pub fn remap_test() {
     let mid_text: VirtAddr = ((stext as usize + etext as usize) / 2).into();
     let mid_rodata: VirtAddr = ((srodata as usize + erodata as usize) / 2).into();
     let mid_data: VirtAddr = ((sdata as usize + edata as usize) / 2).into();
-    assert!(
-        !kernel_space
-            .page_table
-            .translate(mid_text.floor())
-            .unwrap()
-            .writable(),
-    );
-    assert!(
-        !kernel_space
-            .page_table
-            .translate(mid_rodata.floor())
-            .unwrap()
-            .writable(),
-    );
-    assert!(
-        !kernel_space
-            .page_table
-            .translate(mid_data.floor())
-            .unwrap()
-            .executable(),
-    );
+    assert!(!kernel_space
+        .page_table
+        .translate(mid_text.floor())
+        .unwrap()
+        .writable(),);
+    assert!(!kernel_space
+        .page_table
+        .translate(mid_rodata.floor())
+        .unwrap()
+        .writable(),);
+    assert!(!kernel_space
+        .page_table
+        .translate(mid_data.floor())
+        .unwrap()
+        .executable(),);
     println!("remap_test passed!");
 }

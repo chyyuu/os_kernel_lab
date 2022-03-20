@@ -1,20 +1,19 @@
 use super::id::TaskUserRes;
 use super::{kstack_alloc, KernelStack, ProcessControlBlock, TaskContext};
 use crate::trap::TrapContext;
-use crate::{mm::PhysPageNum, sync::UPSafeCell};
+use crate::{mm::PhysPageNum, sync::{UPIntrFreeCell, UPIntrRefMut}};
 use alloc::sync::{Arc, Weak};
-use core::cell::RefMut;
 
 pub struct TaskControlBlock {
     // immutable
     pub process: Weak<ProcessControlBlock>,
     pub kstack: KernelStack,
     // mutable
-    inner: UPSafeCell<TaskControlBlockInner>,
+    pub inner: UPIntrFreeCell<TaskControlBlockInner>,
 }
 
 impl TaskControlBlock {
-    pub fn inner_exclusive_access(&self) -> RefMut<'_, TaskControlBlockInner> {
+    pub fn inner_exclusive_access(&self) -> UPIntrRefMut<'_, TaskControlBlockInner> {
         self.inner.exclusive_access()
     }
 
@@ -58,7 +57,7 @@ impl TaskControlBlock {
             process: Arc::downgrade(&process),
             kstack,
             inner: unsafe {
-                UPSafeCell::new(TaskControlBlockInner {
+                UPIntrFreeCell::new(TaskControlBlockInner {
                     res: Some(res),
                     trap_cx_ppn,
                     task_cx: TaskContext::goto_trap_return(kstack_top),

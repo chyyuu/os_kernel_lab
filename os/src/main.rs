@@ -29,9 +29,7 @@ mod task;
 mod timer;
 mod trap;
 
-use core::arch::global_asm;
-
-global_asm!(include_str!("entry.asm"));
+core::arch::global_asm!(include_str!("entry.asm"));
 
 fn clear_bss() {
     extern "C" {
@@ -44,17 +42,24 @@ fn clear_bss() {
     }
 }
 
+use lazy_static::*;
+use sync::UPIntrFreeCell;
+
+lazy_static! {
+    pub static ref DEV_NON_BLOCKING_ACCESS: UPIntrFreeCell<bool> = unsafe { UPIntrFreeCell::new(false) };
+}
+
 #[no_mangle]
 pub fn rust_main() -> ! {
     clear_bss();
-    println!("[kernel] Hello, world!");
     mm::init();
-    mm::remap_test();
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
+    board::device_init();
     fs::list_apps();
     task::add_initproc();
+    *DEV_NON_BLOCKING_ACCESS.exclusive_access() = true;
     task::run_tasks();
     panic!("Unreachable in rust_main!");
 }

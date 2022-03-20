@@ -1,9 +1,9 @@
-use crate::sync::{Mutex, UPSafeCell};
-use crate::task::{add_task, block_current_and_run_next, current_task, TaskControlBlock};
+use crate::sync::{Mutex, UPIntrFreeCell};
+use crate::task::{add_task, block_current_task, block_current_and_run_next, current_task, TaskControlBlock, TaskContext};
 use alloc::{collections::VecDeque, sync::Arc};
 
 pub struct Condvar {
-    pub inner: UPSafeCell<CondvarInner>,
+    pub inner: UPIntrFreeCell<CondvarInner>,
 }
 
 pub struct CondvarInner {
@@ -14,7 +14,7 @@ impl Condvar {
     pub fn new() -> Self {
         Self {
             inner: unsafe {
-                UPSafeCell::new(CondvarInner {
+                UPIntrFreeCell::new(CondvarInner {
                     wait_queue: VecDeque::new(),
                 })
             },
@@ -28,11 +28,27 @@ impl Condvar {
         }
     }
 
-    pub fn wait(&self, mutex: Arc<dyn Mutex>) {
-        mutex.unlock();
+    /*
+    pub fn wait(&self) {
         let mut inner = self.inner.exclusive_access();
         inner.wait_queue.push_back(current_task().unwrap());
         drop(inner);
+        block_current_and_run_next();
+    }
+    */
+
+    pub fn wait_no_sched(&self) -> *mut TaskContext {
+        self.inner.exclusive_session(|inner| {
+            inner.wait_queue.push_back(current_task().unwrap());
+        });
+        block_current_task()
+    }
+
+    pub fn wait_with_mutex(&self, mutex: Arc<dyn Mutex>) {
+        mutex.unlock();
+        self.inner.exclusive_session(|inner| {
+            inner.wait_queue.push_back(current_task().unwrap());
+        });
         block_current_and_run_next();
         mutex.lock();
     }

@@ -1,7 +1,7 @@
 use super::File;
 use crate::drivers::BLOCK_DEVICE;
 use crate::mm::UserBuffer;
-use crate::sync::UPSafeCell;
+use crate::sync::UPIntrFreeCell;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use bitflags::*;
@@ -11,7 +11,7 @@ use lazy_static::*;
 pub struct OSInode {
     readable: bool,
     writable: bool,
-    inner: UPSafeCell<OSInodeInner>,
+    inner: UPIntrFreeCell<OSInodeInner>,
 }
 
 pub struct OSInodeInner {
@@ -24,7 +24,7 @@ impl OSInode {
         Self {
             readable,
             writable,
-            inner: unsafe { UPSafeCell::new(OSInodeInner { offset: 0, inode }) },
+            inner: unsafe { UPIntrFreeCell::new(OSInodeInner { offset: 0, inode }) },
         }
     }
     pub fn read_all(&self) -> Vec<u8> {

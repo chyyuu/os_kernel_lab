@@ -21,3 +21,10 @@ pub const MMIO: &[(usize, usize)] = &[
 
 pub type BlockDeviceImpl = crate::drivers::block::SDCardWrapper;
 
+pub fn device_init() {
+    unimplemented!();
+}
+
+pub fn irq_handler() {
+    unimplemented!();
+}
