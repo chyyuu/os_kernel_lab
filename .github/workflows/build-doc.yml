@@ -15,14 +15,11 @@ jobs:
           rustup target add riscv64gc-unknown-none-elf
           rustup component add llvm-tools-preview
           rustup component add rust-src
-          rm -rf public/${{ github.ref_name }}
-          mkdir -p public/${{ github.ref_name }}
           cd os
           cargo doc --no-deps --verbose
-          cp -r ./target/riscv64gc-unknown-none-elf/doc ../public/${{ github.ref_name }}
       - name: Deploy to Github Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          destination_dir: ./docs
+          publish_dir: ./os/target/riscv64gc-unknown-none-elf/doc
+          destination_dir: ${{ github.ref_name }}

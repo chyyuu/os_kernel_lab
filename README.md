@@ -1,7 +1,7 @@
 # rCore-Tutorial-v3
 rCore-Tutorial version 3.5. See the [Documentation in Chinese](https://rcore-os.github.io/rCore-Tutorial-Book-v3/).
 
-rCore-Tutorial API Docs.  See the [API Docs of Ten OSes ](https://rcore-os.github.io/rCore-Tutorial-v3/index.html)
+rCore-Tutorial API Docs.  See the [API Docs of Ten OSes ](#OS-API-DOCS)
 
 Official QQ group number: 735045051
 
@@ -193,6 +193,19 @@ Type `Ctrl+]` to disconnect from K210.
 Currently it can only help you view the code since only a tiny part of the code has been documented.
 
 You can open a doc html of `os` using `cargo doc --no-deps --open` under `os` directory.
+
+### OS-API-DOCS
+The API Docs for Ten OS
+1. [Lib-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch1/os/index.html)
+1. [Batch-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch2/os/index.html)
+1. [MultiProg-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch3-coop/os/index.html)
+1. [TimeSharing-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch3/os/index.html)
+1. [AddrSpace-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch4/os/index.html)
+1. [Process-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch5/os/index.html)
+1. [FileSystem-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch6/os/index.html)
+1. [IPC-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch7/os/index.html)
+1. [SyncMutex-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch8/os/index.html)
+1. [IODevice-OS API doc](https://learningos.github.io/rCore-Tutorial-v3/ch9/os/index.html)
 
 ## Working in progress
 
