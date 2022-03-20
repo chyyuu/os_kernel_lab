@@ -1,0 +1,25 @@
+name: Build Rust Doc
+
+on: [push]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build doc
+        run: |
+          rustup target add riscv64gc-unknown-none-elf
+          rustup component add llvm-tools-preview
+          rustup component add rust-src
+          cd os
+          cargo doc --no-deps --verbose
+      - name: Deploy to Github Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./os/target/riscv64gc-unknown-none-elf/doc
+          destination_dir: ${{ github.ref_name }}
