@@ -12,6 +12,10 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build doc
         run: |
+          rustup target add riscv64gc-unknown-none-elf
+          cargo install cargo-binutils --vers =0.3.3
+          rustup component add llvm-tools-preview
+          rustup component add rust-src
           cd os
           cargo doc --no-deps --verbose
       - name: Deploy to Github Pages
