@@ -14,12 +14,16 @@ use task::{TaskControlBlock, TaskStatus};
 pub use context::TaskContext;
 
 pub struct TaskManager {
+    /// total number of tasks
     num_app: usize,
+    /// use inner value to get mutable access
     inner: UPSafeCell<TaskManagerInner>,
 }
 
 struct TaskManagerInner {
+    /// task list
     tasks: [TaskControlBlock; MAX_APP_NUM],
+    /// id of current `Running` task
     current_task: usize,
 }
 
@@ -47,6 +51,10 @@ lazy_static! {
 }
 
 impl TaskManager {
+    /// Run the first task in task list.
+    ///
+    /// Generally, the first task in task list is an idle task (we call it zero process later).
+    /// But in ch3, we load apps statically, so the first task is a real app.
     fn run_first_task(&self) -> ! {
         let mut inner = self.inner.exclusive_access();
         let task0 = &mut inner.tasks[0];
@@ -61,18 +69,23 @@ impl TaskManager {
         panic!("unreachable in run_first_task!");
     }
 
+    /// Change the status of current `Running` task into `Ready`.
     fn mark_current_suspended(&self) {
         let mut inner = self.inner.exclusive_access();
         let current = inner.current_task;
         inner.tasks[current].task_status = TaskStatus::Ready;
     }
 
+    /// Change the status of current `Running` task into `Exited`.
     fn mark_current_exited(&self) {
         let mut inner = self.inner.exclusive_access();
         let current = inner.current_task;
         inner.tasks[current].task_status = TaskStatus::Exited;
     }
 
+    /// Find next task to run and return app id.
+    ///
+    /// In this case, we only return the first `Ready` task in task list.
     fn find_next_task(&self) -> Option<usize> {
         let inner = self.inner.exclusive_access();
         let current = inner.current_task;
@@ -81,6 +94,8 @@ impl TaskManager {
             .find(|id| inner.tasks[*id].task_status == TaskStatus::Ready)
     }
 
+    /// Switch current `Running` task to the task we have found,
+    /// or there is no `Ready` task and we can exit with all applications completed
     fn run_next_task(&self) {
         if let Some(next) = self.find_next_task() {
             let mut inner = self.inner.exclusive_access();
