@@ -1,6 +1,8 @@
 # rCore-Tutorial-v3
 rCore-Tutorial version 3.5. See the [Documentation in Chinese](https://rcore-os.github.io/rCore-Tutorial-Book-v3/).
 
+rCore-Tutorial API Docs.  See the [API Docs of Ten OSes ](https://rcore-os.github.io/rCore-Tutorial-v3/index.html)
+
 Official QQ group number: 735045051
 
 ## news
