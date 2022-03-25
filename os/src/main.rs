@@ -30,13 +30,12 @@ mod lang_items;
 mod loader;
 mod sbi;
 mod sync;
-mod syscall;
-mod task;
-mod trap;
+pub mod syscall;
+pub mod task;
+pub mod trap;
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("link_app.S"));
-
 
 /// clear BSS segment
 fn clear_bss() {
