@@ -1,3 +1,4 @@
+//! App management syscalls
 use crate::batch::run_next_app;
 
 /// task exits and submit an exit code
