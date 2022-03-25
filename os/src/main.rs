@@ -23,7 +23,7 @@ mod sbi;
 global_asm!(include_str!("entry.asm"));
 
 /// clear BSS segment
-fn clear_bss() {
+pub fn clear_bss() {
     extern "C" {
         fn sbss();
         fn ebss();
