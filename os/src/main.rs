@@ -40,7 +40,7 @@ pub fn rust_main() -> ! {
         fn srodata();             // start addr of Read-Only data segment
         fn erodata();             // end addr of Read-Only data ssegment
         fn sdata();               // start addr of data segment
-        fn edata()                // end addr of data segment
+        fn edata();               // end addr of data segment
         fn sbss();                // start addr of BSS segment
         fn ebss();                // end addr of BSS segment
         fn boot_stack();          // stack bottom
