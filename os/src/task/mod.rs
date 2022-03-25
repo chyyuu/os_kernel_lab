@@ -6,11 +6,12 @@
 //! A single global instance of [`TaskManager`] called `TASK_MANAGER` controls
 //! all the tasks in the operating system.
 //!
-//! Be careful when you see [`__switch`]. Control flow around this function
+//! Be careful when you see `__switch` ASM function in `switch.S`. Control flow around this function
 //! might not be what you expect.
 
 mod context;
 mod switch;
+
 #[allow(clippy::module_inception)]
 mod task;
 
@@ -39,7 +40,8 @@ pub struct TaskManager {
     inner: UPSafeCell<TaskManagerInner>,
 }
 
-struct TaskManagerInner {
+/// Inner of Task Manager
+pub struct TaskManagerInner {
     /// task list
     tasks: [TaskControlBlock; MAX_APP_NUM],
     /// id of current `Running` task
@@ -47,6 +49,7 @@ struct TaskManagerInner {
 }
 
 lazy_static! {
+    /// Global variable: TASK_MANAGER
     pub static ref TASK_MANAGER: TaskManager = {
         let num_app = get_num_app();
         let mut tasks = [TaskControlBlock {
@@ -135,27 +138,33 @@ impl TaskManager {
     }
 }
 
+/// run first task
 pub fn run_first_task() {
     TASK_MANAGER.run_first_task();
 }
 
+/// rust next task
 fn run_next_task() {
     TASK_MANAGER.run_next_task();
 }
 
+/// suspend current task
 fn mark_current_suspended() {
     TASK_MANAGER.mark_current_suspended();
 }
 
+/// exit current task
 fn mark_current_exited() {
     TASK_MANAGER.mark_current_exited();
 }
 
+/// suspend current task, then run next task
 pub fn suspend_current_and_run_next() {
     mark_current_suspended();
     run_next_task();
 }
 
+/// exit current task,  then run next task
 pub fn exit_current_and_run_next() {
     mark_current_exited();
     run_next_task();
