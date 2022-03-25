@@ -1,3 +1,5 @@
+//! batch subsystem
+
 use crate::sync::UPSafeCell;
 use crate::trap::TrapContext;
 use core::arch::asm;
@@ -111,14 +113,17 @@ lazy_static! {
     };
 }
 
+/// init batch subsystem
 pub fn init() {
     print_app_info();
 }
 
+/// print apps info
 pub fn print_app_info() {
     APP_MANAGER.exclusive_access().print_app_info();
 }
 
+/// run next app
 pub fn run_next_app() -> ! {
     let mut app_manager = APP_MANAGER.exclusive_access();
     let current_app = app_manager.get_current_app();
