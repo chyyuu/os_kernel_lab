@@ -1,3 +1,4 @@
+//! Process management syscalls
 use crate::task::{exit_current_and_run_next, suspend_current_and_run_next};
 
 /// task exits and submit an exit code

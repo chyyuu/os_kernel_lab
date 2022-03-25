@@ -1,3 +1,5 @@
+//! Implementation of [`TaskContext`]
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TaskContext {

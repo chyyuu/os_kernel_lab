@@ -1,3 +1,5 @@
+//! Types related to task management
+
 use super::TaskContext;
 
 #[derive(Copy, Clone)]
