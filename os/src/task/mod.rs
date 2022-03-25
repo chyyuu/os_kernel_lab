@@ -1,3 +1,14 @@
+//! Task management implementation
+//!
+//! Everything about task management, like starting and switching tasks is
+//! implemented here.
+//!
+//! A single global instance of [`TaskManager`] called `TASK_MANAGER` controls
+//! all the tasks in the operating system.
+//!
+//! Be careful when you see [`__switch`]. Control flow around this function
+//! might not be what you expect.
+
 mod context;
 mod switch;
 #[allow(clippy::module_inception)]
@@ -12,6 +23,15 @@ use task::{TaskControlBlock, TaskStatus};
 
 pub use context::TaskContext;
 
+/// The task manager, where all the tasks are managed.
+///
+/// Functions implemented on `TaskManager` deals with all task state transitions
+/// and task context switching. For convenience, you can find wrappers around it
+/// in the module level.
+///
+/// Most of `TaskManager` are hidden behind the field `inner`, to defer
+/// borrowing checks to runtime. You can see examples on how to use `inner` in
+/// existing functions on `TaskManager`.
 pub struct TaskManager {
     /// total number of tasks
     num_app: usize,
@@ -82,7 +102,7 @@ impl TaskManager {
         inner.tasks[current].task_status = TaskStatus::Exited;
     }
 
-    /// Find next task to run and return app id.
+    /// Find next task to run and return task id.
     ///
     /// In this case, we only return the first `Ready` task in task list.
     fn find_next_task(&self) -> Option<usize> {

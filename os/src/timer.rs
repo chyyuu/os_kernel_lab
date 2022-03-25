@@ -1,3 +1,5 @@
+//! RISC-V timer-related functionality
+
 use crate::config::CLOCK_FREQ;
 use crate::sbi::set_timer;
 use riscv::register::time;
