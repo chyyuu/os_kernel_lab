@@ -1,3 +1,6 @@
+//! Implementation of [`FrameAllocator`] which 
+//! controls all the frames in the operating system.
+
 use super::{PhysAddr, PhysPageNum};
 use crate::config::MEMORY_END;
 use crate::sync::UPSafeCell;
@@ -5,6 +8,7 @@ use alloc::vec::Vec;
 use core::fmt::{self, Debug, Formatter};
 use lazy_static::*;
 
+/// manage a frame which has the same lifecycle as the tracker
 pub struct FrameTracker {
     pub ppn: PhysPageNum,
 }
@@ -38,6 +42,7 @@ trait FrameAllocator {
     fn dealloc(&mut self, ppn: PhysPageNum);
 }
 
+/// an implementation for frame allocator
 pub struct StackFrameAllocator {
     current: usize,
     end: usize,
@@ -82,10 +87,12 @@ impl FrameAllocator for StackFrameAllocator {
 type FrameAllocatorImpl = StackFrameAllocator;
 
 lazy_static! {
+    /// frame allocator instance through lazy_static!
     pub static ref FRAME_ALLOCATOR: UPSafeCell<FrameAllocatorImpl> =
         unsafe { UPSafeCell::new(FrameAllocatorImpl::new()) };
 }
 
+/// initiate the frame allocator using `ekernel` and `MEMORY_END`
 pub fn init_frame_allocator() {
     extern "C" {
         fn ekernel();
@@ -96,6 +103,7 @@ pub fn init_frame_allocator() {
     );
 }
 
+/// allocate a frame
 pub fn frame_alloc() -> Option<FrameTracker> {
     FRAME_ALLOCATOR
         .exclusive_access()
@@ -103,11 +111,13 @@ pub fn frame_alloc() -> Option<FrameTracker> {
         .map(FrameTracker::new)
 }
 
+/// deallocate a frame
 fn frame_dealloc(ppn: PhysPageNum) {
     FRAME_ALLOCATOR.exclusive_access().dealloc(ppn);
 }
 
 #[allow(unused)]
+/// a simple test for frame allocator
 pub fn frame_allocator_test() {
     let mut v: Vec<FrameTracker> = Vec::new();
     for i in 0..5 {
