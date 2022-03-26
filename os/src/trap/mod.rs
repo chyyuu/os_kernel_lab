@@ -28,6 +28,7 @@ use riscv::register::{
 
 global_asm!(include_str!("trap.S"));
 
+/// initialize CSR `stvec` as the entry of `__alltraps`
 pub fn init() {
     set_kernel_trap_entry();
 }
@@ -44,6 +45,7 @@ fn set_user_trap_entry() {
     }
 }
 
+/// enable timer interrupt in sie CSR
 pub fn enable_timer_interrupt() {
     unsafe {
         sie::set_stimer();
@@ -51,6 +53,7 @@ pub fn enable_timer_interrupt() {
 }
 
 #[no_mangle]
+/// handle an interrupt, exception, or system call from user space
 pub fn trap_handler() -> ! {
     set_kernel_trap_entry();
     let cx = current_trap_cx();
@@ -86,6 +89,9 @@ pub fn trap_handler() -> ! {
 }
 
 #[no_mangle]
+/// set the new addr of __restore asm function in TRAMPOLINE page,
+/// set the reg a0 = trap_cx_ptr, reg a1 = phy addr of usr page table,
+/// finally, jump to new addr of __restore asm function
 pub fn trap_return() -> ! {
     set_user_trap_entry();
     let trap_cx_ptr = TRAP_CONTEXT;
@@ -98,16 +104,18 @@ pub fn trap_return() -> ! {
     unsafe {
         asm!(
             "fence.i",
-            "jr {restore_va}",
+            "jr {restore_va}",             // jump to new addr of __restore asm function
             restore_va = in(reg) restore_va,
-            in("a0") trap_cx_ptr,
-            in("a1") user_satp,
+            in("a0") trap_cx_ptr,      // a0 = virt addr of Trap Context
+            in("a1") user_satp,        // a1 = phy addr of usr page table
             options(noreturn)
         );
     }
 }
 
 #[no_mangle]
+/// Unimplement: traps/interrupts/exceptions from kernel mode
+/// Todo: Chapter 9: I/O device 
 pub fn trap_from_kernel() -> ! {
     panic!("a trap from kernel!");
 }

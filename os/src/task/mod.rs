@@ -6,7 +6,7 @@
 //! A single global instance of [`TaskManager`] called `TASK_MANAGER` controls
 //! all the tasks in the operating system.
 //!
-//! Be careful when you see [`__switch`]. Control flow around this function
+//! Be careful when you see `__switch` ASM function in `switch.S`. Control flow around this function
 //! might not be what you expect.
 
 mod context;
@@ -49,7 +49,7 @@ struct TaskManagerInner {
 }
 
 lazy_static! {
-    /// a `TaskManager` instance through lazy_static!
+    /// a `TaskManager` global instance through lazy_static!
     pub static ref TASK_MANAGER: TaskManager = {
         println!("init TASK_MANAGER");
         let num_app = get_num_app();
