@@ -188,6 +188,44 @@ $ make run BOARD=k210
 
 Type `Ctrl+]` to disconnect from K210.
 
+## Show runtime debug info of OS kernel version
+The branch of ch9-log contains a lot of debug info. You could try to run rcore tutorial 
+for understand the internal behavior of os kernel.
+
+```sh
+$ git clone https://github.com/rcore-os/rCore-Tutorial-v3.git
+$ cd rCore-Tutorial-v3/os
+$ git checkout ch9-log
+$ make run
+......
+[rustsbi] RustSBI version 0.2.0-alpha.10, adapting to RISC-V SBI v0.3
+.______       __    __      _______.___________.  _______..______   __
+|   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+|  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+|      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+|  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+| _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+
+[rustsbi] Implementation: RustSBI-QEMU Version 0.0.2
+[rustsbi-dtb] Hart count: cluster0 with 1 cores
+[rustsbi] misa: RV64ACDFIMSU
+[rustsbi] mideleg: ssoft, stimer, sext (0x222)
+[rustsbi] medeleg: ima, ia, bkpt, la, sa, uecall, ipage, lpage, spage (0xb1ab)
+[rustsbi] pmp0: 0x10000000 ..= 0x10001fff (rw-)
+[rustsbi] pmp1: 0x2000000 ..= 0x200ffff (rw-)
+[rustsbi] pmp2: 0xc000000 ..= 0xc3fffff (rw-)
+[rustsbi] pmp3: 0x80000000 ..= 0x8fffffff (rwx)
+[rustsbi] enter supervisor 0x80200000
+[KERN] rust_main() begin
+[KERN] clear_bss() begin
+[KERN] clear_bss() end
+[KERN] mm::init() begin
+[KERN] mm::init_heap() begin
+[KERN] mm::init_heap() end
+[KERN] mm::init_frame_allocator() begin
+[KERN] mm::frame_allocator::lazy_static!FRAME_ALLOCATOR begin
+......
+```
 ## Rustdoc
 
 Currently it can only help you view the code since only a tiny part of the code has been documented.
