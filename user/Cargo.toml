@@ -8,3 +8,6 @@ edition = "2018"
 
 [dependencies]
 buddy_system_allocator = "0.6"
+
+[profile.release]
+debug = true
