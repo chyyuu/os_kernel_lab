@@ -14,3 +14,6 @@ cfg-if = { version = "1.0.0" }
 [features]
 board_qemu = []
 board_k210 = []
+
+[profile.release]
+debug = true
