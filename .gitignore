@@ -6,6 +6,7 @@ os/src/linker.ld
 os/last-*
 os/Cargo.lock
 os/last-*
+os/.gdb_history
 user/target/*
 user/.idea/*
 user/Cargo.lock
