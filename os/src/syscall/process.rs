@@ -107,7 +107,12 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
 pub fn sys_kill(pid: usize, signal: u32) -> isize {
     if let Some(task) = pid2task(pid) {
         if let Some(flag) = SignalFlags::from_bits(signal) {
-            task.inner_exclusive_access().signals |= flag;
+            // insert the signal if legal
+            let mut task_ref = task.inner_exclusive_access();
+            if task_ref.pending_signals.contains(flag) {
+                return -1;
+            }
+            task_ref.pending_signals.insert(flag);
             0
         } else {
             -1
