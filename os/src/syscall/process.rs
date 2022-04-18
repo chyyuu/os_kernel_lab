@@ -121,3 +121,22 @@ pub fn sys_kill(pid: usize, signal: u32) -> isize {
         -1
     }
 }
+
+pub fn sys_sigprocmask(mask: u32) -> isize {
+    if let Some(task) = current_task() {
+        let mut inner = task.inner_exclusive_access();
+        let old_mask = inner.signal_mask;
+        if let Some(flag) = SignalFlags::from_bits(mask) {
+            inner.signal_mask = flag;
+            old_mask.bits() as isize
+        } else {
+            -1
+        }
+    } else {
+        -1
+    }
+}
+
+pub fn sys_sigation(_signal: u32, _action: usize, _old_action: usize) -> isize {
+    0
+}

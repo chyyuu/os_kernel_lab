@@ -30,7 +30,8 @@ pub struct TaskControlBlockInner {
     pub exit_code: i32,
     pub fd_table: Vec<Option<Arc<dyn File + Send + Sync>>>,
     pub signals: SignalFlags,
-    pub pending_signals: SignalFlags
+    pub pending_signals: SignalFlags,
+    pub signal_mask: SignalFlags
 }
 
 impl TaskControlBlockInner {
@@ -93,7 +94,8 @@ impl TaskControlBlock {
                         Some(Arc::new(Stdout)),
                     ],
                     signals: SignalFlags::empty(),
-                    pending_signals: SignalFlags::empty()
+                    pending_signals: SignalFlags::empty(),
+                    signal_mask: SignalFlags::empty()
                 })
             },
         };
@@ -196,7 +198,8 @@ impl TaskControlBlock {
                     exit_code: 0,
                     fd_table: new_fd_table,
                     signals: SignalFlags::empty(),
-                    pending_signals: SignalFlags::empty()
+                    pending_signals: SignalFlags::empty(),
+                    signal_mask: SignalFlags::empty()
                 })
             },
         });
