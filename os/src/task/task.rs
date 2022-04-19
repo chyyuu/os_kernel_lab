@@ -1,4 +1,4 @@
-use super::TaskContext;
+use super::{TaskContext, SignalActions};
 use super::{pid_alloc, KernelStack, PidHandle, SignalFlags};
 use crate::config::TRAP_CONTEXT;
 use crate::fs::{File, Stdin, Stdout};
@@ -30,8 +30,11 @@ pub struct TaskControlBlockInner {
     pub exit_code: i32,
     pub fd_table: Vec<Option<Arc<dyn File + Send + Sync>>>,
     pub signals: SignalFlags,
-    pub pending_signals: SignalFlags,
-    pub signal_mask: SignalFlags
+    pub signal_mask: SignalFlags,
+    // if a the task is handling a signal
+    pub handling_flag: bool,
+    // Signal actions
+    pub signal_actions: SignalActions
 }
 
 impl TaskControlBlockInner {
@@ -94,8 +97,9 @@ impl TaskControlBlock {
                         Some(Arc::new(Stdout)),
                     ],
                     signals: SignalFlags::empty(),
-                    pending_signals: SignalFlags::empty(),
-                    signal_mask: SignalFlags::empty()
+                    signal_mask: SignalFlags::empty(),
+                    handling_flag: false,
+                    signal_actions: SignalActions::default()
                 })
             },
         };
@@ -198,8 +202,10 @@ impl TaskControlBlock {
                     exit_code: 0,
                     fd_table: new_fd_table,
                     signals: SignalFlags::empty(),
-                    pending_signals: SignalFlags::empty(),
-                    signal_mask: SignalFlags::empty()
+                    // inherit the signal_mask and signal_action
+                    signal_mask: parent_inner.signal_mask,
+                    handling_flag: false,
+                    signal_actions: parent_inner.signal_actions.clone()
                 })
             },
         });

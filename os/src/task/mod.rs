@@ -4,6 +4,7 @@ mod pid;
 mod processor;
 mod signal;
 mod switch;
+mod action;
 #[allow(clippy::module_inception)]
 mod task;
 
@@ -21,7 +22,8 @@ pub use pid::{pid_alloc, KernelStack, PidHandle};
 pub use processor::{
     current_task, current_trap_cx, current_user_token, run_tasks, schedule, take_current_task,
 };
-pub use signal::SignalFlags;
+pub use signal::{SignalFlags, MAX_SIG};
+pub use action::{SignalAction, SignalActions};
 
 pub fn suspend_current_and_run_next() {
     // There must be an application running.

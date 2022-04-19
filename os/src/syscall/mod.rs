@@ -21,6 +21,8 @@ mod process;
 use fs::*;
 use process::*;
 
+use crate::task::SignalAction;
+
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
     match syscall_id {
         SYSCALL_DUP => sys_dup(args[0]),
@@ -32,7 +34,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_EXIT => sys_exit(args[0] as i32),
         SYSCALL_YIELD => sys_yield(),
         SYSCALL_KILL => sys_kill(args[0], args[1] as u32),
-        SYSCALL_SIGACTION => sys_sigation(args[0] as u32, args[1], args[2]),
+        SYSCALL_SIGACTION => sys_sigaction(args[0] as u32, args[1] as *const SignalAction, args[2] as *mut SignalAction),
         SYSCALL_SIGPROCMASK => sys_sigprocmask(args[0] as u32),
         SYSCALL_GET_TIME => sys_get_time(),
         SYSCALL_GETPID => sys_getpid(),

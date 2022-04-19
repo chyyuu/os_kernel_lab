@@ -2,7 +2,7 @@ use crate::fs::{open_file, OpenFlags};
 use crate::mm::{translated_ref, translated_refmut, translated_str};
 use crate::task::{
     add_task, current_task, current_user_token, exit_current_and_run_next, pid2task,
-    suspend_current_and_run_next, SignalFlags,
+    suspend_current_and_run_next, SignalFlags, SignalAction,
 };
 use crate::timer::get_time_ms;
 use alloc::string::String;
@@ -109,10 +109,10 @@ pub fn sys_kill(pid: usize, signal: u32) -> isize {
         if let Some(flag) = SignalFlags::from_bits(signal) {
             // insert the signal if legal
             let mut task_ref = task.inner_exclusive_access();
-            if task_ref.pending_signals.contains(flag) {
+            if task_ref.signals.contains(flag) {
                 return -1;
             }
-            task_ref.pending_signals.insert(flag);
+            task_ref.signals.insert(flag);
             0
         } else {
             -1
@@ -137,6 +137,34 @@ pub fn sys_sigprocmask(mask: u32) -> isize {
     }
 }
 
-pub fn sys_sigation(_signal: u32, _action: usize, _old_action: usize) -> isize {
-    0
+fn check_sigaction_error(signal: SignalFlags, action: usize, old_action: usize) -> bool {
+    if action == 0 || old_action == 0 || signal == SignalFlags::SIGKILL ||
+        signal == SignalFlags::SIGSTOP {
+        true
+    } else {
+        false
+    }
+}
+
+pub fn sys_sigaction(signal: u32, action: *const SignalAction, old_action: *mut SignalAction) -> isize {
+    let token = current_user_token();
+    if let Some(task) = current_task() {
+        let mut inner = task.inner_exclusive_access();
+        if let Some(flag) = SignalFlags::from_bits(signal) {
+            if check_sigaction_error(flag, action as usize, old_action as usize) {
+                return -1;
+            }
+            let old_kernel_action = inner.signal_actions.table[signal as usize];
+            if old_kernel_action.mask != SignalFlags::from_bits(40).unwrap() {
+                *translated_refmut(token, old_action) = old_kernel_action;
+            } else {
+                let mut ref_old_action = *translated_refmut(token, old_action);
+                ref_old_action.handler = old_kernel_action.handler;
+            }
+            let ref_action = translated_ref(token, action);
+            inner.signal_actions.table[signal as usize] = *ref_action;
+            return 0;
+        }
+    }
+    -1
 }
