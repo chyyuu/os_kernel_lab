@@ -4,6 +4,7 @@ pub const MAX_SIG: usize = 31;
 
 bitflags! {
     pub struct SignalFlags: u32 {
+        const SIGDEF = 1; // Default signal handling
         const SIGHUP = 1 << 1;
         const SIGINT = 1 << 2;
         const SIGQUIT = 1 << 3;
@@ -48,6 +49,8 @@ impl SignalFlags {
             Some((-6, "Aborted, SIGABRT=6"))
         } else if self.contains(Self::SIGFPE) {
             Some((-8, "Erroneous Arithmetic Operation, SIGFPE=8"))
+        } else if self.contains(Self::SIGKILL) {
+            Some((-9, "Killed, SIGKILL=9"))
         } else if self.contains(Self::SIGSEGV) {
             Some((-11, "Segmentation Fault, SIGSEGV=11"))
         } else {

@@ -31,10 +31,15 @@ pub struct TaskControlBlockInner {
     pub fd_table: Vec<Option<Arc<dyn File + Send + Sync>>>,
     pub signals: SignalFlags,
     pub signal_mask: SignalFlags,
-    // if a the task is handling a signal
-    pub handling_flag: bool,
+    // the signal which is being handling
+    pub handling_sig: isize,
     // Signal actions
-    pub signal_actions: SignalActions
+    pub signal_actions: SignalActions,
+    // if the task is killed
+    pub killed: bool,
+    // if the task is frozen by a signal
+    pub frozen: bool,
+    pub trap_ctx_backup: Option<TrapContext>
 }
 
 impl TaskControlBlockInner {
@@ -98,8 +103,11 @@ impl TaskControlBlock {
                     ],
                     signals: SignalFlags::empty(),
                     signal_mask: SignalFlags::empty(),
-                    handling_flag: false,
-                    signal_actions: SignalActions::default()
+                    handling_sig: -1,
+                    signal_actions: SignalActions::default(),
+                    killed: false,
+                    frozen: false,
+                    trap_ctx_backup: None
                 })
             },
         };
@@ -204,8 +212,11 @@ impl TaskControlBlock {
                     signals: SignalFlags::empty(),
                     // inherit the signal_mask and signal_action
                     signal_mask: parent_inner.signal_mask,
-                    handling_flag: false,
-                    signal_actions: parent_inner.signal_actions.clone()
+                    handling_sig: -1,
+                    signal_actions: parent_inner.signal_actions.clone(),
+                    killed: false,
+                    frozen: false,
+                    trap_ctx_backup: None
                 })
             },
         });

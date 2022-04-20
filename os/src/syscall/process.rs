@@ -137,6 +137,19 @@ pub fn sys_sigprocmask(mask: u32) -> isize {
     }
 }
 
+pub fn sys_sigretrun() -> isize {
+    if let Some(task) = current_task() {
+        let mut inner = task.inner_exclusive_access();
+        inner.handling_sig = -1;
+        // restore the trap context
+        let trap_ctx = inner.get_trap_cx();
+        *trap_ctx = inner.trap_ctx_backup.unwrap();
+        0
+    } else {
+        -1
+    }
+}
+
 fn check_sigaction_error(signal: SignalFlags, action: usize, old_action: usize) -> bool {
     if action == 0 || old_action == 0 || signal == SignalFlags::SIGKILL ||
         signal == SignalFlags::SIGSTOP {
