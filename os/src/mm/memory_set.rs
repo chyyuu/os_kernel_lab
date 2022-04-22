@@ -240,12 +240,12 @@ impl MemorySet {
         }
         memory_set
     }
-    ///Refresh TLB with `fence.vma`
+    ///Refresh TLB with `sfence.vma`
     pub fn activate(&self) {
         let satp = self.page_table.token();
         unsafe {
             satp::write(satp);
-            asm!("fence.vma");
+            asm!("sfence.vma");
         }
     }
     ///Translate throuth pagetable
