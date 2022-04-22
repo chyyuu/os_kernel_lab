@@ -2,7 +2,7 @@ use crate::fs::{open_file, OpenFlags};
 use crate::mm::{translated_ref, translated_refmut, translated_str};
 use crate::task::{
     add_task, current_task, current_user_token, exit_current_and_run_next, pid2task,
-    suspend_current_and_run_next, SignalFlags, SignalAction,
+    suspend_current_and_run_next, SignalFlags, SignalAction, MAX_SIG,
 };
 use crate::timer::get_time_ms;
 use alloc::string::String;
@@ -159,15 +159,18 @@ fn check_sigaction_error(signal: SignalFlags, action: usize, old_action: usize) 
     }
 }
 
-pub fn sys_sigaction(signal: u32, action: *const SignalAction, old_action: *mut SignalAction) -> isize {
+pub fn sys_sigaction(signum: usize, action: *const SignalAction, old_action: *mut SignalAction) -> isize {
     let token = current_user_token();
     if let Some(task) = current_task() {
         let mut inner = task.inner_exclusive_access();
-        if let Some(flag) = SignalFlags::from_bits(signal) {
+        if signum as usize > MAX_SIG {
+            return -1;
+        }
+        if let Some(flag) = SignalFlags::from_bits(1 << signum) {
             if check_sigaction_error(flag, action as usize, old_action as usize) {
                 return -1;
             }
-            let old_kernel_action = inner.signal_actions.table[signal as usize];
+            let old_kernel_action = inner.signal_actions.table[signum];
             if old_kernel_action.mask != SignalFlags::from_bits(40).unwrap() {
                 *translated_refmut(token, old_action) = old_kernel_action;
             } else {
@@ -175,7 +178,7 @@ pub fn sys_sigaction(signal: u32, action: *const SignalAction, old_action: *mut 
                 ref_old_action.handler = old_kernel_action.handler;
             }
             let ref_action = translated_ref(token, action);
-            inner.signal_actions.table[signal as usize] = *ref_action;
+            inner.signal_actions.table[signum] = *ref_action;
             return 0;
         }
     }
