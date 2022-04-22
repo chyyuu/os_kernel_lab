@@ -1,3 +1,16 @@
+//! Trap handling functionality
+//!
+//! For rCore, we have a single trap entry point, namely `__alltraps`. At
+//! initialization in [`init()`], we set the `stvec` CSR to point to it.
+//!
+//! All traps go through `__alltraps`, which is defined in `trap.S`. The
+//! assembly language code does just enough work restore the kernel space
+//! context, ensuring that Rust code safely runs, and transfers control to
+//! [`trap_handler()`].
+//!
+//! It then calls different functionality based on what exactly the exception
+//! was. For example, timer interrupts trigger task preemption, and syscalls go
+//! to [`syscall()`].
 mod context;
 
 use crate::config::{TRAMPOLINE, TRAP_CONTEXT};
@@ -14,7 +27,7 @@ use riscv::register::{
 };
 
 global_asm!(include_str!("trap.S"));
-
+/// initialize CSR `stvec` as the entry of `__alltraps`
 pub fn init() {
     set_kernel_trap_entry();
 }
@@ -30,7 +43,7 @@ fn set_user_trap_entry() {
         stvec::write(TRAMPOLINE as usize, TrapMode::Direct);
     }
 }
-
+/// enable timer interrupt in sie CSR
 pub fn enable_timer_interrupt() {
     unsafe {
         sie::set_stimer();
@@ -38,6 +51,7 @@ pub fn enable_timer_interrupt() {
 }
 
 #[no_mangle]
+/// handle an interrupt, exception, or system call from user space
 pub fn trap_handler() -> ! {
     set_kernel_trap_entry();
     let scause = scause::read();
@@ -89,6 +103,9 @@ pub fn trap_handler() -> ! {
 }
 
 #[no_mangle]
+/// set the new addr of __restore asm function in TRAMPOLINE page,
+/// set the reg a0 = trap_cx_ptr, reg a1 = phy addr of usr page table,
+/// finally, jump to new addr of __restore asm function 
 pub fn trap_return() -> ! {
     set_user_trap_entry();
     let trap_cx_ptr = TRAP_CONTEXT;
@@ -111,6 +128,8 @@ pub fn trap_return() -> ! {
 }
 
 #[no_mangle]
+/// Unimplement: traps/interrupts/exceptions from kernel mode
+/// Todo: Chapter 9: I/O device 
 pub fn trap_from_kernel() -> ! {
     panic!("a trap {:?} from kernel!", scause::read().cause());
 }
