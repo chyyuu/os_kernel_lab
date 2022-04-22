@@ -4,7 +4,6 @@ mod pid;
 mod processor;
 mod signal;
 mod switch;
-mod sigret;
 mod action;
 #[allow(clippy::module_inception)]
 mod task;
@@ -27,8 +26,6 @@ pub use processor::{
 pub use signal::{SignalFlags, MAX_SIG};
 pub use action::{SignalAction, SignalActions};
 
-use self::sigret::end_sigret;
-use self::sigret::start_sigret;
 
 pub fn suspend_current_and_run_next() {
     // There must be an application running.
@@ -130,9 +127,9 @@ fn call_kernel_signal_handler(signal: SignalFlags) {
 }
 
 fn call_user_signal_handler(sig: usize, signal: SignalFlags) {
+    let token = current_user_token();
     let task = current_task().unwrap();
     let mut task_inner = task.inner_exclusive_access();
-    let token = current_user_token();
 
     let handler = task_inner.signal_actions.table[sig].handler;
     // change current mask
@@ -148,21 +145,8 @@ fn call_user_signal_handler(sig: usize, signal: SignalFlags) {
     // modify trapframe
     trap_ctx.sepc = handler;
 
-    // inject sigret
-    let sigret_size = end_sigret as usize - start_sigret as usize;
-    trap_ctx.x[2] -= sigret_size;
-    let cur_sp = trap_ctx.x[2];
-    unsafe {
-        let target_sigret_ptr = translated_refmut(token, cur_sp as *mut u8);
-        let target_sigret_ptr = core::slice::from_raw_parts_mut(target_sigret_ptr as *mut u8, sigret_size);
-        let source_sigret_ptr = core::slice::from_raw_parts(start_sigret as usize as *mut u8, sigret_size);
-        target_sigret_ptr.copy_from_slice(source_sigret_ptr);
-    }
-
     // put args (a0)
     trap_ctx.x[10] = sig;
-    // return addr
-    trap_ctx.x[1] = cur_sp;
 }
 
 fn check_pending_signals() {
@@ -173,6 +157,7 @@ fn check_pending_signals() {
         if task_inner.signals.contains(signal) && (!task_inner.signal_mask.contains(signal)) {
             if task_inner.handling_sig == -1 {
                 drop(task_inner);
+                drop(task);
                 if signal == SignalFlags::SIGKILL || signal == SignalFlags::SIGSTOP ||
                     signal == SignalFlags::SIGCONT || signal == SignalFlags::SIGDEF {
                         // signal is a kernel signal
@@ -185,6 +170,7 @@ fn check_pending_signals() {
             } else {
                 if !task_inner.signal_actions.table[task_inner.handling_sig as usize].mask.contains(signal) {
                     drop(task_inner);
+                    drop(task);
                     if signal == SignalFlags::SIGKILL || signal == SignalFlags::SIGSTOP ||
                         signal == SignalFlags::SIGCONT || signal == SignalFlags::SIGDEF {
                             // signal is a kernel signal
@@ -208,6 +194,7 @@ pub fn handle_signals() {
         let frozen_flag = task_inner.frozen;
         let killed_flag = task_inner.killed;
         drop(task_inner);
+        drop(task);
         if (!frozen_flag) || killed_flag {
             break;
         }

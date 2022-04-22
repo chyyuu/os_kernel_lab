@@ -4,10 +4,11 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{sigaction, sigprocmask, SignalAction, SignalFlags, fork, exit, wait, kill, getpid, sleep};
+use user_lib::{sigaction, sigprocmask, SignalAction, SignalFlags, fork, exit, wait, kill, getpid, sleep, sigreturn};
 
 fn func() {
     println!("user_sig_test succsess");
+    sigreturn();
 }
 
 fn user_sig_test_failsignum() {

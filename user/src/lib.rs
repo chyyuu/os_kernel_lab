@@ -204,3 +204,7 @@ pub fn sigaction(signum: usize, action: *const SignalAction, old_action: *const 
 pub fn sigprocmask(mask: u32) -> isize {
     sys_sigprocmask(mask)
 }
+
+pub fn sigreturn() -> isize {
+    sys_sigreturn()
+}
