@@ -423,7 +423,7 @@ impl</*'a,*/ X: SPI> SDCard</*'a,*/ X> {
             /* Byte 15 */
             CSD_CRC: (csd_tab[15] & 0xFE) >> 1,
             Reserved4: 1,
-            /* Return the reponse */
+            /* Return the response */
         })
     }
 
