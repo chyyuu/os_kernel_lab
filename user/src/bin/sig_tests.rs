@@ -11,6 +11,17 @@ fn func() {
     sigreturn();
 }
 
+fn func2() {
+    loop {
+        print!("");
+    }
+}
+
+fn func3() {
+    println!("interrupt");
+    sigreturn();
+}
+
 fn user_sig_test_failsignum() {
     let mut new = SignalAction::default();
     let old = SignalAction::default();
@@ -113,6 +124,38 @@ fn kernel_sig_test_failignorekill() {
     }
 }
 
+fn final_sig_test() {
+    let mut new = SignalAction::default();
+    let old = SignalAction::default();
+    new.handler = func2 as usize;
+
+    let mut new2 = SignalAction::default();
+    let old2 = SignalAction::default();
+    new2.handler = func3 as usize;
+
+    let pid= fork();
+    if pid == 0{
+        if sigaction(10, &new, &old) < 0 {
+            panic!("Sigaction failed!");
+        }
+        if sigaction(14, &new2, &old2) < 0 {
+            panic!("Sigaction failed!");
+        }
+        if kill(getpid() as usize, 1 << 10) < 0 {
+            println!("Kill failed!");
+            exit(-1);
+        }
+    } else {
+        sleep(1000);
+        if kill(pid as usize, 1 << 14) < 0 {
+            println!("Kill failed!");
+            exit(-1);
+        }
+        sleep(1000);
+        kill(pid as usize, SignalFlags::SIGKILL.bits());
+    }
+}
+
 
 fn run(f: fn()) -> bool {
     let pid = fork();
@@ -133,14 +176,15 @@ fn run(f: fn()) -> bool {
 
 #[no_mangle]
 pub fn main() -> i32 {
-    let tests: [(fn(), &str); 7] = [
+    let tests: [(fn(), &str); 8] = [
         (user_sig_test_failsignum, "user_sig_test_failsignum"),
         (user_sig_test_kill, "user_sig_test_kill"),
         (user_sig_test_multiprocsignals, "user_sig_test_multiprocsignals"),
         (user_sig_test_restore, "user_sig_test_restore"),
         (kernel_sig_test_ignore, "kernel_sig_test_ignore"),
         (kernel_sig_test_stop_cont, "kernel_sig_test_stop_cont"),
-        (kernel_sig_test_failignorekill, "kernel_sig_test_failignorekill")
+        (kernel_sig_test_failignorekill, "kernel_sig_test_failignorekill"),
+        (final_sig_test, "final_sig_test")
     ];
     let mut fail_num = 0;
     for test in tests {

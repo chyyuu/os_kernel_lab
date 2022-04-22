@@ -9,7 +9,6 @@ mod action;
 mod task;
 
 use crate::fs::{open_file, OpenFlags};
-use crate::mm::translated_refmut;
 use alloc::sync::Arc;
 pub use context::TaskContext;
 use lazy_static::*;
@@ -127,7 +126,6 @@ fn call_kernel_signal_handler(signal: SignalFlags) {
 }
 
 fn call_user_signal_handler(sig: usize, signal: SignalFlags) {
-    let token = current_user_token();
     let task = current_task().unwrap();
     let mut task_inner = task.inner_exclusive_access();
 
