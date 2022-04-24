@@ -1,3 +1,4 @@
+//! Implementation of [`PageTableEntry`] and [`PageTable`].
 use super::{frame_alloc, FrameTracker, PhysAddr, PhysPageNum, StepByOne, VirtAddr, VirtPageNum};
 use alloc::string::String;
 use alloc::vec;
@@ -19,34 +20,44 @@ bitflags! {
 
 #[derive(Copy, Clone)]
 #[repr(C)]
+/// page table entry structure
 pub struct PageTableEntry {
+    ///PTE
     pub bits: usize,
 }
 
 impl PageTableEntry {
+    ///Create a PTE from ppn
     pub fn new(ppn: PhysPageNum, flags: PTEFlags) -> Self {
         PageTableEntry {
             bits: ppn.0 << 10 | flags.bits as usize,
         }
     }
+    ///Return an empty PTE
     pub fn empty() -> Self {
         PageTableEntry { bits: 0 }
     }
+    ///Return 44bit ppn 
     pub fn ppn(&self) -> PhysPageNum {
         (self.bits >> 10 & ((1usize << 44) - 1)).into()
     }
+    ///Return 10bit flag
     pub fn flags(&self) -> PTEFlags {
         PTEFlags::from_bits(self.bits as u8).unwrap()
     }
+    ///Check PTE valid
     pub fn is_valid(&self) -> bool {
         (self.flags() & PTEFlags::V) != PTEFlags::empty()
     }
+    ///Check PTE readable
     pub fn readable(&self) -> bool {
         (self.flags() & PTEFlags::R) != PTEFlags::empty()
     }
+    ///Check PTE writable
     pub fn writable(&self) -> bool {
         (self.flags() & PTEFlags::W) != PTEFlags::empty()
     }
+    ///Check PTE executable
     pub fn executable(&self) -> bool {
         (self.flags() & PTEFlags::X) != PTEFlags::empty()
     }
@@ -138,8 +149,8 @@ impl PageTable {
         8usize << 60 | self.root_ppn.0
     }
 }
-
-pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static mut [u8]> {
+    /// translate a pointer to a mutable u8 Vec through page table
+    pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static mut [u8]> {
     let page_table = PageTable::from_token(token);
     let mut start = ptr as usize;
     let end = start + len;
@@ -159,9 +170,9 @@ pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&
         start = end_va.into();
     }
     v
-}
-
-pub fn translated_str(token: usize, ptr: *const u8) -> String {
+    }
+    /// translate a pointer to a mutable u8 Vec end with `\0` through page table to a `String`
+    pub fn translated_str(token: usize, ptr: *const u8) -> String {
     let page_table = PageTable::from_token(token);
     let mut string = String::new();
     let mut va = ptr as usize;
@@ -178,9 +189,9 @@ pub fn translated_str(token: usize, ptr: *const u8) -> String {
         }
     }
     string
-}
-
-pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
+    }
+    ///translate a generic through page table and return a mutable reference
+    pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
     //println!("into translated_refmut!");
     let page_table = PageTable::from_token(token);
     let va = ptr as usize;
@@ -189,4 +200,4 @@ pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
         .translate_va(VirtAddr::from(va))
         .unwrap()
         .get_mut()
-}
+    }
