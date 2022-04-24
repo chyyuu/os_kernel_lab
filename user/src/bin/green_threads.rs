@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(naked_functions)]
+#![feature(asm)]
 
 #[macro_use]
 extern crate user_lib;
@@ -8,7 +9,8 @@ extern crate user_lib;
 #[macro_use]
 extern crate alloc;
 
-use core::arch::global_asm;
+use core::arch::asm;
+
 use alloc::vec::Vec;
 //use user_lib::{close, open, read, OpenFlags}; //for linux
 use user_lib::{exit};
@@ -148,7 +150,9 @@ impl Runtime {
         self.current = pos;
 
         unsafe {
-            __switch(&mut self.tasks[old_pos].ctx, &self.tasks[pos].ctx);
+            let old: *mut TaskContext = &mut self.tasks[old_pos].ctx;
+            let new: *const TaskContext = &self.tasks[pos].ctx;
+            asm!("call switch", in("a0") old, in("a1") new, clobber_abi("C"));
         }
 
         // NOTE: this might look strange and it is. Normally we would just mark this as `unreachable!()` but our compiler
@@ -254,90 +258,90 @@ pub fn yield_task() {
 ///
 /// see: https://github.com/rust-lang/rfcs/blob/master/text/1201-naked-fns.md
 
-global_asm!(r#"
-.section .text
-.globl __switch
-__switch:
-sd x1, 0x00(a0)
-sd x2, 0x08(a0)
-sd x8, 0x10(a0)
-sd x9, 0x18(a0)
-sd x18, 0x20(a0)
-sd x19, 0x28(a0)
-sd x20, 0x30(a0)
-sd x21, 0x38(a0)
-sd x22, 0x40(a0)
-sd x23, 0x48(a0)
-sd x24, 0x50(a0)
-sd x25, 0x58(a0)
-sd x26, 0x60(a0)
-sd x27, 0x68(a0)
-sd x1, 0x70(a0)
+// global_asm!(r#"
+// .section .text
+// .globl __switch
+// __switch:
+// sd x1, 0x00(a0)
+// sd x2, 0x08(a0)
+// sd x8, 0x10(a0)
+// sd x9, 0x18(a0)
+// sd x18, 0x20(a0)
+// sd x19, 0x28(a0)
+// sd x20, 0x30(a0)
+// sd x21, 0x38(a0)
+// sd x22, 0x40(a0)
+// sd x23, 0x48(a0)
+// sd x24, 0x50(a0)
+// sd x25, 0x58(a0)
+// sd x26, 0x60(a0)
+// sd x27, 0x68(a0)
+// sd x1, 0x70(a0)
 
-ld x1, 0x00(a1)
-ld x2, 0x08(a1)
-ld x8, 0x10(a1)
-ld x9, 0x18(a1)
-ld x18, 0x20(a1)
-ld x19, 0x28(a1)
-ld x20, 0x30(a1)
-ld x21, 0x38(a1)
-ld x22, 0x40(a1)
-ld x23, 0x48(a1)
-ld x24, 0x50(a1)
-ld x25, 0x58(a1)
-ld x26, 0x60(a1)
-ld x27, 0x68(a1)
-ld t0, 0x70(a1)
+// ld x1, 0x00(a1)
+// ld x2, 0x08(a1)
+// ld x8, 0x10(a1)
+// ld x9, 0x18(a1)
+// ld x18, 0x20(a1)
+// ld x19, 0x28(a1)
+// ld x20, 0x30(a1)
+// ld x21, 0x38(a1)
+// ld x22, 0x40(a1)
+// ld x23, 0x48(a1)
+// ld x24, 0x50(a1)
+// ld x25, 0x58(a1)
+// ld x26, 0x60(a1)
+// ld x27, 0x68(a1)
+// ld t0, 0x70(a1)
 
-jr t0
-"#);
+// jr t0
+// "#);
 
-extern "C" {
-    pub fn __switch(old: *mut TaskContext, new: *const TaskContext);
-}
-
-// #[naked]
-// #[inline(never)]
-// unsafe fn switch(old: *mut TaskContext, new: *const TaskContext) {
-//     // a0: _old, a1: _new
-//     asm!("
-//         sd x1, 0x00(a0)
-//         sd x2, 0x08(a0)
-//         sd x8, 0x10(a0)
-//         sd x9, 0x18(a0)
-//         sd x18, 0x20(a0)
-//         sd x19, 0x28(a0)
-//         sd x20, 0x30(a0)
-//         sd x21, 0x38(a0)
-//         sd x22, 0x40(a0)
-//         sd x23, 0x48(a0)
-//         sd x24, 0x50(a0)
-//         sd x25, 0x58(a0)
-//         sd x26, 0x60(a0)
-//         sd x27, 0x68(a0)
-//         sd x1, 0x70(a0)
-
-//         ld x1, 0x00(a1)
-//         ld x2, 0x08(a1)
-//         ld x8, 0x10(a1)
-//         ld x9, 0x18(a1)
-//         ld x18, 0x20(a1)
-//         ld x19, 0x28(a1)
-//         ld x20, 0x30(a1)
-//         ld x21, 0x38(a1)
-//         ld x22, 0x40(a1)
-//         ld x23, 0x48(a1)
-//         ld x24, 0x50(a1)
-//         ld x25, 0x58(a1)
-//         ld x26, 0x60(a1)
-//         ld x27, 0x68(a1)
-//         ld t0, 0x70(a1)
-
-//         jr t0
-//     ", options( noreturn)
-//     );
+// extern "C" {
+//     pub fn __switch(old: *mut TaskContext, new: *const TaskContext);
 // }
+
+#[naked]
+#[no_mangle]
+unsafe extern "C" fn switch()  {
+    // a0: _old, a1: _new
+    asm!("
+        sd x1, 0x00(a0)
+        sd x2, 0x08(a0)
+        sd x8, 0x10(a0)
+        sd x9, 0x18(a0)
+        sd x18, 0x20(a0)
+        sd x19, 0x28(a0)
+        sd x20, 0x30(a0)
+        sd x21, 0x38(a0)
+        sd x22, 0x40(a0)
+        sd x23, 0x48(a0)
+        sd x24, 0x50(a0)
+        sd x25, 0x58(a0)
+        sd x26, 0x60(a0)
+        sd x27, 0x68(a0)
+        sd x1, 0x70(a0)
+
+        ld x1, 0x00(a1)
+        ld x2, 0x08(a1)
+        ld x8, 0x10(a1)
+        ld x9, 0x18(a1)
+        ld x18, 0x20(a1)
+        ld x19, 0x28(a1)
+        ld x20, 0x30(a1)
+        ld x21, 0x38(a1)
+        ld x22, 0x40(a1)
+        ld x23, 0x48(a1)
+        ld x24, 0x50(a1)
+        ld x25, 0x58(a1)
+        ld x26, 0x60(a1)
+        ld x27, 0x68(a1)
+        ld t0, 0x70(a1)
+
+        jr t0
+    ", options( noreturn)
+    );
+}
 
 #[no_mangle]
 pub fn main() -> ! {
