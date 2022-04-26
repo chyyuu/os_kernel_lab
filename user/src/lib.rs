@@ -156,6 +156,39 @@ impl Default for SignalAction {
     }
 }
 
+pub const SIGDEF :i32 = 1; // Default signal handling
+pub const SIGHUP :i32 = 1;
+pub const SIGINT :i32 = 2;
+pub const SIGQUIT :i32 = 3;
+pub const SIGILL :i32 = 4;
+pub const SIGTRAP :i32 = 5;
+pub const SIGABRT :i32 = 6;
+pub const SIGBUS :i32 = 7;
+pub const SIGFPE :i32 = 8;
+pub const SIGKILL :i32 = 9;
+pub const SIGUSR1 :i32 = 10;
+pub const SIGSEGV :i32 = 11;
+pub const SIGUSR2 :i32 = 12;
+pub const SIGPIPE :i32 = 13;
+pub const SIGALRM :i32 = 14;
+pub const SIGTERM :i32 = 15;
+pub const SIGSTKFLT :i32 = 16;
+pub const SIGCHLD :i32 = 17;
+pub const SIGCONT :i32 = 18;
+pub const SIGSTOP :i32 = 19;
+pub const SIGTSTP :i32 = 20;
+pub const SIGTTIN :i32 = 21;
+pub const SIGTTOU :i32 = 22;
+pub const SIGURG :i32 = 23;
+pub const SIGXCPU :i32 = 24;
+pub const SIGXFSZ :i32 = 25;
+pub const SIGVTALRM :i32 = 26;
+pub const SIGPROF :i32 = 27;
+pub const SIGWINCH :i32 = 28;
+pub const SIGIO :i32 = 29;
+pub const SIGPWR :i32 = 30;
+pub const SIGSYS :i32 = 31;
+
 bitflags! {
     pub struct SignalFlags: i32 {
         const SIGDEF = 1; // Default signal handling
@@ -197,7 +230,7 @@ pub fn kill(pid: usize, signal: i32) -> isize {
     sys_kill(pid, signal)
 }
 
-pub fn sigaction(signum: usize, action: *const SignalAction, old_action: *const SignalAction) -> isize {
+pub fn sigaction(signum: i32, action: *const SignalAction, old_action: *const SignalAction) -> isize {
     sys_sigaction(signum, action, old_action)
 }
 

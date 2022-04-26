@@ -97,8 +97,8 @@ pub fn sys_waitpid(pid: isize, exit_code: *mut i32) -> isize {
     syscall(SYSCALL_WAITPID, [pid as usize, exit_code as usize, 0])
 }
 
-pub fn sys_sigaction(signum: usize, action: *const SignalAction, old_action: *const SignalAction) -> isize {
-    syscall(SYSCALL_SIGACTION, [signum, action as usize, old_action as usize])
+pub fn sys_sigaction(signum: i32, action: *const SignalAction, old_action: *const SignalAction) -> isize {
+    syscall(SYSCALL_SIGACTION, [signum as usize , action as usize, old_action as usize])
 }
 
 pub fn sys_sigprocmask(mask: u32) -> isize {

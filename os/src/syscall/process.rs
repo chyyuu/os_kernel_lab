@@ -104,9 +104,9 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
     // ---- release current PCB automatically
 }
 
-pub fn sys_kill(pid: usize, signal: u32) -> isize {
+pub fn sys_kill(pid: usize, signum: i32) -> isize {
     if let Some(task) = pid2task(pid) {
-        if let Some(flag) = SignalFlags::from_bits(signal) {
+        if let Some(flag) = SignalFlags::from_bits(1 << signum) {
             // insert the signal if legal
             let mut task_ref = task.inner_exclusive_access();
             if task_ref.signals.contains(flag) {
@@ -159,7 +159,7 @@ fn check_sigaction_error(signal: SignalFlags, action: usize, old_action: usize) 
     }
 }
 
-pub fn sys_sigaction(signum: usize, action: *const SignalAction, old_action: *mut SignalAction) -> isize {
+pub fn sys_sigaction(signum: i32, action: *const SignalAction, old_action: *mut SignalAction) -> isize {
     let token = current_user_token();
     if let Some(task) = current_task() {
         let mut inner = task.inner_exclusive_access();
@@ -170,7 +170,7 @@ pub fn sys_sigaction(signum: usize, action: *const SignalAction, old_action: *mu
             if check_sigaction_error(flag, action as usize, old_action as usize) {
                 return -1;
             }
-            let old_kernel_action = inner.signal_actions.table[signum];
+            let old_kernel_action = inner.signal_actions.table[signum as usize];
             if old_kernel_action.mask != SignalFlags::from_bits(40).unwrap() {
                 *translated_refmut(token, old_action) = old_kernel_action;
             } else {
@@ -178,7 +178,7 @@ pub fn sys_sigaction(signum: usize, action: *const SignalAction, old_action: *mu
                 ref_old_action.handler = old_kernel_action.handler;
             }
             let ref_action = translated_ref(token, action);
-            inner.signal_actions.table[signum] = *ref_action;
+            inner.signal_actions.table[signum as usize] = *ref_action;
             return 0;
         }
     }

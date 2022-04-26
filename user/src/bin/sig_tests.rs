@@ -4,7 +4,8 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{sigaction, sigprocmask, SignalAction, SignalFlags, fork, exit, wait, kill, getpid, sleep, sigreturn};
+// use user_lib::{sigaction, sigprocmask, SignalAction, SignalFlags, fork, exit, wait, kill, getpid, sleep, sigreturn};
+use user_lib::*;
 
 fn func() {
     println!("user_sig_test succsess");
@@ -36,10 +37,10 @@ fn user_sig_test_kill() {
     let old = SignalAction::default();
     new.handler = func as usize;
 
-    if sigaction(10, &new, &old) < 0 {
+    if sigaction(SIGUSR1, &new, &old) < 0 {
         panic!("Sigaction failed!");
     }
-    if kill(getpid() as usize, 1 << 10) < 0 {
+    if kill(getpid() as usize, SIGUSR1) < 0 {
         println!("Kill failed!");
         exit(1);
     }
@@ -51,11 +52,11 @@ fn user_sig_test_multiprocsignals() {
         let mut new = SignalAction::default();
         let old = SignalAction::default();
         new.handler = func as usize;
-        if sigaction(10, &new, &old) < 0 {
+        if sigaction(SIGUSR1, &new, &old) < 0 {
             panic!("Sigaction failed!");
         }
     } else {
-        if kill(pid as usize, 1 << 10) < 0 {
+        if kill(pid as usize, SIGUSR1) < 0 {
             println!("Kill failed!");
             exit(1);
         }
@@ -70,11 +71,11 @@ fn user_sig_test_restore() {
     let old2 = SignalAction::default();
     new.handler = func as usize;
 
-    if sigaction(10, &new, &old) < 0 {
+    if sigaction(SIGUSR1, &new, &old) < 0 {
         panic!("Sigaction failed!");
     }
 
-    if sigaction(10, &old, &old2) < 0 {
+    if sigaction(SIGUSR1, &old, &old2) < 0 {
         panic!("Sigaction failed!");
     }
 
@@ -135,13 +136,13 @@ fn final_sig_test() {
 
     let pid= fork();
     if pid == 0{
-        if sigaction(10, &new, &old) < 0 {
+        if sigaction(SIGUSR1, &new, &old) < 0 {
             panic!("Sigaction failed!");
         }
         if sigaction(14, &new2, &old2) < 0 {
             panic!("Sigaction failed!");
         }
-        if kill(getpid() as usize, 1 << 10) < 0 {
+        if kill(getpid() as usize, SIGUSR1) < 0 {
             println!("Kill failed!");
             exit(-1);
         }
