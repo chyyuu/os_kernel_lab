@@ -156,7 +156,7 @@ impl Default for SignalAction {
     }
 }
 
-pub const SIGDEF :i32 = 1; // Default signal handling
+pub const SIGDEF :i32 = 0; // Default signal handling
 pub const SIGHUP :i32 = 1;
 pub const SIGINT :i32 = 2;
 pub const SIGQUIT :i32 = 3;
