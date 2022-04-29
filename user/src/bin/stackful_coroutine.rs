@@ -261,10 +261,11 @@ pub fn yield_task() {
 /// to as saved context and in general our assembly will not work as expected.
 ///
 /// see: https://github.com/rust-lang/rfcs/blob/master/text/1201-naked-fns.md
+/// see: https://doc.rust-lang.org/nightly/reference/inline-assembly.html
+/// see: https://doc.rust-lang.org/nightly/rust-by-example/unsafe/asm.html
 #[naked]
 #[no_mangle]
 unsafe fn switch(old: *mut TaskContext, new: *const TaskContext)  {
-//unsafe extern "C" fn switch()  {    
     // a0: _old, a1: _new
     asm!("
         sd x1, 0x00(a0)
