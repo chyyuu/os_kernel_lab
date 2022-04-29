@@ -1,3 +1,6 @@
+// we porting below codes to Rcore Tutorial v3
+// https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/
+// https://github.com/cfsamson/example-greenthreads
 #![no_std]
 #![no_main]
 
@@ -18,7 +21,6 @@ use alloc::vec::Vec;
 use user_lib::{exit};
 
 // In our simple example we set most constraints here.
-//const DEFAULT_STACK_SIZE: usize = 1024 * 1024 * 2; //for linux
 const DEFAULT_STACK_SIZE: usize = 4096;  //128 got  SEGFAULT, 256(1024, 4096) got right results. 
 const MAX_TASKS: usize = 5;
 static mut RUNTIME: usize = 0;
@@ -111,7 +113,6 @@ impl Runtime {
     /// it returns false (which means that there are no tasks scheduled) and we are done.
     pub fn run(&mut self){
         while self.t_yield() {} 
-       // std::process::exit(0); //for linux
        println!("All tasks finished!");
     }
 
@@ -131,7 +132,9 @@ impl Runtime {
     /// If we find a task that's ready to be run we change the state of the current task from `Running` to `Ready`.
     /// Then we call switch which will save the current context (the old context) and load the new context
     /// into the CPU which then resumes based on the context it was just passed.
-    #[inline(never)]
+    /// 
+    /// NOITCE: if we comment below `#[inline(never)]`, we can not get the corrent running result
+    //#[inline(never)]
     fn t_yield(&mut self) -> bool {
         let mut pos = self.current;
         while self.tasks[pos].state != State::Ready {
