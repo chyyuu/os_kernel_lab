@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+
 #![feature(naked_functions)]
 #![feature(asm)]
 
@@ -10,15 +11,16 @@ extern crate user_lib;
 extern crate alloc;
 
 use core::arch::asm;
-
+#[macro_use]
+use alloc::vec;
 use alloc::vec::Vec;
-//use user_lib::{close, open, read, OpenFlags}; //for linux
+
 use user_lib::{exit};
 
 // In our simple example we set most constraints here.
 //const DEFAULT_STACK_SIZE: usize = 1024 * 1024 * 2; //for linux
-const DEFAULT_STACK_SIZE: usize = 1024;
-const MAX_TASKS: usize = 4;
+const DEFAULT_STACK_SIZE: usize = 4096;  //128 got  SEGFAULT, 256(1024, 4096) got right results. 
+const MAX_TASKS: usize = 5;
 static mut RUNTIME: usize = 0;
 
 pub struct Runtime {
@@ -107,10 +109,10 @@ impl Runtime {
 
     /// This is where we start running our runtime. If it is our base task, we call yield until
     /// it returns false (which means that there are no tasks scheduled) and we are done.
-    pub fn run(&mut self) -> ! {
+    pub fn run(&mut self){
         while self.t_yield() {} 
        // std::process::exit(0); //for linux
-       exit(0);
+       println!("All tasks finished!");
     }
 
     /// This is our return function. The only place we use this is in our `guard` function.
@@ -124,11 +126,12 @@ impl Runtime {
     }
 
     /// This is the heart of our runtime. Here we go through all tasks and see if anyone is in the `Ready` state.
-    /// If no task is `Ready` we're all done. This is an extremely simple sceduler using only a round-robin algorithm.
+    /// If no task is `Ready` we're all done. This is an extremely simple scheduler using only a round-robin algorithm.
     ///
     /// If we find a task that's ready to be run we change the state of the current task from `Running` to `Ready`.
     /// Then we call switch which will save the current context (the old context) and load the new context
     /// into the CPU which then resumes based on the context it was just passed.
+    #[inline(never)]
     fn t_yield(&mut self) -> bool {
         let mut pos = self.current;
         while self.tasks[pos].state != State::Ready {
@@ -150,9 +153,7 @@ impl Runtime {
         self.current = pos;
 
         unsafe {
-            let old: *mut TaskContext = &mut self.tasks[old_pos].ctx;
-            let new: *const TaskContext = &self.tasks[pos].ctx;
-            asm!("call switch", in("a0") old, in("a1") new, clobber_abi("C"));
+            switch(&mut self.tasks[old_pos].ctx, &self.tasks[pos].ctx);
         }
 
         // NOTE: this might look strange and it is. Normally we would just mark this as `unreachable!()` but our compiler
@@ -257,53 +258,10 @@ pub fn yield_task() {
 /// to as saved context and in general our assembly will not work as expected.
 ///
 /// see: https://github.com/rust-lang/rfcs/blob/master/text/1201-naked-fns.md
-
-// global_asm!(r#"
-// .section .text
-// .globl __switch
-// __switch:
-// sd x1, 0x00(a0)
-// sd x2, 0x08(a0)
-// sd x8, 0x10(a0)
-// sd x9, 0x18(a0)
-// sd x18, 0x20(a0)
-// sd x19, 0x28(a0)
-// sd x20, 0x30(a0)
-// sd x21, 0x38(a0)
-// sd x22, 0x40(a0)
-// sd x23, 0x48(a0)
-// sd x24, 0x50(a0)
-// sd x25, 0x58(a0)
-// sd x26, 0x60(a0)
-// sd x27, 0x68(a0)
-// sd x1, 0x70(a0)
-
-// ld x1, 0x00(a1)
-// ld x2, 0x08(a1)
-// ld x8, 0x10(a1)
-// ld x9, 0x18(a1)
-// ld x18, 0x20(a1)
-// ld x19, 0x28(a1)
-// ld x20, 0x30(a1)
-// ld x21, 0x38(a1)
-// ld x22, 0x40(a1)
-// ld x23, 0x48(a1)
-// ld x24, 0x50(a1)
-// ld x25, 0x58(a1)
-// ld x26, 0x60(a1)
-// ld x27, 0x68(a1)
-// ld t0, 0x70(a1)
-
-// jr t0
-// "#);
-
-// extern "C" {
-//     pub fn __switch(old: *mut TaskContext, new: *const TaskContext);
-// }
-
 #[naked]
 #[no_mangle]
-unsafe extern "C" fn switch()  {
+unsafe fn switch(old: *mut TaskContext, new: *const TaskContext)  {
+//unsafe extern "C" fn switch()  {    
     // a0: _old, a1: _new
     asm!("
         sd x1, 0x00(a0)
@@ -344,13 +302,15 @@ unsafe extern "C" fn switch()  {
 }
 
 #[no_mangle]
-pub fn main() -> ! {
+pub fn main()  {
+    println!("stackful_coroutine begin...");
+    println!("TASK  0(Runtime) STARTING");
     let mut runtime = Runtime::new();
     runtime.init();
     runtime.spawn(|| {
-        println!("TASK 1 STARTING");
+        println!("TASK  1 STARTING");
         let id = 1;
-        for i in 0..10 {
+        for i in 0..4 {
             println!("task: {} counter: {}", id, i);
             yield_task();
         }
@@ -359,11 +319,31 @@ pub fn main() -> ! {
     runtime.spawn(|| {
         println!("TASK 2 STARTING");
         let id = 2;
-        for i in 0..15 {
+        for i in 0..8 {
             println!("task: {} counter: {}", id, i);
             yield_task();
         }
         println!("TASK 2 FINISHED");
     });
+    runtime.spawn(|| {
+        println!("TASK 3 STARTING");
+        let id = 3;
+        for i in 0..12 {
+            println!("task: {} counter: {}", id, i);
+            yield_task();
+        }
+        println!("TASK 3 FINISHED");
+    });
+    runtime.spawn(|| {
+        println!("TASK 4 STARTING");
+        let id = 4;
+        for i in 0..16 {
+            println!("task: {} counter: {}", id, i);
+            yield_task();
+        }
+        println!("TASK 4 FINISHED");
+    });
     runtime.run();
+    println!("stackful_coroutine PASSED");
+    exit(0);
 }
