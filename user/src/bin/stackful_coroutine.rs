@@ -134,7 +134,7 @@ impl Runtime {
     /// into the CPU which then resumes based on the context it was just passed.
     /// 
     /// NOITCE: if we comment below `#[inline(never)]`, we can not get the corrent running result
-    //#[inline(never)]
+    #[inline(never)]
     fn t_yield(&mut self) -> bool {
         let mut pos = self.current;
         while self.tasks[pos].state != State::Ready {
