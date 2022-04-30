@@ -1,3 +1,4 @@
+//! SBI console driver, for text output
 use crate::sbi::console_putchar;
 use core::fmt::{self, Write};
 
@@ -17,6 +18,7 @@ pub fn print(args: fmt::Arguments) {
 }
 
 #[macro_export]
+/// print string macro
 macro_rules! print {
     ($fmt: literal $(, $($arg: tt)+)?) => {
         $crate::console::print(format_args!($fmt $(, $($arg)+)?));
@@ -24,6 +26,7 @@ macro_rules! print {
 }
 
 #[macro_export]
+/// println string macro
 macro_rules! println {
     ($fmt: literal $(, $($arg: tt)+)?) => {
         $crate::console::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
