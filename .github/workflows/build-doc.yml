@@ -16,8 +16,8 @@ jobs:
           rustup component add llvm-tools-preview
           rustup component add rust-src
           cd os
-          cargo doc --no-deps --verbose
-      - name: Deploy to Github Pages
+          cargo doc --document-private-items --verbose
+      - name: Push to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
