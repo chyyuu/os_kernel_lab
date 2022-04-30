@@ -1,3 +1,5 @@
+// https://blog.aloni.org/posts/a-stack-less-rust-coroutine-100-loc/
+// https://github.com/chyyuu/example-coroutine-and-thread/tree/stackless-coroutine-x86
 #![no_std]
 #![no_main]
 
