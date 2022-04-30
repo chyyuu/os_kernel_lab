@@ -7,13 +7,12 @@
 #![feature(naked_functions)]
 #![feature(asm)]
 
+extern crate alloc;
 #[macro_use]
 extern crate user_lib;
 
-#[macro_use]
-extern crate alloc;
-
 use core::arch::asm;
+
 #[macro_use]
 use alloc::vec;
 use alloc::vec::Vec;
