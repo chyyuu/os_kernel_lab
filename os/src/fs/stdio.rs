@@ -1,7 +1,7 @@
 use super::File;
 use crate::mm::UserBuffer;
 use crate::sbi::console_getchar;
-use crate::task::suspend_current_and_run_next;
+use crate::task::{suspend_current_and_run_next,current_task,SignalFlags,};
 
 pub struct Stdin;
 
@@ -23,6 +23,12 @@ impl File for Stdin {
             if c == 0 {
                 suspend_current_and_run_next();
                 continue;
+            } else if c == 3 {
+                // 3 is ctrl_c
+                let task = current_task().unwrap();
+                let mut inner = task.inner_exclusive_access();
+                inner.signals.insert(SignalFlags::SIGINT);
+                break;
             } else {
                 break;
             }
