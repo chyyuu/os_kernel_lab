@@ -1,7 +1,7 @@
 use super::File;
 use crate::mm::UserBuffer;
 use crate::sbi::console_getchar;
-use crate::task::{suspend_current_and_run_next,current_task,SignalFlags,};
+use crate::task::{suspend_current_and_run_next,current_add_signal,SignalFlags,};
 
 pub struct Stdin;
 
@@ -25,9 +25,8 @@ impl File for Stdin {
                 continue;
             } else if c == 3 {
                 // 3 is ctrl_c
-                let task = current_task().unwrap();
-                let mut inner = task.inner_exclusive_access();
-                inner.signals.insert(SignalFlags::SIGINT);
+                println!("[K] os/fs/stdio/read: Got Ctrl_C");
+                current_add_signal(SignalFlags::SIGINT);
                 break;
             } else {
                 break;

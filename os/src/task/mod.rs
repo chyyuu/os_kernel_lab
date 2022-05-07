@@ -1,10 +1,10 @@
+mod action;
 mod context;
 mod manager;
 mod pid;
 mod processor;
 mod signal;
 mod switch;
-mod action;
 #[allow(clippy::module_inception)]
 mod task;
 
@@ -17,14 +17,13 @@ use manager::remove_from_pid2task;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 
+pub use action::{SignalAction, SignalActions};
 pub use manager::{add_task, pid2task};
 pub use pid::{pid_alloc, KernelStack, PidHandle};
 pub use processor::{
     current_task, current_trap_cx, current_user_token, run_tasks, schedule, take_current_task,
 };
 pub use signal::{SignalFlags, MAX_SIG};
-pub use action::{SignalAction, SignalActions};
-
 
 pub fn suspend_current_and_run_next() {
     // There must be an application running.
@@ -96,6 +95,10 @@ pub fn add_initproc() {
 pub fn check_signals_error_of_current() -> Option<(i32, &'static str)> {
     let task = current_task().unwrap();
     let task_inner = task.inner_exclusive_access();
+    println!(
+        "[K] check_signals_error_of_current {:?}",
+        task_inner.signals
+    );
     task_inner.signals.check_error()
 }
 
@@ -103,6 +106,10 @@ pub fn current_add_signal(signal: SignalFlags) {
     let task = current_task().unwrap();
     let mut task_inner = task.inner_exclusive_access();
     task_inner.signals |= signal;
+    println!(
+        "[K] current_add_signal:: current task sigflag {:?}",
+        task_inner.signals
+    );
 }
 
 fn call_kernel_signal_handler(signal: SignalFlags) {
@@ -120,6 +127,10 @@ fn call_kernel_signal_handler(signal: SignalFlags) {
             }
         }
         _ => {
+            println!(
+                "[K] call_kernel_signal_handler:: current task sigflag {:?}",
+                task_inner.signals
+            );
             task_inner.killed = true;
         }
     }
@@ -130,21 +141,28 @@ fn call_user_signal_handler(sig: usize, signal: SignalFlags) {
     let mut task_inner = task.inner_exclusive_access();
 
     let handler = task_inner.signal_actions.table[sig].handler;
-    // change current mask
-    task_inner.signal_mask = task_inner.signal_actions.table[sig].mask;
-    // handle flag
-    task_inner.handling_sig = sig as isize;
-    task_inner.signals ^= signal;
+    if handler != 0 {
+        // user handler
 
-    // backup trapframe
-    let mut trap_ctx = task_inner.get_trap_cx();
-    task_inner.trap_ctx_backup = Some(*trap_ctx);
-    
-    // modify trapframe
-    trap_ctx.sepc = handler;
+        // change current mask
+        task_inner.signal_mask = task_inner.signal_actions.table[sig].mask;
+        // handle flag
+        task_inner.handling_sig = sig as isize;
+        task_inner.signals ^= signal;
 
-    // put args (a0)
-    trap_ctx.x[10] = sig;
+        // backup trapframe
+        let mut trap_ctx = task_inner.get_trap_cx();
+        task_inner.trap_ctx_backup = Some(*trap_ctx);
+
+        // modify trapframe
+        trap_ctx.sepc = handler;
+
+        // put args (a0)
+        trap_ctx.x[10] = sig;
+    } else {
+        // default action
+        println!("[K] task/call_user_signal_handler: default action, kill current process");
+    }
 }
 
 fn check_pending_signals() {
@@ -156,23 +174,32 @@ fn check_pending_signals() {
             if task_inner.handling_sig == -1 {
                 drop(task_inner);
                 drop(task);
-                if signal == SignalFlags::SIGKILL || signal == SignalFlags::SIGSTOP ||
-                    signal == SignalFlags::SIGCONT || signal == SignalFlags::SIGDEF {
-                        // signal is a kernel signal
-                        call_kernel_signal_handler(signal);
+                if signal == SignalFlags::SIGKILL
+                    || signal == SignalFlags::SIGSTOP
+                    || signal == SignalFlags::SIGCONT
+                    || signal == SignalFlags::SIGDEF
+                {
+                    // signal is a kernel signal
+                    call_kernel_signal_handler(signal);
                 } else {
                     // signal is a user signal
                     call_user_signal_handler(sig, signal);
                     return;
                 }
             } else {
-                if !task_inner.signal_actions.table[task_inner.handling_sig as usize].mask.contains(signal) {
+                if !task_inner.signal_actions.table[task_inner.handling_sig as usize]
+                    .mask
+                    .contains(signal)
+                {
                     drop(task_inner);
                     drop(task);
-                    if signal == SignalFlags::SIGKILL || signal == SignalFlags::SIGSTOP ||
-                        signal == SignalFlags::SIGCONT || signal == SignalFlags::SIGDEF {
-                            // signal is a kernel signal
-                            call_kernel_signal_handler(signal);
+                    if signal == SignalFlags::SIGKILL
+                        || signal == SignalFlags::SIGSTOP
+                        || signal == SignalFlags::SIGCONT
+                        || signal == SignalFlags::SIGDEF
+                    {
+                        // signal is a kernel signal
+                        call_kernel_signal_handler(signal);
                     } else {
                         // signal is a user signal
                         call_user_signal_handler(sig, signal);

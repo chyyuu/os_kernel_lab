@@ -86,6 +86,7 @@ pub fn trap_handler() -> ! {
         }
     }
     // handle signals (handle the sent signal)
+    println!("[K] trap_handler:: handle_signals");
     handle_signals();
 
     // check error signals (if error then exit)
