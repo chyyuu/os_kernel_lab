@@ -12,7 +12,7 @@ const LF: u8 = 0x0au8;
 const CR: u8 = 0x0du8;
 
 fn func() {
-    println!("signal_handler: caught signal SIGINT， and exit(1)");
+    println!("signal_handler: caught signal SIGINT, and exit(1)");
     exit(1);
 }
 

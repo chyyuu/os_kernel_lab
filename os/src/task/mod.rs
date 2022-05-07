@@ -95,10 +95,10 @@ pub fn add_initproc() {
 pub fn check_signals_error_of_current() -> Option<(i32, &'static str)> {
     let task = current_task().unwrap();
     let task_inner = task.inner_exclusive_access();
-    println!(
-        "[K] check_signals_error_of_current {:?}",
-        task_inner.signals
-    );
+    // println!(
+    //     "[K] check_signals_error_of_current {:?}",
+    //     task_inner.signals
+    // );
     task_inner.signals.check_error()
 }
 
@@ -106,10 +106,10 @@ pub fn current_add_signal(signal: SignalFlags) {
     let task = current_task().unwrap();
     let mut task_inner = task.inner_exclusive_access();
     task_inner.signals |= signal;
-    println!(
-        "[K] current_add_signal:: current task sigflag {:?}",
-        task_inner.signals
-    );
+    // println!(
+    //     "[K] current_add_signal:: current task sigflag {:?}",
+    //     task_inner.signals
+    // );
 }
 
 fn call_kernel_signal_handler(signal: SignalFlags) {
@@ -127,10 +127,10 @@ fn call_kernel_signal_handler(signal: SignalFlags) {
             }
         }
         _ => {
-            println!(
-                "[K] call_kernel_signal_handler:: current task sigflag {:?}",
-                task_inner.signals
-            );
+            // println!(
+            //     "[K] call_kernel_signal_handler:: current task sigflag {:?}",
+            //     task_inner.signals
+            // );
             task_inner.killed = true;
         }
     }
@@ -161,7 +161,7 @@ fn call_user_signal_handler(sig: usize, signal: SignalFlags) {
         trap_ctx.x[10] = sig;
     } else {
         // default action
-        println!("[K] task/call_user_signal_handler: default action, kill current process");
+        //println!("[K] task/call_user_signal_handler: default action, kill current process");
     }
 }
 

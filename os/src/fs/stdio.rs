@@ -25,7 +25,7 @@ impl File for Stdin {
                 continue;
             } else if c == 3 {
                 // 3 is ctrl_c
-                println!("[K] os/fs/stdio/read: Got Ctrl_C");
+                //println!("[K] os/fs/stdio/read: Got Ctrl_C");
                 current_add_signal(SignalFlags::SIGINT);
                 break;
             } else {
