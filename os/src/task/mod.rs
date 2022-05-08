@@ -161,7 +161,7 @@ fn call_user_signal_handler(sig: usize, signal: SignalFlags) {
         trap_ctx.x[10] = sig;
     } else {
         // default action
-        //println!("[K] task/call_user_signal_handler: default action, kill current process");
+        println!("[K] task/call_user_signal_handler: default action: ignore it or kill process");
     }
 }
 
