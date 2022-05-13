@@ -101,6 +101,7 @@ impl<T> UPIntrFreeCell<T> {
             inner: RefCell::new(value),
         }
     }
+    
     /// Panic if the data has been borrowed.
     pub fn exclusive_access(&self) -> UPIntrRefMut<'_, T> {
         INTR_MASKING_INFO.get_mut().enter();

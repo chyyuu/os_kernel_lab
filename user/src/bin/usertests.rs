@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-static TESTS: &[&str] = &[
+static SUCC_TESTS: &[&str] = &[
     "exit\0",
     "fantastic_text\0",
     "forktest\0",
@@ -14,15 +14,17 @@ static TESTS: &[&str] = &[
     "matrix\0",
     "sleep\0",
     "sleep_simple\0",
-    "stack_overflow\0",
     "yield\0",
+];
+
+static FAIL_TESTS: &[&str] = &[
+    "stack_overflow\0",
 ];
 
 use user_lib::{exec, fork, waitpid};
 
-#[no_mangle]
-pub fn main() -> i32 {
-    for test in TESTS {
+fn run_tests<F: Fn(i32)>(tests: &[&str], judge: F) {
+    for test in tests {
         println!("Usertests: Running {}", test);
         let pid = fork();
         if pid == 0 {
@@ -32,12 +34,19 @@ pub fn main() -> i32 {
             let mut exit_code: i32 = Default::default();
             let wait_pid = waitpid(pid as usize, &mut exit_code);
             assert_eq!(pid, wait_pid);
+            judge(exit_code);
             println!(
                 "\x1b[32mUsertests: Test {} in Process {} exited with code {}\x1b[0m",
                 test, pid, exit_code
             );
         }
     }
+}
+
+#[no_mangle]
+pub fn main() -> i32 {
+    run_tests(SUCC_TESTS, |code| assert!(code == 0));
+    run_tests(FAIL_TESTS, |code| assert!(code != 0));
     println!("Usertests passed!");
     0
 }
