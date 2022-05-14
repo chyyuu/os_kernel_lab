@@ -11,7 +11,7 @@ use core::arch::{asm, global_asm};
 use riscv::register::{
     mtvec::TrapMode,
     scause::{self, Exception, Interrupt, Trap},
-    sie, stval, stvec, sstatus, sscratch,
+    sie, sscratch, sstatus, stval, stvec,
 };
 
 global_asm!(include_str!("trap.S"));
@@ -23,7 +23,7 @@ pub fn init() {
 fn set_kernel_trap_entry() {
     extern "C" {
         fn __alltraps();
-        fn __alltraps_k(); 
+        fn __alltraps_k();
     }
     let __alltraps_k_va = __alltraps_k as usize - __alltraps as usize + TRAMPOLINE;
     unsafe {
@@ -52,7 +52,7 @@ fn enable_supervisor_interrupt() {
 
 fn disable_supervisor_interrupt() {
     unsafe {
-        sstatus::clear_sie(); 
+        sstatus::clear_sie();
     }
 }
 
@@ -67,7 +67,7 @@ pub fn trap_handler() -> ! {
             // jump to next instruction anyway
             let mut cx = current_trap_cx();
             cx.sepc += 4;
-            
+
             enable_supervisor_interrupt();
 
             // get system call return value
@@ -150,19 +150,19 @@ pub fn trap_from_kernel(_trap_cx: &TrapContext) {
     match scause.cause() {
         Trap::Interrupt(Interrupt::SupervisorExternal) => {
             crate::board::irq_handler();
-        },
+        }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
             set_next_trigger();
             check_timer();
             // do not schedule now
-        },
+        }
         _ => {
             panic!(
                 "Unsupported trap from kernel: {:?}, stval = {:#x}!",
                 scause.cause(),
                 stval
             );
-        },
+        }
     }
 }
 

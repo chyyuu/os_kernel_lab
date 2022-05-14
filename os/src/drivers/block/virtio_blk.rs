@@ -20,7 +20,8 @@ pub struct VirtIOBlock {
 }
 
 lazy_static! {
-    static ref QUEUE_FRAMES: UPIntrFreeCell<Vec<FrameTracker>> = unsafe { UPIntrFreeCell::new(Vec::new()) };
+    static ref QUEUE_FRAMES: UPIntrFreeCell<Vec<FrameTracker>> =
+        unsafe { UPIntrFreeCell::new(Vec::new()) };
 }
 
 impl BlockDevice for VirtIOBlock {

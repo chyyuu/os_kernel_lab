@@ -26,7 +26,6 @@ pub use processor::{
 pub use signal::SignalFlags;
 pub use task::{TaskControlBlock, TaskStatus};
 
-
 pub fn suspend_current_and_run_next() {
     // There must be an application running.
     let task = take_current_task().unwrap();
@@ -54,7 +53,7 @@ pub fn block_current_task() -> *mut TaskContext {
 }
 
 pub fn block_current_and_run_next() {
-    let task_cx_ptr = block_current_task(); 
+    let task_cx_ptr = block_current_task();
     schedule(task_cx_ptr);
 }
 

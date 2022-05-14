@@ -1,7 +1,10 @@
 use super::id::TaskUserRes;
 use super::{kstack_alloc, KernelStack, ProcessControlBlock, TaskContext};
 use crate::trap::TrapContext;
-use crate::{mm::PhysPageNum, sync::{UPIntrFreeCell, UPIntrRefMut}};
+use crate::{
+    mm::PhysPageNum,
+    sync::{UPIntrFreeCell, UPIntrRefMut},
+};
 use alloc::sync::{Arc, Weak};
 
 pub struct TaskControlBlock {

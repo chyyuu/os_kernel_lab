@@ -17,9 +17,7 @@ static SUCC_TESTS: &[&str] = &[
     "yield\0",
 ];
 
-static FAIL_TESTS: &[&str] = &[
-    "stack_overflow\0",
-];
+static FAIL_TESTS: &[&str] = &["stack_overflow\0"];
 
 use user_lib::{exec, fork, waitpid};
 
