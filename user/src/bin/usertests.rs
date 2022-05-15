@@ -9,12 +9,12 @@ extern crate user_lib;
 
 // item of TESTS : app_name(argv_0), argv_1, argv_2, argv_3, exit_code
 static SUCC_TESTS: &[(&str, &str, &str, &str, i32)] = &[
-    ("cat\0", "cat.rs\0", "\0", "\0", 0),
+    ("filetest_simple\0", "\0", "\0", "\0", 0),
+    ("cat\0", "filea\0", "\0", "\0", 0),
     ("cmdline_args\0", "1\0", "2\0", "3\0", 0),
     ("eisenberg\0", "\0", "\0", "\0", 0),
     ("exit\0", "\0", "\0", "\0", 0),
     ("fantastic_text\0", "\0", "\0", "\0", 0),
-    ("filetest_simple\0", "\0", "\0", "\0", 0),
     ("forktest_simple\0", "\0", "\0", "\0", 0),
     ("forktest\0", "\0", "\0", "\0", 0),
     ("forktest2\0", "\0", "\0", "\0", 0),
@@ -57,7 +57,8 @@ use user_lib::{exec, fork, waitpid};
 
 fn run_tests(tests: &[(&str, &str, &str, &str, i32)]) -> i32 {
     let mut pass_num = 0;
-    let mut arr: [*const u8; 3] = [
+    let mut arr: [*const u8; 4] = [
+        core::ptr::null::<u8>(),
         core::ptr::null::<u8>(),
         core::ptr::null::<u8>(),
         core::ptr::null::<u8>(),
@@ -65,24 +66,27 @@ fn run_tests(tests: &[(&str, &str, &str, &str, i32)]) -> i32 {
 
     for test in tests {
         println!("Usertests: Running {}", test.0);
-
+        arr[0] = test.0.as_ptr();
         if test.1 != "\0" {
-            arr[0] = test.1.as_ptr();
+            arr[1] = test.1.as_ptr();
+            arr[2] = core::ptr::null::<u8>();
+            arr[3] = core::ptr::null::<u8>();
             if test.2 != "\0" {
-                arr[1] = test.2.as_ptr();
+                arr[2] = test.2.as_ptr();
+                arr[3] = core::ptr::null::<u8>();
                 if test.3 != "\0" {
-                    arr[2] = test.3.as_ptr();
+                    arr[3] = test.3.as_ptr();
                 } else {
-                    arr[2] = core::ptr::null::<u8>();
+                    arr[3] = core::ptr::null::<u8>();
                 }
             } else {
-                arr[1] = core::ptr::null::<u8>();
                 arr[2] = core::ptr::null::<u8>();
+                arr[3] = core::ptr::null::<u8>();
             }
         } else {
-            arr[0] = core::ptr::null::<u8>();
             arr[1] = core::ptr::null::<u8>();
             arr[2] = core::ptr::null::<u8>();
+            arr[3] = core::ptr::null::<u8>();
         }
 
         let pid = fork();
