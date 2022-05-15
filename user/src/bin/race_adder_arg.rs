@@ -34,7 +34,10 @@ pub fn main(argc: usize, argv: &[&str]) -> i32 {
     } else if argc == 2 {
         count = argv[1].to_string().parse::<usize>().unwrap();
     } else {
-        println!("ERROR in argv");
+        println!(
+            "ERROR in argv, argc is {}, argv[0] {} , argv[1] {} , argv[2] {}",
+            argc, argv[0], argv[1], argv[2]
+        );
         exit(-1);
     }
 

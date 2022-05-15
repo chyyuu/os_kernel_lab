@@ -18,7 +18,7 @@ fn panic(info: &PanicInfo) -> ! {
     unsafe {
         backtrace();
     }
-    shutdown()
+    shutdown(255)
 }
 
 unsafe fn backtrace() {
