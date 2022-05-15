@@ -5,19 +5,46 @@
 extern crate user_lib;
 
 static SUCC_TESTS: &[&str] = &[
+    "matrix\0",
     "exit\0",
     "fantastic_text\0",
+    "filetest_simple\0",
+    "forktest_simple\0",
     "forktest\0",
     "forktest2\0",
-    "forktest_simple\0",
+    "forktree\0",
     "hello_world\0",
-    "matrix\0",
+    "huge_write\0",
+    "mpsc_sem\0",
+    "phil_din_mutex\0",
+    "pipe_large_test\0",
+    "pipetest\0",
+    "race_adder_atomic\0",
+    "race_adder_mutex_blocking\0",
+    "race_adder_mutex_spin\0",
+    "race_adder_arg\0",
+    "sleep_simple\0",
     "sleep\0",
     "sleep_simple\0",
+    "sync_sem\0",
+    "test_condvar\0",
+    "threads_arg\0",
+    "threads\0",
     "yield\0",
+    "run_pipe_test\0",
 ];
-
-static FAIL_TESTS: &[&str] = &["stack_overflow\0"];
+    
+static FAIL_TESTS: &[&str] = &[
+    "stack_overflow\0",
+    "race_adder_loop\0",
+    "priv_csr\0",
+    "priv_inst\0",
+    "store_fault\0",
+    "until_timeout\0",
+    "stack_overflow\0",
+    "race_adder\0",
+    "huge_write_mt\0",
+];
 
 use user_lib::{exec, fork, waitpid};
 
