@@ -21,6 +21,7 @@ fn fork_child(cur: &str, branch: char) {
         yield_();
         exit(0);
     }
+    exit(0);
 }
 
 fn fork_tree(cur: &str) {
