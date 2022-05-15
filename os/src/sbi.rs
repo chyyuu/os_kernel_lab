@@ -39,7 +39,9 @@ pub fn console_getchar() -> usize {
     sbi_call(SBI_CONSOLE_GETCHAR, 0, 0, 0)
 }
 
+use crate::board::QEMUExit;
 pub fn shutdown(exit_code: usize) -> ! {
-    sbi_call(SBI_SHUTDOWN, exit_code, 0, 0);
+    //sbi_call(SBI_SHUTDOWN, exit_code, 0, 0);
+    crate::board::QEMU_EXIT_HANDLE.exit_failure();
     panic!("It should shutdown!");
 }

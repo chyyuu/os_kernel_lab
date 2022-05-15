@@ -57,6 +57,8 @@ pub fn block_current_and_run_next() {
     schedule(task_cx_ptr);
 }
 
+use crate::board::QEMUExit;
+
 pub fn exit_current_and_run_next(exit_code: i32) {
     let task = take_current_task().unwrap();
     let mut task_inner = task.inner_exclusive_access();
@@ -79,9 +81,11 @@ pub fn exit_current_and_run_next(exit_code: i32) {
                 exit_code
             );
             if exit_code != 0 {
-                crate::sbi::shutdown(255); //255 == -1 for err hint
+                //crate::sbi::shutdown(255); //255 == -1 for err hint
+                crate::board::QEMU_EXIT_HANDLE.exit_failure();
             } else {
-                crate::sbi::shutdown(0); //0 for success hint
+                //crate::sbi::shutdown(0); //0 for success hint
+                crate::board::QEMU_EXIT_HANDLE.exit_success();
             }
         }
         remove_from_pid2process(pid);
