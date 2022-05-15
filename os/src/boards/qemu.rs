@@ -45,7 +45,7 @@ pub fn irq_handler() {
     plic.complete(0, IntrTargetPriority::Supervisor, intr_src_id);
 }
 
-
+//ref:: https://github.com/andre-richter/qemu-exit
 use core::arch::asm;
 
 const EXIT_SUCCESS: u32 = 0x5555; // Equals `exit(0)`. qemu successful exit
