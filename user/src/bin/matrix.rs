@@ -1,12 +1,13 @@
 #![no_std]
 #![no_main]
+#![allow(clippy::needless_range_loop)]
 
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{fork, wait, yield_, exit, getpid, get_time};
+use user_lib::{exit, fork, get_time, getpid, wait, yield_};
 
-static NUM: usize = 35;
+static NUM: usize = 30;
 const N: usize = 10;
 static P: i32 = 10007;
 type Arr = [[i32; N]; N];

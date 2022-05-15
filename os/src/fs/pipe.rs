@@ -1,25 +1,25 @@
 use super::File;
-use alloc::sync::{Arc, Weak};
-use crate::sync::UPSafeCell;
 use crate::mm::UserBuffer;
+use crate::sync::UPIntrFreeCell;
+use alloc::sync::{Arc, Weak};
 
 use crate::task::suspend_current_and_run_next;
 
 pub struct Pipe {
     readable: bool,
     writable: bool,
-    buffer: Arc<UPSafeCell<PipeRingBuffer>>,
+    buffer: Arc<UPIntrFreeCell<PipeRingBuffer>>,
 }
 
 impl Pipe {
-    pub fn read_end_with_buffer(buffer: Arc<UPSafeCell<PipeRingBuffer>>) -> Self {
+    pub fn read_end_with_buffer(buffer: Arc<UPIntrFreeCell<PipeRingBuffer>>) -> Self {
         Self {
             readable: true,
             writable: false,
             buffer,
         }
     }
-    pub fn write_end_with_buffer(buffer: Arc<UPSafeCell<PipeRingBuffer>>) -> Self {
+    pub fn write_end_with_buffer(buffer: Arc<UPIntrFreeCell<PipeRingBuffer>>) -> Self {
         Self {
             readable: false,
             writable: true,
@@ -32,9 +32,9 @@ const RING_BUFFER_SIZE: usize = 32;
 
 #[derive(Copy, Clone, PartialEq)]
 enum RingBufferStatus {
-    FULL,
-    EMPTY,
-    NORMAL,
+    Full,
+    Empty,
+    Normal,
 }
 
 pub struct PipeRingBuffer {
@@ -51,7 +51,7 @@ impl PipeRingBuffer {
             arr: [0; RING_BUFFER_SIZE],
             head: 0,
             tail: 0,
-            status: RingBufferStatus::EMPTY,
+            status: RingBufferStatus::Empty,
             write_end: None,
         }
     }
@@ -59,35 +59,33 @@ impl PipeRingBuffer {
         self.write_end = Some(Arc::downgrade(write_end));
     }
     pub fn write_byte(&mut self, byte: u8) {
-        self.status = RingBufferStatus::NORMAL;
+        self.status = RingBufferStatus::Normal;
         self.arr[self.tail] = byte;
         self.tail = (self.tail + 1) % RING_BUFFER_SIZE;
         if self.tail == self.head {
-            self.status = RingBufferStatus::FULL;
+            self.status = RingBufferStatus::Full;
         }
     }
     pub fn read_byte(&mut self) -> u8 {
-        self.status = RingBufferStatus::NORMAL;
+        self.status = RingBufferStatus::Normal;
         let c = self.arr[self.head];
         self.head = (self.head + 1) % RING_BUFFER_SIZE;
         if self.head == self.tail {
-            self.status = RingBufferStatus::EMPTY;
+            self.status = RingBufferStatus::Empty;
         }
         c
     }
     pub fn available_read(&self) -> usize {
-        if self.status == RingBufferStatus::EMPTY {
+        if self.status == RingBufferStatus::Empty {
             0
+        } else if self.tail > self.head {
+            self.tail - self.head
         } else {
-            if self.tail > self.head {
-                self.tail - self.head
-            } else {
-                self.tail + RING_BUFFER_SIZE - self.head
-            }
+            self.tail + RING_BUFFER_SIZE - self.head
         }
     }
     pub fn available_write(&self) -> usize {
-        if self.status == RingBufferStatus::FULL {
+        if self.status == RingBufferStatus::Full {
             0
         } else {
             RING_BUFFER_SIZE - self.available_read()
@@ -100,24 +98,22 @@ impl PipeRingBuffer {
 
 /// Return (read_end, write_end)
 pub fn make_pipe() -> (Arc<Pipe>, Arc<Pipe>) {
-    let buffer = Arc::new(unsafe {
-        UPSafeCell::new(PipeRingBuffer::new())
-    });
-    let read_end = Arc::new(
-        Pipe::read_end_with_buffer(buffer.clone())
-    );
-    let write_end = Arc::new(
-        Pipe::write_end_with_buffer(buffer.clone())
-    );
+    let buffer = Arc::new(unsafe { UPIntrFreeCell::new(PipeRingBuffer::new()) });
+    let read_end = Arc::new(Pipe::read_end_with_buffer(buffer.clone()));
+    let write_end = Arc::new(Pipe::write_end_with_buffer(buffer.clone()));
     buffer.exclusive_access().set_write_end(&write_end);
     (read_end, write_end)
 }
 
 impl File for Pipe {
-    fn readable(&self) -> bool { self.readable }
-    fn writable(&self) -> bool { self.writable }
+    fn readable(&self) -> bool {
+        self.readable
+    }
+    fn writable(&self) -> bool {
+        self.writable
+    }
     fn read(&self, buf: UserBuffer) -> usize {
-        assert_eq!(self.readable(), true);
+        assert!(self.readable());
         let mut buf_iter = buf.into_iter();
         let mut read_size = 0usize;
         loop {
@@ -134,7 +130,9 @@ impl File for Pipe {
             // read at most loop_read bytes
             for _ in 0..loop_read {
                 if let Some(byte_ref) = buf_iter.next() {
-                    unsafe { *byte_ref = ring_buffer.read_byte(); }
+                    unsafe {
+                        *byte_ref = ring_buffer.read_byte();
+                    }
                     read_size += 1;
                 } else {
                     return read_size;
@@ -143,7 +141,7 @@ impl File for Pipe {
         }
     }
     fn write(&self, buf: UserBuffer) -> usize {
-        assert_eq!(self.writable(), true);
+        assert!(self.writable());
         let mut buf_iter = buf.into_iter();
         let mut write_size = 0usize;
         loop {

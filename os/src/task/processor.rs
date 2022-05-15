@@ -1,10 +1,10 @@
-use super::{TaskContext, TaskControlBlock, ProcessControlBlock};
+use super::__switch;
+use super::{fetch_task, TaskStatus};
+use super::{ProcessControlBlock, TaskContext, TaskControlBlock};
+use crate::sync::UPIntrFreeCell;
+use crate::trap::TrapContext;
 use alloc::sync::Arc;
 use lazy_static::*;
-use super::{fetch_task, TaskStatus};
-use super::__switch;
-use crate::trap::TrapContext;
-use crate::sync::UPSafeCell;
 
 pub struct Processor {
     current: Option<Arc<TaskControlBlock>>,
@@ -25,14 +25,13 @@ impl Processor {
         self.current.take()
     }
     pub fn current(&self) -> Option<Arc<TaskControlBlock>> {
-        self.current.as_ref().map(|task| Arc::clone(task))
+        self.current.as_ref().map(Arc::clone)
     }
 }
 
 lazy_static! {
-    pub static ref PROCESSOR: UPSafeCell<Processor> = unsafe {
-        UPSafeCell::new(Processor::new())
-    };
+    pub static ref PROCESSOR: UPIntrFreeCell<Processor> =
+        unsafe { UPIntrFreeCell::new(Processor::new()) };
 }
 
 pub fn run_tasks() {
@@ -41,22 +40,18 @@ pub fn run_tasks() {
         if let Some(task) = fetch_task() {
             let idle_task_cx_ptr = processor.get_idle_task_cx_ptr();
             // access coming task TCB exclusively
-            let mut task_inner = task.inner_exclusive_access();
-            let next_task_cx_ptr = &task_inner.task_cx as *const TaskContext;
-            task_inner.task_status = TaskStatus::Running;
-            drop(task_inner);
-            // release coming task TCB manually
+            let next_task_cx_ptr = task.inner.exclusive_session(|task_inner| {
+                task_inner.task_status = TaskStatus::Running;
+                &task_inner.task_cx as *const TaskContext
+            });
             processor.current = Some(task);
             // release processor manually
             drop(processor);
             unsafe {
-                __switch(
-                    idle_task_cx_ptr,
-                    next_task_cx_ptr,
-                );
+                __switch(idle_task_cx_ptr, next_task_cx_ptr);
             }
         } else {
-            println!("no tasks available in run_tasks");    
+            println!("no tasks available in run_tasks");
         }
     }
 }
@@ -75,12 +70,14 @@ pub fn current_process() -> Arc<ProcessControlBlock> {
 
 pub fn current_user_token() -> usize {
     let task = current_task().unwrap();
-    let token = task.get_user_token();
-    token
+    task.get_user_token()
 }
 
 pub fn current_trap_cx() -> &'static mut TrapContext {
-    current_task().unwrap().inner_exclusive_access().get_trap_cx()
+    current_task()
+        .unwrap()
+        .inner_exclusive_access()
+        .get_trap_cx()
 }
 
 pub fn current_trap_cx_user_va() -> usize {
@@ -94,20 +91,13 @@ pub fn current_trap_cx_user_va() -> usize {
 }
 
 pub fn current_kstack_top() -> usize {
-    current_task()
-        .unwrap()
-        .kstack
-        .get_top()
+    current_task().unwrap().kstack.get_top()
 }
 
 pub fn schedule(switched_task_cx_ptr: *mut TaskContext) {
-    let mut processor = PROCESSOR.exclusive_access();
-    let idle_task_cx_ptr = processor.get_idle_task_cx_ptr();
-    drop(processor);
+    let idle_task_cx_ptr =
+        PROCESSOR.exclusive_session(|processor| processor.get_idle_task_cx_ptr());
     unsafe {
-        __switch(
-            switched_task_cx_ptr,
-            idle_task_cx_ptr,
-        );
+        __switch(switched_task_cx_ptr, idle_task_cx_ptr);
     }
 }

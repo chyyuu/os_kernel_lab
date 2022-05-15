@@ -4,13 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{
-    open,
-    close,
-    read,
-    write,
-    OpenFlags,
-};
+use user_lib::{close, open, read, write, OpenFlags};
 
 #[no_mangle]
 pub fn main() -> i32 {
@@ -29,10 +23,7 @@ pub fn main() -> i32 {
     let read_len = read(fd, &mut buffer) as usize;
     close(fd);
 
-    assert_eq!(
-        test_str,
-        core::str::from_utf8(&buffer[..read_len]).unwrap(),
-    );
+    assert_eq!(test_str, core::str::from_utf8(&buffer[..read_len]).unwrap(),);
     println!("file_test passed!");
     0
 }

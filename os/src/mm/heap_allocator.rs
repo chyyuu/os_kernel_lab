@@ -1,5 +1,5 @@
-use buddy_system_allocator::LockedHeap;
 use crate::config::KERNEL_HEAP_SIZE;
+use buddy_system_allocator::LockedHeap;
 
 #[global_allocator]
 static HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();
@@ -36,8 +36,8 @@ pub fn heap_test() {
     for i in 0..500 {
         v.push(i);
     }
-    for i in 0..500 {
-        assert_eq!(v[i], i);
+    for (i, val) in v.iter().take(500).enumerate() {
+        assert_eq!(*val, i);
     }
     assert!(bss_range.contains(&(v.as_ptr() as usize)));
     drop(v);

@@ -1,5 +1,9 @@
+use crate::{
+    mm::kernel_token,
+    task::{add_task, current_task, TaskControlBlock},
+    trap::{trap_handler, TrapContext},
+};
 use alloc::sync::Arc;
-use crate::{mm::kernel_token, task::{TaskControlBlock, add_task, current_task}, trap::{TrapContext, trap_handler}};
 
 pub fn sys_thread_create(entry: usize, arg: usize) -> isize {
     let task = current_task().unwrap();
@@ -7,7 +11,11 @@ pub fn sys_thread_create(entry: usize, arg: usize) -> isize {
     // create a new thread
     let new_task = Arc::new(TaskControlBlock::new(
         Arc::clone(&process),
-        task.inner_exclusive_access().res.as_ref().unwrap().ustack_base,
+        task.inner_exclusive_access()
+            .res
+            .as_ref()
+            .unwrap()
+            .ustack_base,
         true,
     ));
     // add new task to scheduler
@@ -35,7 +43,13 @@ pub fn sys_thread_create(entry: usize, arg: usize) -> isize {
 }
 
 pub fn sys_gettid() -> isize {
-    current_task().unwrap().inner_exclusive_access().res.as_ref().unwrap().tid as isize
+    current_task()
+        .unwrap()
+        .inner_exclusive_access()
+        .res
+        .as_ref()
+        .unwrap()
+        .tid as isize
 }
 
 /// thread does not exist, return -1
