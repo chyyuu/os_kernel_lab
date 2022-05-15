@@ -3,11 +3,15 @@
 
 #[macro_use]
 extern crate user_lib;
+
+// not in SUCC_TESTS & FAIL_TESTS 
+// count_lines, infloop, user_shell, usertests
+
 // item of TESTS : app_name(argv_0), argv_1, argv_2, argv_3, exit_code
 static SUCC_TESTS: &[(&str, &str, &str, &str, i32)] = &[
-    ("cmdline_args\0", "1\0", "2\0", "\0", 0),
+    ("cat\0", "cat.rs\0", "\0", "\0", 0),
     ("cmdline_args\0", "1\0", "2\0", "3\0", 0),
-    ("matrix\0", "\0", "\0", "\0", 0),
+    ("eisenberg\0", "\0", "\0", "\0", 0),
     ("exit\0", "\0", "\0", "\0", 0),
     ("fantastic_text\0", "\0", "\0", "\0", 0),
     ("filetest_simple\0", "\0", "\0", "\0", 0),
@@ -17,14 +21,17 @@ static SUCC_TESTS: &[(&str, &str, &str, &str, i32)] = &[
     ("forktree\0", "\0", "\0", "\0", 0),
     ("hello_world\0", "\0", "\0", "\0", 0),
     ("huge_write\0", "\0", "\0", "\0", 0),
+    ("matrix\0", "\0", "\0", "\0", 0),
     ("mpsc_sem\0", "\0", "\0", "\0", 0),
+    ("peterson\0", "\0", "\0", "\0", 0),
     ("phil_din_mutex\0", "\0", "\0", "\0", 0),
     ("pipe_large_test\0", "\0", "\0", "\0", 0),
     ("pipetest\0", "\0", "\0", "\0", 0),
+    ("race_adder_arg\0", "3\0", "\0", "\0", 0),
     ("race_adder_atomic\0", "\0", "\0", "\0", 0),
     ("race_adder_mutex_blocking\0", "\0", "\0", "\0", 0),
     ("race_adder_mutex_spin\0", "\0", "\0", "\0", 0),
-    ("race_adder_arg\0", "3\0", "\0", "\0", 0),
+    ("run_pipe_test\0", "\0", "\0", "\0", 0),
     ("sleep_simple\0", "\0", "\0", "\0", 0),
     ("sleep\0", "\0", "\0", "\0", 0),
     ("sleep_simple\0", "\0", "\0", "\0", 0),
@@ -33,7 +40,6 @@ static SUCC_TESTS: &[(&str, &str, &str, &str, i32)] = &[
     ("threads_arg\0", "\0", "\0", "\0", 0),
     ("threads\0", "\0", "\0", "\0", 0),
     ("yield\0", "\0", "\0", "\0", 0),
-    ("run_pipe_test\0", "\0", "\0", "\0", 0),
 ];
 
 static FAIL_TESTS: &[(&str, &str, &str, &str, i32)] = &[
@@ -105,7 +111,7 @@ pub fn main() -> i32 {
     let succ_num = run_tests(SUCC_TESTS);
     let err_num = run_tests(FAIL_TESTS);
     if succ_num == SUCC_TESTS.len() as i32 && err_num == FAIL_TESTS.len() as i32 {
-        println!("Usertests passed!");
+        println!("{} of sueecssed apps, {} of failed apps run correctly. \nUsertests passed!", SUCC_TESTS.len(), FAIL_TESTS.len() );
         return 0;
     }
     if succ_num != SUCC_TESTS.len() as i32 {
@@ -122,6 +128,6 @@ pub fn main() -> i32 {
             err_num
         );
     }
-    println!("Usertests failed!");
+    println!(" Usertests failed!");
     return -1;
 }
