@@ -40,6 +40,6 @@ pub fn console_getchar() -> usize {
 }
 
 pub fn shutdown(exit_code: usize) -> ! {
-    sbi_call(SBI_SHUTDOWN, 0, 0, 0);
+    sbi_call(SBI_SHUTDOWN, exit_code, 0, 0);
     panic!("It should shutdown!");
 }
