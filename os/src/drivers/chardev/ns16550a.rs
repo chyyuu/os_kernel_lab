@@ -1,7 +1,6 @@
 ///! Ref: https://www.lammertbies.nl/comm/info/serial-uart
 ///! Ref: ns16550a datasheet: https://datasheetspdf.com/pdf-file/605590/NationalSemiconductor/NS16550A/1
 ///! Ref: ns16450 datasheet: https://datasheetspdf.com/pdf-file/1311818/NationalSemiconductor/NS16450/1
-
 use super::CharDevice;
 use crate::sync::{Condvar, UPIntrFreeCell};
 use crate::task::schedule;
@@ -12,7 +11,7 @@ use volatile::{ReadOnly, Volatile, WriteOnly};
 bitflags! {
     /// InterruptEnableRegister
     pub struct IER: u8 {
-        const RX_AVALIABLE = 1 << 0;
+        const RX_AVAILABLE = 1 << 0;
         const TX_EMPTY = 1 << 1;
     }
 
@@ -95,7 +94,7 @@ impl NS16550aRaw {
         mcr |= MCR::REQUEST_TO_SEND;
         mcr |= MCR::AUX_OUTPUT2;
         read_end.mcr.write(mcr);
-        let ier = IER::RX_AVALIABLE;
+        let ier = IER::RX_AVAILABLE;
         read_end.ier.write(ier);
     }
 

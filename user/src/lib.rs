@@ -2,6 +2,7 @@
 #![feature(linkage)]
 #![feature(panic_info_message)]
 #![feature(alloc_error_handler)]
+#![feature(core_intrinsics)]
 
 #[macro_use]
 pub mod console;
@@ -196,4 +197,25 @@ pub fn condvar_signal(condvar_id: usize) {
 }
 pub fn condvar_wait(condvar_id: usize, mutex_id: usize) {
     sys_condvar_wait(condvar_id, mutex_id);
+}
+
+#[macro_export]
+macro_rules! vstore {
+    ($var_ref: expr, $value: expr) => { 
+        unsafe { core::intrinsics::volatile_store($var_ref as *const _ as _, $value) }
+    };
+}
+
+#[macro_export]
+macro_rules! vload {
+    ($var_ref: expr) => { 
+        unsafe { core::intrinsics::volatile_load($var_ref as *const _ as _) }
+    };
+}
+
+#[macro_export]
+macro_rules! memory_fence {
+    () => {
+        core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst)
+    };
 }

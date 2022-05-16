@@ -1,5 +1,3 @@
-use core::arch::asm;
-
 const SYSCALL_DUP: usize = 24;
 const SYSCALL_OPEN: usize = 56;
 const SYSCALL_CLOSE: usize = 57;
@@ -31,7 +29,7 @@ const SYSCALL_CONDVAR_WAIT: usize = 1032;
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
     unsafe {
-        asm!(
+        core::arch::asm!(
             "ecall",
             inlateout("x10") args[0] => ret,
             in("x11") args[1],

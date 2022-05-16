@@ -17,7 +17,7 @@ use process::ProcessControlBlock;
 use switch::__switch;
 
 pub use context::TaskContext;
-pub use id::{kstack_alloc, pid_alloc, KernelStack, PidHandle};
+pub use id::{kstack_alloc, pid_alloc, KernelStack, PidHandle, IDLE_PID};
 pub use manager::{add_task, pid2process, remove_from_pid2process};
 pub use processor::{
     current_kstack_top, current_process, current_task, current_trap_cx, current_trap_cx_user_va,
@@ -53,9 +53,11 @@ pub fn block_current_task() -> *mut TaskContext {
 }
 
 pub fn block_current_and_run_next() {
-    let task_cx_ptr = block_current_task(); 
+    let task_cx_ptr = block_current_task();
     schedule(task_cx_ptr);
 }
+
+use crate::board::QEMUExit;
 
 pub fn exit_current_and_run_next(exit_code: i32) {
     let task = take_current_task().unwrap();
@@ -72,7 +74,21 @@ pub fn exit_current_and_run_next(exit_code: i32) {
     // however, if this is the main thread of current process
     // the process should terminate at once
     if tid == 0 {
-        remove_from_pid2process(process.getpid());
+        let pid = process.getpid();
+        if pid == IDLE_PID {
+            println!(
+                "[kernel] Idle process exit with exit_code {} ...",
+                exit_code
+            );
+            if exit_code != 0 {
+                //crate::sbi::shutdown(255); //255 == -1 for err hint
+                crate::board::QEMU_EXIT_HANDLE.exit_failure();
+            } else {
+                //crate::sbi::shutdown(0); //0 for success hint
+                crate::board::QEMU_EXIT_HANDLE.exit_success();
+            }
+        }
+        remove_from_pid2process(pid);
         let mut process_inner = process.inner_exclusive_access();
         // mark this process as a zombie process
         process_inner.is_zombie = true;

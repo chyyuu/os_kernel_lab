@@ -1,5 +1,8 @@
 use crate::sync::{Mutex, UPIntrFreeCell};
-use crate::task::{add_task, block_current_task, block_current_and_run_next, current_task, TaskControlBlock, TaskContext};
+use crate::task::{
+    add_task, block_current_and_run_next, block_current_task, current_task, TaskContext,
+    TaskControlBlock,
+};
 use alloc::{collections::VecDeque, sync::Arc};
 
 pub struct Condvar {

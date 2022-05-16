@@ -1,6 +1,10 @@
-.idea/*
-os/target/*
-os/.idea/*
+.*/*
+!.github/*
+!.vscode/settings.json
+
+**/target/
+**/Cargo.lock
+
 os/src/link_app.S
 os/src/linker.ld
 os/last-*
