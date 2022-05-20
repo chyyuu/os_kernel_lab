@@ -105,7 +105,7 @@ pub fn trap_handler() -> ! {
 #[no_mangle]
 /// set the new addr of __restore asm function in TRAMPOLINE page,
 /// set the reg a0 = trap_cx_ptr, reg a1 = phy addr of usr page table,
-/// finally, jump to new addr of __restore asm function 
+/// finally, jump to new addr of __restore asm function
 pub fn trap_return() -> ! {
     set_user_trap_entry();
     let trap_cx_ptr = TRAP_CONTEXT;
@@ -129,7 +129,7 @@ pub fn trap_return() -> ! {
 
 #[no_mangle]
 /// Unimplement: traps/interrupts/exceptions from kernel mode
-/// Todo: Chapter 9: I/O device 
+/// Todo: Chapter 9: I/O device
 pub fn trap_from_kernel() -> ! {
     panic!("a trap {:?} from kernel!", scause::read().cause());
 }

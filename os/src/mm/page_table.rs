@@ -37,7 +37,7 @@ impl PageTableEntry {
     pub fn empty() -> Self {
         PageTableEntry { bits: 0 }
     }
-    ///Return 44bit ppn 
+    ///Return 44bit ppn
     pub fn ppn(&self) -> PhysPageNum {
         (self.bits >> 10 & ((1usize << 44) - 1)).into()
     }
@@ -149,8 +149,8 @@ impl PageTable {
         8usize << 60 | self.root_ppn.0
     }
 }
-    /// translate a pointer to a mutable u8 Vec through page table
-    pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static mut [u8]> {
+/// translate a pointer to a mutable u8 Vec through page table
+pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static mut [u8]> {
     let page_table = PageTable::from_token(token);
     let mut start = ptr as usize;
     let end = start + len;
@@ -170,9 +170,9 @@ impl PageTable {
         start = end_va.into();
     }
     v
-    }
-    /// translate a pointer to a mutable u8 Vec end with `\0` through page table to a `String`
-    pub fn translated_str(token: usize, ptr: *const u8) -> String {
+}
+/// translate a pointer to a mutable u8 Vec end with `\0` through page table to a `String`
+pub fn translated_str(token: usize, ptr: *const u8) -> String {
     let page_table = PageTable::from_token(token);
     let mut string = String::new();
     let mut va = ptr as usize;
@@ -189,9 +189,9 @@ impl PageTable {
         }
     }
     string
-    }
-    ///translate a generic through page table and return a mutable reference
-    pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
+}
+///translate a generic through page table and return a mutable reference
+pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
     //println!("into translated_refmut!");
     let page_table = PageTable::from_token(token);
     let va = ptr as usize;
@@ -200,4 +200,4 @@ impl PageTable {
         .translate_va(VirtAddr::from(va))
         .unwrap()
         .get_mut()
-    }
+}

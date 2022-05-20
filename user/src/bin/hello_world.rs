@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{getpid};
+use user_lib::getpid;
 
 #[no_mangle]
 pub fn main() -> i32 {

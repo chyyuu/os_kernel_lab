@@ -5,13 +5,13 @@
 //!
 //! A single global instance of [`TaskManager`] called `TASK_MANAGER` controls
 //! all the tasks in the whole operating system.
-//! 
-//! A single global instance of [`Processor`] called `PROCESSOR` monitors running 
-//! task(s) for each core. 
-//! 
-//! A single global instance of [`PidAllocator`] called `PID_ALLOCATOR` allocates 
+//!
+//! A single global instance of [`Processor`] called `PROCESSOR` monitors running
+//! task(s) for each core.
+//!
+//! A single global instance of [`PidAllocator`] called `PID_ALLOCATOR` allocates
 //! pid for user apps.
-//! 
+//!
 //! Be careful when you see `__switch` ASM function in `switch.S`. Control flow around this function
 //! might not be what you expect.
 mod context;
@@ -20,21 +20,21 @@ mod pid;
 mod processor;
 mod switch;
 #[allow(clippy::module_inception)]
-
 mod task;
 
 use crate::loader::get_app_data_by_name;
 use alloc::sync::Arc;
 use lazy_static::*;
-pub use manager::{fetch_task,TaskManager};
+pub use manager::{fetch_task, TaskManager};
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 
 pub use context::TaskContext;
 pub use manager::add_task;
-pub use pid::{pid_alloc, KernelStack, PidHandle,PidAllocator};
+pub use pid::{pid_alloc, KernelStack, PidAllocator, PidHandle};
 pub use processor::{
-    current_task, current_trap_cx, current_user_token, run_tasks, schedule, take_current_task,Processor
+    current_task, current_trap_cx, current_user_token, run_tasks, schedule, take_current_task,
+    Processor,
 };
 /// Suspend the current 'Running' task and run the next task in task list.
 pub fn suspend_current_and_run_next() {
@@ -89,7 +89,7 @@ pub fn exit_current_and_run_next(exit_code: i32) {
 }
 
 lazy_static! {
-    ///Globle process that init user shell 
+    ///Globle process that init user shell
     pub static ref INITPROC: Arc<TaskControlBlock> = Arc::new(TaskControlBlock::new(
         get_app_data_by_name("initproc").unwrap()
     ));
