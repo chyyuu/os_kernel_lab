@@ -373,26 +373,20 @@ pub fn remap_test() {
     let mid_text: VirtAddr = ((stext as usize + etext as usize) / 2).into();
     let mid_rodata: VirtAddr = ((srodata as usize + erodata as usize) / 2).into();
     let mid_data: VirtAddr = ((sdata as usize + edata as usize) / 2).into();
-    assert!(
-        !kernel_space
-            .page_table
-            .translate(mid_text.floor())
-            .unwrap()
-            .writable(),
-    );
-    assert!(
-        !kernel_space
-            .page_table
-            .translate(mid_rodata.floor())
-            .unwrap()
-            .writable(),
-    );
-    assert!(
-        !kernel_space
-            .page_table
-            .translate(mid_data.floor())
-            .unwrap()
-            .executable(),
-    );
+    assert!(!kernel_space
+        .page_table
+        .translate(mid_text.floor())
+        .unwrap()
+        .writable(),);
+    assert!(!kernel_space
+        .page_table
+        .translate(mid_rodata.floor())
+        .unwrap()
+        .writable(),);
+    assert!(!kernel_space
+        .page_table
+        .translate(mid_data.floor())
+        .unwrap()
+        .executable(),);
     println!("remap_test passed!");
 }

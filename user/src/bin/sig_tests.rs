@@ -47,8 +47,8 @@ fn user_sig_test_kill() {
 }
 
 fn user_sig_test_multiprocsignals() {
-    let pid= fork();
-    if pid == 0{
+    let pid = fork();
+    if pid == 0 {
         let mut new = SignalAction::default();
         let old = SignalAction::default();
         new.handler = func as usize;
@@ -87,14 +87,14 @@ fn user_sig_test_restore() {
 
 fn kernel_sig_test_ignore() {
     sigprocmask(SignalFlags::SIGSTOP.bits() as u32);
-    if kill(getpid() as usize, SignalFlags::SIGSTOP.bits()) < 0{
+    if kill(getpid() as usize, SignalFlags::SIGSTOP.bits()) < 0 {
         println!("kill faild\n");
         exit(-1);
     }
 }
 
 fn kernel_sig_test_stop_cont() {
-    let pid= fork();
+    let pid = fork();
     if pid == 0 {
         kill(getpid() as usize, SignalFlags::SIGSTOP.bits());
         sleep(1000);
@@ -134,8 +134,8 @@ fn final_sig_test() {
     let old2 = SignalAction::default();
     new2.handler = func3 as usize;
 
-    let pid= fork();
-    if pid == 0{
+    let pid = fork();
+    if pid == 0 {
         if sigaction(SIGUSR1, &new, &old) < 0 {
             panic!("Sigaction failed!");
         }
@@ -156,7 +156,6 @@ fn final_sig_test() {
         kill(pid as usize, SignalFlags::SIGKILL.bits());
     }
 }
-
 
 fn run(f: fn()) -> bool {
     let pid = fork();
@@ -180,12 +179,18 @@ pub fn main() -> i32 {
     let tests: [(fn(), &str); 8] = [
         (user_sig_test_failsignum, "user_sig_test_failsignum"),
         (user_sig_test_kill, "user_sig_test_kill"),
-        (user_sig_test_multiprocsignals, "user_sig_test_multiprocsignals"),
+        (
+            user_sig_test_multiprocsignals,
+            "user_sig_test_multiprocsignals",
+        ),
         (user_sig_test_restore, "user_sig_test_restore"),
         (kernel_sig_test_ignore, "kernel_sig_test_ignore"),
         (kernel_sig_test_stop_cont, "kernel_sig_test_stop_cont"),
-        (kernel_sig_test_failignorekill, "kernel_sig_test_failignorekill"),
-        (final_sig_test, "final_sig_test")
+        (
+            kernel_sig_test_failignorekill,
+            "kernel_sig_test_failignorekill",
+        ),
+        (final_sig_test, "final_sig_test"),
     ];
     let mut fail_num = 0;
     for test in tests {

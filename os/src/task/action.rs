@@ -1,19 +1,18 @@
 use crate::task::{SignalFlags, MAX_SIG};
 
-
 /// Action for a signal
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct SignalAction {
-    pub handler: usize, 
-    pub mask: SignalFlags
+    pub handler: usize,
+    pub mask: SignalFlags,
 }
 
 impl Default for SignalAction {
     fn default() -> Self {
         Self {
             handler: 0,
-            mask: SignalFlags::from_bits(40).unwrap()
+            mask: SignalFlags::from_bits(40).unwrap(),
         }
     }
 }

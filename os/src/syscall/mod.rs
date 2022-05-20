@@ -35,7 +35,11 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_EXIT => sys_exit(args[0] as i32),
         SYSCALL_YIELD => sys_yield(),
         SYSCALL_KILL => sys_kill(args[0], args[1] as i32),
-        SYSCALL_SIGACTION => sys_sigaction(args[0] as i32, args[1] as *const SignalAction, args[2] as *mut SignalAction),
+        SYSCALL_SIGACTION => sys_sigaction(
+            args[0] as i32,
+            args[1] as *const SignalAction,
+            args[2] as *mut SignalAction,
+        ),
         SYSCALL_SIGPROCMASK => sys_sigprocmask(args[0] as u32),
         SYSCALL_SIGRETURN => sys_sigretrun(),
         SYSCALL_GET_TIME => sys_get_time(),

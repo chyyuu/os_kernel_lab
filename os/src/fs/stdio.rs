@@ -1,7 +1,7 @@
 use super::File;
 use crate::mm::UserBuffer;
 use crate::sbi::console_getchar;
-use crate::task::{suspend_current_and_run_next,current_add_signal,SignalFlags,};
+use crate::task::{current_add_signal, suspend_current_and_run_next, SignalFlags};
 
 pub struct Stdin;
 

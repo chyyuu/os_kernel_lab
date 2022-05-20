@@ -1,5 +1,5 @@
-use super::{TaskContext, SignalActions};
 use super::{pid_alloc, KernelStack, PidHandle, SignalFlags};
+use super::{SignalActions, TaskContext};
 use crate::config::TRAP_CONTEXT;
 use crate::fs::{File, Stdin, Stdout};
 use crate::mm::{translated_refmut, MemorySet, PhysPageNum, VirtAddr, KERNEL_SPACE};
@@ -39,7 +39,7 @@ pub struct TaskControlBlockInner {
     pub killed: bool,
     // if the task is frozen by a signal
     pub frozen: bool,
-    pub trap_ctx_backup: Option<TrapContext>
+    pub trap_ctx_backup: Option<TrapContext>,
 }
 
 impl TaskControlBlockInner {
@@ -107,7 +107,7 @@ impl TaskControlBlock {
                     signal_actions: SignalActions::default(),
                     killed: false,
                     frozen: false,
-                    trap_ctx_backup: None
+                    trap_ctx_backup: None,
                 })
             },
         };
@@ -216,7 +216,7 @@ impl TaskControlBlock {
                     signal_actions: parent_inner.signal_actions.clone(),
                     killed: false,
                     frozen: false,
-                    trap_ctx_backup: None
+                    trap_ctx_backup: None,
                 })
             },
         });

@@ -2,7 +2,7 @@ use crate::fs::{open_file, OpenFlags};
 use crate::mm::{translated_ref, translated_refmut, translated_str};
 use crate::task::{
     add_task, current_task, current_user_token, exit_current_and_run_next, pid2task,
-    suspend_current_and_run_next, SignalFlags, SignalAction, MAX_SIG,
+    suspend_current_and_run_next, SignalAction, SignalFlags, MAX_SIG,
 };
 use crate::timer::get_time_ms;
 use alloc::string::String;
@@ -151,15 +151,22 @@ pub fn sys_sigretrun() -> isize {
 }
 
 fn check_sigaction_error(signal: SignalFlags, action: usize, old_action: usize) -> bool {
-    if action == 0 || old_action == 0 || signal == SignalFlags::SIGKILL ||
-        signal == SignalFlags::SIGSTOP {
+    if action == 0
+        || old_action == 0
+        || signal == SignalFlags::SIGKILL
+        || signal == SignalFlags::SIGSTOP
+    {
         true
     } else {
         false
     }
 }
 
-pub fn sys_sigaction(signum: i32, action: *const SignalAction, old_action: *mut SignalAction) -> isize {
+pub fn sys_sigaction(
+    signum: i32,
+    action: *const SignalAction,
+    old_action: *mut SignalAction,
+) -> isize {
     let token = current_user_token();
     if let Some(task) = current_task() {
         let mut inner = task.inner_exclusive_access();

@@ -18,7 +18,7 @@ pub fn main() -> i32 {
         let c = getchar();
 
         println!("Got Char  {}", c);
-        if c == LF || c==CR  {
+        if c == LF || c == CR {
             println!("exit(0)");
             return 0;
         }

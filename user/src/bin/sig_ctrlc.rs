@@ -5,8 +5,8 @@ extern crate alloc;
 
 #[macro_use]
 extern crate user_lib;
-use user_lib::*;
 use user_lib::console::getchar;
+use user_lib::*;
 
 const LF: u8 = 0x0au8;
 const CR: u8 = 0x0du8;
@@ -33,7 +33,7 @@ pub fn main() -> i32 {
         let c = getchar();
 
         println!("Got Char  {}", c);
-        if c == LF || c==CR  {
+        if c == LF || c == CR {
             return 0;
         }
     }
