@@ -37,7 +37,7 @@ impl PageTableEntry {
     pub fn empty() -> Self {
         PageTableEntry { bits: 0 }
     }
-    ///Return 44bit ppn 
+    ///Return 44bit ppn
     pub fn ppn(&self) -> PhysPageNum {
         (self.bits >> 10 & ((1usize << 44) - 1)).into()
     }
@@ -150,13 +150,13 @@ impl PageTable {
             (aligned_pa_usize + offset).into()
         })
     }
-    /// Get root ppn 
+    /// Get root ppn
     pub fn token(&self) -> usize {
         8usize << 60 | self.root_ppn.0
     }
 }
-    /// Translate a pointer to a mutable u8 Vec through page table
-    pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static mut [u8]> {
+/// Translate a pointer to a mutable u8 Vec through page table
+pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static mut [u8]> {
     let page_table = PageTable::from_token(token);
     let mut start = ptr as usize;
     let end = start + len;

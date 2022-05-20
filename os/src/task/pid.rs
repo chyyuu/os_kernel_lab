@@ -63,7 +63,7 @@ pub fn kernel_stack_position(app_id: usize) -> (usize, usize) {
     let bottom = top - KERNEL_STACK_SIZE;
     (bottom, top)
 }
-///Kernelstack for app 
+///Kernelstack for app
 pub struct KernelStack {
     pid: usize,
 }

@@ -109,11 +109,11 @@ impl VirtAddr {
     pub fn ceil(&self) -> VirtPageNum {
         VirtPageNum((self.0 - 1 + PAGE_SIZE) / PAGE_SIZE)
     }
-    ///Get page offset 
+    ///Get page offset
     pub fn page_offset(&self) -> usize {
         self.0 & (PAGE_SIZE - 1)
     }
-    ///Check page aligned 
+    ///Check page aligned
     pub fn aligned(&self) -> bool {
         self.page_offset() == 0
     }
@@ -138,11 +138,11 @@ impl PhysAddr {
     pub fn ceil(&self) -> PhysPageNum {
         PhysPageNum((self.0 - 1 + PAGE_SIZE) / PAGE_SIZE)
     }
-    ///Get page offset 
+    ///Get page offset
     pub fn page_offset(&self) -> usize {
         self.0 & (PAGE_SIZE - 1)
     }
-    ///Check page aligned 
+    ///Check page aligned
     pub fn aligned(&self) -> bool {
         self.page_offset() == 0
     }
@@ -160,7 +160,7 @@ impl From<PhysPageNum> for PhysAddr {
 }
 
 impl VirtPageNum {
-    ///Return VPN 3 level index 
+    ///Return VPN 3 level index
     pub fn indexes(&self) -> [usize; 3] {
         let mut vpn = self.0;
         let mut idx = [0usize; 3];
@@ -173,11 +173,11 @@ impl VirtPageNum {
 }
 
 impl PhysAddr {
-    ///Get reference to `PhysAddr` value 
+    ///Get reference to `PhysAddr` value
     pub fn get_ref<T>(&self) -> &'static T {
         unsafe { (self.0 as *const T).as_ref().unwrap() }
     }
-    ///Get mutable reference to `PhysAddr` value 
+    ///Get mutable reference to `PhysAddr` value
     pub fn get_mut<T>(&self) -> &'static mut T {
         unsafe { (self.0 as *mut T).as_mut().unwrap() }
     }

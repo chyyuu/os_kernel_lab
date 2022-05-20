@@ -1,4 +1,3 @@
-
 //! RISC-V timer-related functionality
 
 use crate::config::CLOCK_FREQ;

@@ -9,7 +9,7 @@
 //! - [`mm`]: Address map using SV39
 //! - [`sync`]: Wrap a static data structure inside it so that we are able to access it without any `unsafe`.
 //! - [`fs`]: Separate user from file system with some structures
-//! 
+//!
 //! The operating system also starts in this module. Kernel code starts
 //! executing from `entry.asm`, after which [`rust_main()`] is called to
 //! initialize various pieces of functionality. (See its source code for
