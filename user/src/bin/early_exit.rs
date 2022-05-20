@@ -5,11 +5,13 @@
 extern crate user_lib;
 extern crate alloc;
 
-use user_lib::{thread_create, exit};
 use alloc::vec::Vec;
+use user_lib::{exit, thread_create};
 
 pub fn thread_a() -> ! {
-    for i in 0..1000 { print!("{}", i); }
+    for i in 0..1000 {
+        print!("{}", i);
+    }
     exit(1)
 }
 
@@ -19,4 +21,3 @@ pub fn main() -> i32 {
     println!("main thread exited.");
     exit(0)
 }
-

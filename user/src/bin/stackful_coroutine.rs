@@ -3,7 +3,6 @@
 // https://github.com/cfsamson/example-greenthreads
 #![no_std]
 #![no_main]
-
 #![feature(naked_functions)]
 #![feature(asm)]
 
@@ -17,10 +16,10 @@ use core::arch::asm;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use user_lib::{exit};
+use user_lib::exit;
 
 // In our simple example we set most constraints here.
-const DEFAULT_STACK_SIZE: usize = 4096;  //128 got  SEGFAULT, 256(1024, 4096) got right results. 
+const DEFAULT_STACK_SIZE: usize = 4096; //128 got  SEGFAULT, 256(1024, 4096) got right results.
 const MAX_TASKS: usize = 5;
 static mut RUNTIME: usize = 0;
 
@@ -93,10 +92,7 @@ impl Runtime {
         let mut available_tasks: Vec<Task> = (1..MAX_TASKS).map(|i| Task::new(i)).collect();
         tasks.append(&mut available_tasks);
 
-        Runtime {
-            tasks,
-            current: 0,
-        }
+        Runtime { tasks, current: 0 }
     }
 
     /// This is cheating a bit, but we need a pointer to our Runtime stored so we can call yield on it even if
@@ -110,9 +106,9 @@ impl Runtime {
 
     /// This is where we start running our runtime. If it is our base task, we call yield until
     /// it returns false (which means that there are no tasks scheduled) and we are done.
-    pub fn run(&mut self){
-        while self.t_yield() {} 
-       println!("All tasks finished!");
+    pub fn run(&mut self) {
+        while self.t_yield() {}
+        println!("All tasks finished!");
     }
 
     /// This is our return function. The only place we use this is in our `guard` function.
@@ -131,7 +127,7 @@ impl Runtime {
     /// If we find a task that's ready to be run we change the state of the current task from `Running` to `Ready`.
     /// Then we call switch which will save the current context (the old context) and load the new context
     /// into the CPU which then resumes based on the context it was just passed.
-    /// 
+    ///
     /// NOITCE: if we comment below `#[inline(never)]`, we can not get the corrent running result
     #[inline(never)]
     fn t_yield(&mut self) -> bool {
@@ -200,10 +196,9 @@ impl Runtime {
             // enough space to actually get an aligned pointer in the first place).
             let s_ptr = (s_ptr as usize & !7) as *mut u8;
 
-            available.ctx.x1 = guard as u64;  //ctx.x1  is old return address
-            available.ctx.nx1 = f as u64;     //ctx.nx2 is new return address
+            available.ctx.x1 = guard as u64; //ctx.x1  is old return address
+            available.ctx.nx1 = f as u64; //ctx.nx2 is new return address
             available.ctx.x2 = s_ptr.offset(-32) as u64; //cxt.x2 is sp
-
         }
         available.state = State::Ready;
     }
@@ -264,9 +259,10 @@ pub fn yield_task() {
 /// see: https://doc.rust-lang.org/nightly/rust-by-example/unsafe/asm.html
 #[naked]
 #[no_mangle]
-unsafe fn switch(old: *mut TaskContext, new: *const TaskContext)  {
+unsafe fn switch(old: *mut TaskContext, new: *const TaskContext) {
     // a0: _old, a1: _new
-    asm!("
+    asm!(
+        "
         sd x1, 0x00(a0)
         sd x2, 0x08(a0)
         sd x8, 0x10(a0)
@@ -300,12 +296,13 @@ unsafe fn switch(old: *mut TaskContext, new: *const TaskContext)  {
         ld t0, 0x70(a1)
 
         jr t0
-    ", options( noreturn)
+    ",
+        options(noreturn)
     );
 }
 
 #[no_mangle]
-pub fn main()  {
+pub fn main() {
     println!("stackful_coroutine begin...");
     println!("TASK  0(Runtime) STARTING");
     let mut runtime = Runtime::new();

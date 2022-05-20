@@ -20,4 +20,3 @@ pub const MMIO: &[(usize, usize)] = &[
 ];
 
 pub type BlockDeviceImpl = crate::drivers::block::SDCardWrapper;
-
