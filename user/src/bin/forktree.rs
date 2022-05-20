@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{exit, fork, getpid, sleep, yield_, wait};
+use user_lib::{exit, fork, getpid, sleep, wait, yield_};
 
 const DEPTH: usize = 4;
 
@@ -28,7 +28,7 @@ fn fork_tree(cur: &str) {
     fork_child(cur, '0');
     fork_child(cur, '1');
     let mut exit_code: i32 = 0;
-    for _ in 0..2{
+    for _ in 0..2 {
         wait(&mut exit_code);
     }
 }
@@ -37,7 +37,7 @@ fn fork_tree(cur: &str) {
 pub fn main() -> i32 {
     fork_tree("");
     let mut exit_code: i32 = 0;
-    for _ in 0..2{
+    for _ in 0..2 {
         wait(&mut exit_code);
     }
     sleep(3000);
