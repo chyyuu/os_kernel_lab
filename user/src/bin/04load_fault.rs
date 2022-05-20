@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use core::ptr::{read_volatile,null_mut};
+use core::ptr::{null_mut, read_volatile};
 
 #[no_mangle]
 fn main() -> i32 {
@@ -12,7 +12,7 @@ fn main() -> i32 {
     println!("Into Test load_fault, we will insert an invalid load operation...");
     println!("Kernel should kill this application!");
     unsafe {
-        let _i=read_volatile(null_mut::<u8>());
+        let _i = read_volatile(null_mut::<u8>());
     }
     0
 }

@@ -64,8 +64,10 @@ pub fn trap_handler() -> ! {
             cx.sepc += 4;
             cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
-        Trap::Exception(Exception::StoreFault) | Trap::Exception(Exception::StorePageFault) |
-        Trap::Exception(Exception::LoadFault)  | Trap::Exception(Exception::LoadPageFault) => {
+        Trap::Exception(Exception::StoreFault)
+        | Trap::Exception(Exception::StorePageFault)
+        | Trap::Exception(Exception::LoadFault)
+        | Trap::Exception(Exception::LoadPageFault) => {
             println!("[kernel] PageFault in application, bad addr = {:#x}, bad instruction = {:#x}, kernel killed it.", stval, cx.sepc);
             exit_current_and_run_next();
         }
@@ -115,7 +117,7 @@ pub fn trap_return() -> ! {
 
 #[no_mangle]
 /// Unimplement: traps/interrupts/exceptions from kernel mode
-/// Todo: Chapter 9: I/O device 
+/// Todo: Chapter 9: I/O device
 pub fn trap_from_kernel() -> ! {
     panic!("a trap from kernel!");
 }

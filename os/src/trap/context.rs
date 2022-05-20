@@ -37,10 +37,10 @@ impl TrapContext {
         let mut cx = Self {
             x: [0; 32],
             sstatus,
-            sepc: entry, // entry point of app
-            kernel_satp, // addr of page table
-            kernel_sp,   // kernel stack
-            trap_handler,// addr of trap_handler function
+            sepc: entry,  // entry point of app
+            kernel_satp,  // addr of page table
+            kernel_sp,    // kernel stack
+            trap_handler, // addr of trap_handler function
         };
         cx.set_sp(sp); // app's user stack pointer
         cx // return initial Trap Context of app

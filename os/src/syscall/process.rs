@@ -16,7 +16,7 @@ pub fn sys_yield() -> isize {
     0
 }
 
-/// get current time 
+/// get current time
 pub fn sys_get_time() -> isize {
     get_time_ms() as isize
 }
