@@ -24,7 +24,9 @@ impl BlockDevice for BlockFile {
         assert_eq!(file.write(buf).unwrap(), BLOCK_SZ, "Not a complete block!");
     }
 
-    fn handle_irq(&self) { unimplemented!(); }
+    fn handle_irq(&self) {
+        unimplemented!();
+    }
 }
 
 fn main() {

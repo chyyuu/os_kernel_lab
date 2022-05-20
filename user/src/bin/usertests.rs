@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-// not in SUCC_TESTS & FAIL_TESTS 
+// not in SUCC_TESTS & FAIL_TESTS
 // count_lines, infloop, user_shell, usertests
 
 // item of TESTS : app_name(argv_0), argv_1, argv_2, argv_3, exit_code
@@ -115,7 +115,11 @@ pub fn main() -> i32 {
     let succ_num = run_tests(SUCC_TESTS);
     let err_num = run_tests(FAIL_TESTS);
     if succ_num == SUCC_TESTS.len() as i32 && err_num == FAIL_TESTS.len() as i32 {
-        println!("{} of sueecssed apps, {} of failed apps run correctly. \nUsertests passed!", SUCC_TESTS.len(), FAIL_TESTS.len() );
+        println!(
+            "{} of sueecssed apps, {} of failed apps run correctly. \nUsertests passed!",
+            SUCC_TESTS.len(),
+            FAIL_TESTS.len()
+        );
         return 0;
     }
     if succ_num != SUCC_TESTS.len() as i32 {

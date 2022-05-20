@@ -1,10 +1,10 @@
 pub const CLOCK_FREQ: usize = 12500000;
 
 pub const MMIO: &[(usize, usize)] = &[
-    (0x1000_0000, 0x1000),        // VIRT_UART0 in virt machine
-    (0x1000_1000, 0x1000),        // VIRT_VIRTIO in virt machine 
-    (0x0C00_0000, 0x40_0000),  // VIRT_PLIC in virt machine
-    (0x0010_0000, 0x00_2000),  // VIRT_TEST/RTC  in virt machine
+    (0x1000_0000, 0x1000),    // VIRT_UART0 in virt machine
+    (0x1000_1000, 0x1000),    // VIRT_VIRTIO in virt machine
+    (0x0C00_0000, 0x40_0000), // VIRT_PLIC in virt machine
+    (0x0010_0000, 0x00_2000), // VIRT_TEST/RTC  in virt machine
 ];
 
 pub type BlockDeviceImpl = crate::drivers::block::VirtIOBlock;
@@ -51,8 +51,8 @@ use core::arch::asm;
 const EXIT_SUCCESS: u32 = 0x5555; // Equals `exit(0)`. qemu successful exit
 
 const EXIT_FAILURE_FLAG: u32 = 0x3333;
-const EXIT_FAILURE: u32 = exit_code_encode(1); // Equals `exit(1)`. qemu failed exit 
-const EXIT_RESET: u32 = 0x7777;       // qemu reset
+const EXIT_FAILURE: u32 = exit_code_encode(1); // Equals `exit(1)`. qemu failed exit
+const EXIT_RESET: u32 = 0x7777; // qemu reset
 
 pub trait QEMUExit {
     /// Exit with specified return code.
@@ -68,7 +68,6 @@ pub trait QEMUExit {
     /// Exit QEMU using `EXIT_FAILURE`, aka `1`.
     fn exit_failure(&self) -> !;
 }
-
 
 /// RISCV64 configuration
 pub struct RISCV64 {
@@ -122,6 +121,6 @@ impl QEMUExit for RISCV64 {
     }
 }
 
-const VIRT_TEST: u64 =0x100000;
+const VIRT_TEST: u64 = 0x100000;
 
-pub const QEMU_EXIT_HANDLE: RISCV64 = RISCV64::new(VIRT_TEST); 
+pub const QEMU_EXIT_HANDLE: RISCV64 = RISCV64::new(VIRT_TEST);

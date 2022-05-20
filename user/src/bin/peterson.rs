@@ -8,9 +8,9 @@ extern crate user_lib;
 extern crate alloc;
 extern crate core;
 
-use user_lib::{thread_create, waittid, exit, sleep};
-use core::sync::atomic::{AtomicUsize, Ordering};
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicUsize, Ordering};
+use user_lib::{exit, sleep, thread_create, waittid};
 const N: usize = 3;
 
 static mut TURN: usize = 0;
@@ -26,7 +26,7 @@ fn critical_test_claim() {
 }
 
 fn critical_test_exit() {
-    assert_eq!(GUARD.fetch_sub(1, Ordering::SeqCst), 1); 
+    assert_eq!(GUARD.fetch_sub(1, Ordering::SeqCst), 1);
 }
 
 fn peterson_enter_critical(id: usize, peer_id: usize) {
