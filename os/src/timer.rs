@@ -59,6 +59,18 @@ pub fn add_timer(expire_ms: usize, task: Arc<TaskControlBlock>) {
     timers.push(TimerCondVar { expire_ms, task });
 }
 
+pub fn remove_timer(task: Arc<TaskControlBlock>) {
+    let mut timers = TIMERS.exclusive_access();
+    let mut temp = BinaryHeap::<TimerCondVar>::new();
+    for condvar in timers.drain() {
+        if Arc::as_ptr(&task) != Arc::as_ptr(&condvar.task) {
+            temp.push(condvar); 
+        }
+    }
+    timers.clear();
+    timers.append(&mut temp);
+}
+
 pub fn check_timer() {
     let current_ms = get_time_ms();
     let mut timers = TIMERS.exclusive_access();

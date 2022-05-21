@@ -15,10 +15,11 @@ use lazy_static::*;
 use manager::fetch_task;
 use process::ProcessControlBlock;
 use switch::__switch;
+use crate::timer::remove_timer;
 
 pub use context::TaskContext;
 pub use id::{kstack_alloc, pid_alloc, KernelStack, PidHandle};
-pub use manager::{add_task, pid2process, remove_from_pid2process};
+pub use manager::{add_task, remove_task, pid2process, remove_from_pid2process};
 pub use processor::{
     current_kstack_top, current_process, current_task, current_trap_cx, current_trap_cx_user_va,
     current_user_token, run_tasks, schedule, take_current_task,
@@ -90,6 +91,9 @@ pub fn exit_current_and_run_next(exit_code: i32) {
         let mut recycle_res = Vec::<TaskUserRes>::new();
         for task in process_inner.tasks.iter().filter(|t| t.is_some()) {
             let task = task.as_ref().unwrap();
+            // if other tasks are Ready in TaskManager or waiting for a timer to be
+            // expired, we should remove them.
+            remove_inactive_task(Arc::clone(&task));
             let mut task_inner = task.inner_exclusive_access();
             if let Some(res) = task_inner.res.take() {
                 recycle_res.push(res);
@@ -107,6 +111,8 @@ pub fn exit_current_and_run_next(exit_code: i32) {
         process_inner.memory_set.recycle_data_pages();
         // drop file descriptors
         process_inner.fd_table.clear();
+        // remove all tasks
+        process_inner.tasks.clear();
     }
     drop(process);
     // we do not have to save task context
@@ -136,4 +142,9 @@ pub fn current_add_signal(signal: SignalFlags) {
     let process = current_process();
     let mut process_inner = process.inner_exclusive_access();
     process_inner.signals |= signal;
+}
+
+pub fn remove_inactive_task(task: Arc<TaskControlBlock>) {
+    remove_task(Arc::clone(&task));
+    remove_timer(Arc::clone(&task));
 }
