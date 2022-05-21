@@ -93,6 +93,10 @@ pub fn exit_current_and_run_next(exit_code: i32) {
             let task = task.as_ref().unwrap();
             // if other tasks are Ready in TaskManager or waiting for a timer to be
             // expired, we should remove them.
+            //
+            // Mention that we do not need to consider Mutex/Semaphore since they
+            // are limited in a single process. Therefore, the blocked tasks are
+            // removed when the PCB is deallocated.
             remove_inactive_task(Arc::clone(&task));
             let mut task_inner = task.inner_exclusive_access();
             if let Some(res) = task_inner.res.take() {
