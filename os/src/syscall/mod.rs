@@ -30,11 +30,13 @@ mod fs;
 mod process;
 mod sync;
 mod thread;
+mod gui;
 
 use fs::*;
 use process::*;
 use sync::*;
 use thread::*;
+pub use gui::PAD;
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
     match syscall_id {

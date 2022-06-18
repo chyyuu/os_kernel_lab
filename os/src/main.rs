@@ -3,6 +3,8 @@
 #![feature(panic_info_message)]
 #![feature(alloc_error_handler)]
 
+use crate::drivers::{GPU_DEVICE, KEYBOARD_DEVICE, MOUSE_DEVICE};
+
 extern crate alloc;
 
 #[macro_use]
@@ -28,6 +30,7 @@ mod syscall;
 mod task;
 mod timer;
 mod trap;
+mod gui;
 
 core::arch::global_asm!(include_str!("entry.asm"));
 
@@ -54,6 +57,9 @@ lazy_static! {
 pub fn rust_main() -> ! {
     clear_bss();
     mm::init();
+    GPU_DEVICE.clone();
+    KEYBOARD_DEVICE.clone();
+    MOUSE_DEVICE.clone();
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
