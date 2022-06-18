@@ -12,7 +12,7 @@ use lazy_static::*;
 use virtio_drivers::{BlkResp, RespStatus, VirtIOBlk, VirtIOHeader};
 
 #[allow(unused)]
-const VIRTIO0: usize = 0x10001000;
+const VIRTIO0: usize = 0x10008000;
 
 pub struct VirtIOBlock {
     virtio_blk: UPIntrFreeCell<VirtIOBlk<'static>>,

@@ -22,6 +22,7 @@ mod console;
 mod config;
 mod drivers;
 mod fs;
+mod gui;
 mod lang_items;
 mod mm;
 mod sbi;
@@ -30,7 +31,6 @@ mod syscall;
 mod task;
 mod timer;
 mod trap;
-mod gui;
 
 core::arch::global_asm!(include_str!("entry.asm"));
 
@@ -57,9 +57,13 @@ lazy_static! {
 pub fn rust_main() -> ! {
     clear_bss();
     mm::init();
+    println!("KERN: init gpu");
     GPU_DEVICE.clone();
+    println!("KERN: init keyboard");
     KEYBOARD_DEVICE.clone();
+    println!("KERN: init mouse");
     MOUSE_DEVICE.clone();
+    println!("KERN: init trap");
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
