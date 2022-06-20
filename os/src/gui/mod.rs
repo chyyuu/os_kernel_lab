@@ -1,18 +1,18 @@
+mod button;
 mod graphic;
+mod icon;
 mod image;
 mod panel;
-mod icon;
-mod button;
 mod terminal;
 use alloc::sync::Arc;
-use embedded_graphics::prelude::{Size, Point};
-use core::any::Any;
-pub use graphic::*;
-pub use panel::*;
-pub use image::*;
-pub use icon::*;
-pub use terminal::*;
 pub use button::*;
+use core::any::Any;
+use embedded_graphics::prelude::{Point, Size};
+pub use graphic::*;
+pub use icon::*;
+pub use image::*;
+pub use panel::*;
+pub use terminal::*;
 
 pub trait Component: Send + Sync + Any {
     fn paint(&self);

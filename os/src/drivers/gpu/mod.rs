@@ -50,7 +50,6 @@ impl VirtIOGPU {
             }
         }
     }
-
 }
 
 impl GPUDevice for VirtIOGPU {
@@ -63,7 +62,5 @@ impl GPUDevice for VirtIOGPU {
             core::slice::from_raw_parts_mut(ptr, self.fb.len())
         }
     }
-    fn update_cursor(&self) {
-
-    }
+    fn update_cursor(&self) {}
 }

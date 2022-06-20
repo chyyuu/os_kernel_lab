@@ -1,10 +1,17 @@
+use crate::{
+    gui::{Button, Component},
+    sync::UPIntrFreeCell,
+    syscall::PAD,
+};
+use alloc::{string::ToString, sync::Arc};
 use core::any::Any;
-use alloc::{sync::Arc, string::ToString};
-use embedded_graphics::{text::Text, prelude::{Size, Point}};
+use embedded_graphics::{
+    prelude::{Point, Size},
+    text::Text,
+};
 use k210_hal::cache::Uncache;
 use virtio_drivers::{VirtIOHeader, VirtIOInput};
 use virtio_input_decoder::{Decoder, Key, KeyType};
-use crate::{gui::{Button, Component}, sync::UPIntrFreeCell, syscall::PAD};
 
 use super::GPU_DEVICE;
 
@@ -56,10 +63,9 @@ impl INPUTDevice for VirtIOINPUT {
                             } else {
                                 a.repaint(k.to_string())
                             }
-                        },
-                        Err(_) => {},
+                        }
+                        Err(_) => {}
                     }
-                    
                 }
             }
             virtio_input_decoder::DecodeType::Mouse(mouse) => println!("{:?}", mouse),

@@ -27,17 +27,17 @@ const SYSCALL_CONDVAR_SIGNAL: usize = 1031;
 const SYSCALL_CONDVAR_WAIT: usize = 1032;
 const SYSCALL_CREATE_DESKTOP: usize = 2000;
 mod fs;
+mod gui;
 mod process;
 mod sync;
 mod thread;
-mod gui;
 
+pub use self::gui::create_desktop;
 use fs::*;
+pub use gui::PAD;
 use process::*;
 use sync::*;
 use thread::*;
-pub use gui::PAD;
-pub use self::gui::create_desktop;
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
     match syscall_id {

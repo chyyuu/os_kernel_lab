@@ -1,4 +1,4 @@
-use alloc::{collections::VecDeque, sync::Arc, rc::Weak};
+use alloc::{collections::VecDeque, rc::Weak, sync::Arc};
 use embedded_graphics::{
     pixelcolor::Rgb888,
     prelude::{Point, Primitive, RgbColor, Size},

@@ -19,7 +19,7 @@ impl Graphics {
         Self {
             size,
             point,
-            drv: GPU_DEVICE.clone()
+            drv: GPU_DEVICE.clone(),
         }
     }
 }
