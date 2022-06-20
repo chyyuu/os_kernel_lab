@@ -21,7 +21,7 @@ const VIRTIO6: usize = 0x10006000;
 struct VirtIOINPUT(UPIntrFreeCell<VirtIOInput<'static>>);
 
 pub trait INPUTDevice: Send + Sync + Any {
-    fn handler_interrupt(&self);
+    fn handle_irq(&self);
 }
 
 lazy_static::lazy_static!(
@@ -38,7 +38,7 @@ impl VirtIOINPUT {
 }
 
 impl INPUTDevice for VirtIOINPUT {
-    fn handler_interrupt(&self) {
+    fn handle_irq(&self) {
         let mut input = self.0.exclusive_access();
         input.ack_interrupt();
         let event = input.pop_pending_event().unwrap();
