@@ -32,6 +32,8 @@ mod task;
 mod timer;
 mod trap;
 
+use syscall::create_desktop;
+
 core::arch::global_asm!(include_str!("entry.asm"));
 
 fn clear_bss() {
@@ -69,6 +71,7 @@ pub fn rust_main() -> ! {
     timer::set_next_trigger();
     board::device_init();
     fs::list_apps();
+    syscall::create_desktop();
     task::add_initproc();
     *DEV_NON_BLOCKING_ACCESS.exclusive_access() = true;
     task::run_tasks();
