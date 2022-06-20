@@ -32,7 +32,7 @@ mod task;
 mod timer;
 mod trap;
 
-use syscall::create_desktop;
+// use syscall::create_desktop; //for test
 
 core::arch::global_asm!(include_str!("entry.asm"));
 
@@ -71,7 +71,7 @@ pub fn rust_main() -> ! {
     timer::set_next_trigger();
     board::device_init();
     fs::list_apps();
-    syscall::create_desktop();
+    //syscall::create_desktop(); //for test
     task::add_initproc();
     *DEV_NON_BLOCKING_ACCESS.exclusive_access() = true;
     task::run_tasks();

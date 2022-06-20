@@ -1,10 +1,10 @@
 pub const CLOCK_FREQ: usize = 12500000;
 
 pub const MMIO: &[(usize, usize)] = &[
-//    (0x0010_0000, 0x00_2000), // VIRT_TEST/RTC  in virt machine
+    //    (0x0010_0000, 0x00_2000), // VIRT_TEST/RTC  in virt machine
     (0x2000000, 0x10000),
     (0xc000000, 0x210000), // VIRT_PLIC in virt machine
-    (0x10000000, 0x9000), // VIRT_UART0 with GPU  in virt machine
+    (0x10000000, 0x9000),  // VIRT_UART0 with GPU  in virt machine
 ];
 
 pub type BlockDeviceImpl = crate::drivers::block::VirtIOBlock;
@@ -25,7 +25,7 @@ pub fn device_init() {
     let machine = IntrTargetPriority::Machine;
     plic.set_threshold(hart_id, supervisor, 0);
     plic.set_threshold(hart_id, machine, 1);
-    for intr_src_id in [1usize, 10] {
+    for intr_src_id in [8usize, 10] {
         plic.enable(hart_id, supervisor, intr_src_id);
         plic.set_priority(intr_src_id, 1);
     }
@@ -38,7 +38,7 @@ pub fn irq_handler() {
     let mut plic = unsafe { PLIC::new(VIRT_PLIC) };
     let intr_src_id = plic.claim(0, IntrTargetPriority::Supervisor);
     match intr_src_id {
-        1 => BLOCK_DEVICE.handle_irq(),
+        8 => BLOCK_DEVICE.handle_irq(),
         10 => UART.handle_irq(),
         _ => panic!("unsupported IRQ {}", intr_src_id),
     }
