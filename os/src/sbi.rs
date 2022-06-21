@@ -18,6 +18,7 @@ fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
     let mut ret;
     unsafe {
         asm!(
+            "li x16, 0",
             "ecall",
             inlateout("x10") arg0 => ret,
             in("x11") arg1,
