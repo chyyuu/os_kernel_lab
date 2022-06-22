@@ -10,7 +10,7 @@ use embedded_graphics::{
 use tinybmp::Bmp;
 
 use crate::{drivers::GPU_DEVICE, sync::UPIntrFreeCell};
-
+use crate::board::{VIRTGPU_XRES, VIRTGPU_YRES};
 use super::{Component, Graphics, ImageComp};
 
 static FILEICON: &[u8] = include_bytes!("../assert/file.bmp");
@@ -32,7 +32,7 @@ impl IconController {
                 UPIntrFreeCell::new(IconControllerInner {
                     files,
                     graphic: Graphics {
-                        size: Size::new(1280, 800),
+                        size: Size::new(VIRTGPU_XRES, VIRTGPU_YRES),
                         point: Point::new(0, 0),
                         drv: GPU_DEVICE.clone(),
                     },

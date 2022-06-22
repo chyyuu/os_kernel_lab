@@ -13,6 +13,9 @@ pub type CharDeviceImpl = crate::drivers::chardev::NS16550a<VIRT_UART>;
 pub const VIRT_PLIC: usize = 0xC00_0000;
 pub const VIRT_UART: usize = 0x1000_0000;
 
+pub const VIRTGPU_XRES: u32 = 1280;
+pub const VIRTGPU_YRES: u32 = 800;
+
 use crate::drivers::block::BLOCK_DEVICE;
 use crate::drivers::chardev::{CharDevice, UART};
 use crate::drivers::plic::{IntrTargetPriority, PLIC};
