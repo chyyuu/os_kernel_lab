@@ -3,6 +3,8 @@
 #![feature(panic_info_message)]
 #![feature(alloc_error_handler)]
 
+use crate::drivers::{GPU_DEVICE, KEYBOARD_DEVICE, MOUSE_DEVICE};
+
 extern crate alloc;
 
 #[macro_use]
@@ -20,6 +22,7 @@ mod console;
 mod config;
 mod drivers;
 mod fs;
+mod gui;
 mod lang_items;
 mod mm;
 mod sbi;
@@ -28,6 +31,8 @@ mod syscall;
 mod task;
 mod timer;
 mod trap;
+
+// use syscall::create_desktop; //for test
 
 core::arch::global_asm!(include_str!("entry.asm"));
 
@@ -54,11 +59,19 @@ lazy_static! {
 pub fn rust_main() -> ! {
     clear_bss();
     mm::init();
+    println!("KERN: init gpu");
+    GPU_DEVICE.clone();
+    println!("KERN: init keyboard");
+    KEYBOARD_DEVICE.clone();
+    println!("KERN: init mouse");
+    MOUSE_DEVICE.clone();
+    println!("KERN: init trap");
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     board::device_init();
     fs::list_apps();
+    //syscall::create_desktop(); //for test
     task::add_initproc();
     *DEV_NON_BLOCKING_ACCESS.exclusive_access() = true;
     task::run_tasks();

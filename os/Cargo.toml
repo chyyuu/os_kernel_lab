@@ -2,7 +2,7 @@
 name = "os"
 version = "0.1.0"
 authors = ["Yifan Wu <shinbokuow@163.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -18,6 +18,9 @@ k210-pac = { git = "https://github.com/wyfcyx/k210-pac" }
 k210-hal = { git = "https://github.com/wyfcyx/k210-hal" }
 k210-soc = { git = "https://github.com/wyfcyx/k210-soc" }
 easy-fs = { path = "../easy-fs" }
+virtio-input-decoder = "0.1.4"
+embedded-graphics = "0.7.1"
+tinybmp = "0.3.1"
 
 [features]
 board_qemu = []

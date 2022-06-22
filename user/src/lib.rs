@@ -198,7 +198,9 @@ pub fn condvar_signal(condvar_id: usize) {
 pub fn condvar_wait(condvar_id: usize, mutex_id: usize) {
     sys_condvar_wait(condvar_id, mutex_id);
 }
-
+pub fn create_desktop() {
+    sys_create_desktop();
+}
 #[macro_export]
 macro_rules! vstore {
     ($var_ref: expr, $value: expr) => {
