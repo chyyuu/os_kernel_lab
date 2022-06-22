@@ -14,7 +14,7 @@ static DT: &[u8] = include_bytes!("../assert/desktop.bmp");
 
 lazy_static::lazy_static!(
     pub static ref DESKTOP:UPIntrFreeCell<Arc<dyn Component>> = unsafe {
-        UPIntrFreeCell::new(Arc::new(Panel::new(Size::new(1024, 768), Point::new(0, 0))))
+        UPIntrFreeCell::new(Arc::new(Panel::new(Size::new(1280, 800), Point::new(0, 0))))
     };
     pub static ref PAD:UPIntrFreeCell<Option<Arc<Terminal>>> = unsafe {
         UPIntrFreeCell::new(None)
@@ -23,8 +23,8 @@ lazy_static::lazy_static!(
 
 pub fn create_desktop() -> isize {
     let mut p: Arc<dyn Component + 'static> =
-        Arc::new(Panel::new(Size::new(1024, 768), Point::new(0, 0)));
-    let image = ImageComp::new(Size::new(1024, 768), Point::new(0, 0), DT, Some(p.clone()));
+        Arc::new(Panel::new(Size::new(1280, 800), Point::new(0, 0)));
+    let image = ImageComp::new(Size::new(1280, 800), Point::new(0, 0), DT, Some(p.clone()));
     let icon = IconController::new(ROOT_INODE.ls(), Some(p.clone()));
     p.add(Arc::new(image));
     p.add(Arc::new(icon));

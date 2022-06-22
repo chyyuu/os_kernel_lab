@@ -32,7 +32,7 @@ impl IconController {
                 UPIntrFreeCell::new(IconControllerInner {
                     files,
                     graphic: Graphics {
-                        size: Size::new(1024, 768),
+                        size: Size::new(1280, 800),
                         point: Point::new(0, 0),
                         drv: GPU_DEVICE.clone(),
                     },
