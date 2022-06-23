@@ -16,4 +16,4 @@ pub fn kernel_stack_position(app_id: usize) -> (usize, usize) {
     (bottom, top)
 }
 
-pub use crate::board::CLOCK_FREQ;
+pub use crate::board::{CLOCK_FREQ, MMIO};
