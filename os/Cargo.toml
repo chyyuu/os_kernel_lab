@@ -8,5 +8,9 @@ edition = "2018"
 
 [dependencies]
 
+[features]
+board_qemu = []
+board_k210 = []
+
 [profile.release]
 debug = true
