@@ -54,10 +54,35 @@ pub fn suspend_current_and_run_next() {
     // jump to scheduling cycle
     schedule(task_cx_ptr);
 }
+
+/// pid of usertests app in make run TEST=1
+pub const IDLE_PID: usize = 0;
+
+#[cfg(feature = "board_qemu")]
+use crate::board::QEMUExit;
+
 /// Exit the current 'Running' task and run the next task in task list.
 pub fn exit_current_and_run_next(exit_code: i32) {
     // take from Processor
     let task = take_current_task().unwrap();
+
+    #[cfg(feature = "board_qemu")]
+    let pid = task.getpid();
+    #[cfg(feature = "board_qemu")]
+    if pid == IDLE_PID {
+        println!(
+            "[kernel] Idle process exit with exit_code {} ...",
+            exit_code
+        );
+        if exit_code != 0 {
+            //crate::sbi::shutdown(255); //255 == -1 for err hint
+            crate::board::QEMU_EXIT_HANDLE.exit_failure();
+        } else {
+            //crate::sbi::shutdown(0); //0 for success hint
+            crate::board::QEMU_EXIT_HANDLE.exit_success();
+        }
+    }
+
     // **** access current TCB exclusively
     let mut inner = task.inner_exclusive_access();
     // Change status to Zombie
