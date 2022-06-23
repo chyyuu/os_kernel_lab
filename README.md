@@ -1,12 +1,14 @@
 # rCore-Tutorial-v3
-rCore-Tutorial version 3.5. See the [Documentation in Chinese](https://rcore-os.github.io/rCore-Tutorial-Book-v3/).
+rCore-Tutorial version 3.6. See the [Documentation in Chinese](https://rcore-os.github.io/rCore-Tutorial-Book-v3/).
 
 rCore-Tutorial API Docs.  See the [API Docs of Ten OSes ](#OS-API-DOCS)
+
+If you don't know  Rust Language and try to learn it, please visit [Rust Learning Resources](https://github.com/rcore-os/rCore/wiki/study-resource-of-system-programming-in-RUST)
 
 Official QQ group number: 735045051
 
 ## news
-- 25/01/2022: Version 3.6.0 is on the way! Now we directly update the code on chX branches, please periodically check if there are any updates.
+- 23/06/2022: Version 3.6.0 is on the way! Now we directly update the code on chX branches, please periodically check if there are any updates.
 
 ## Overview
 
@@ -42,7 +44,7 @@ $ rustup component add rust-src
 
 ### Install Qemu
 
-Here we manually compile and install Qemu 5.0.0. For example, on Ubuntu 18.04:
+Here we manually compile and install Qemu 7.0.0. For example, on Ubuntu 18.04:
 
 ```sh
 # install dependency packages
@@ -50,10 +52,10 @@ $ sudo apt install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev l
               gawk build-essential bison flex texinfo gperf libtool patchutils bc \
               zlib1g-dev libexpat-dev pkg-config  libglib2.0-dev libpixman-1-dev git tmux python3 python3-pip
 # download Qemu source code
-$ wget https://download.qemu.org/qemu-5.0.0.tar.xz
-# extract to qemu-5.0.0/
-$ tar xvJf qemu-5.0.0.tar.xz
-$ cd qemu-5.0.0
+$ wget https://download.qemu.org/qemu-7.0.0.tar.xz
+# extract to qemu-7.0.0/
+$ tar xvJf qemu-7.0.0.tar.xz
+$ cd qemu-7.0.0
 # build
 $ ./configure --target-list=riscv64-softmmu,riscv64-linux-user
 $ make -j$(nproc)
@@ -62,9 +64,9 @@ $ make -j$(nproc)
 Then, add following contents to `~/.bashrc`(please adjust these paths according to your environment):
 
 ```
-export PATH=$PATH:/home/shinbokuow/Downloads/built/qemu-5.0.0
-export PATH=$PATH:/home/shinbokuow/Downloads/built/qemu-5.0.0/riscv64-softmmu
-export PATH=$PATH:/home/shinbokuow/Downloads/built/qemu-5.0.0/riscv64-linux-user
+export PATH=$PATH:/home/shinbokuow/Downloads/built/qemu-7.0.0
+export PATH=$PATH:/home/shinbokuow/Downloads/built/qemu-7.0.0/riscv64-softmmu
+export PATH=$PATH:/home/shinbokuow/Downloads/built/qemu-7.0.0/riscv64-linux-user
 ```
 
 Finally, update the current shell:
@@ -77,7 +79,7 @@ Now we can check the version of Qemu:
 
 ```sh
 $ qemu-system-riscv64 --version
-QEMU emulator version 5.0.0
+QEMU emulator version 7.0.0
 Copyright (c) 2003-2020 Fabrice Bellard and the QEMU Project developers
 ```
 
@@ -188,6 +190,46 @@ $ make run BOARD=k210
 
 Type `Ctrl+]` to disconnect from K210.
 
+
+## Show runtime debug info of OS kernel version
+The branch of ch9-log contains a lot of debug info. You could try to run rcore tutorial 
+for understand the internal behavior of os kernel.
+
+```sh
+$ git clone https://github.com/rcore-os/rCore-Tutorial-v3.git
+$ cd rCore-Tutorial-v3/os
+$ git checkout ch9-log
+$ make run
+......
+[rustsbi] RustSBI version 0.2.0-alpha.10, adapting to RISC-V SBI v0.3
+.______       __    __      _______.___________.  _______..______   __
+|   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+|  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+|      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+|  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+| _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+
+[rustsbi] Implementation: RustSBI-QEMU Version 0.0.2
+[rustsbi-dtb] Hart count: cluster0 with 1 cores
+[rustsbi] misa: RV64ACDFIMSU
+[rustsbi] mideleg: ssoft, stimer, sext (0x222)
+[rustsbi] medeleg: ima, ia, bkpt, la, sa, uecall, ipage, lpage, spage (0xb1ab)
+[rustsbi] pmp0: 0x10000000 ..= 0x10001fff (rw-)
+[rustsbi] pmp1: 0x2000000 ..= 0x200ffff (rw-)
+[rustsbi] pmp2: 0xc000000 ..= 0xc3fffff (rw-)
+[rustsbi] pmp3: 0x80000000 ..= 0x8fffffff (rwx)
+[rustsbi] enter supervisor 0x80200000
+[KERN] rust_main() begin
+[KERN] clear_bss() begin
+[KERN] clear_bss() end
+[KERN] mm::init() begin
+[KERN] mm::init_heap() begin
+[KERN] mm::init_heap() end
+[KERN] mm::init_frame_allocator() begin
+[KERN] mm::frame_allocator::lazy_static!FRAME_ALLOCATOR begin
+......
+```
+
 ## Rustdoc
 
 Currently it can only help you view the code since only a tiny part of the code has been documented.
@@ -209,13 +251,9 @@ The API Docs for Ten OS
 
 ## Working in progress
 
-Our first release 3.5.0 (chapter 1-7) has been published.
+Our first release 3.6.0 (chapter 1-9) has been published, and we are still working on it.
 
-There will be 9 chapters in our next release 3.6.0, where 2 new chapters will be added:
-* chapter 8: synchronization on a uniprocessor
-* chapter 9: I/O devices
-
-Current version is 3.6.0-alpha.1 and we are still working on it.
+* chapter 9: need more descripts about different I/O devices
 
 Here are the updates since 3.5.0:
 
@@ -237,18 +275,16 @@ Here are the updates since 3.5.0:
 * [x] switch the code of chapter 6 and chapter 7
 * [x] support signal mechanism in chapter 7/8(only works for apps with a single thread)
 * [x] Add boards/ directory and support rustdoc, for example you can use `cargo doc --no-deps --open` to view the documentation of a crate
-
+* [x] code of chapter 9: device drivers based on interrupts, including UART, block, keyboard, mouse, gpu devices
+* [x] add CI autotest and doc in github 
 ### Todo(High priority)
 
-* [ ] review documentation, current progress: 5/9
-* [ ] support user-level sync primitives in chapter 8
-* [ ] code of chapter 9: device drivers based on interrupts, including UART and block devices
+* [ ] review documentation, current progress: 8/9
 * [ ] use old fs image optionally, do not always rebuild the image
-* [ ] add new system calls: getdents64/fstat
 * [ ] shell functionality improvement(to be continued...)
 * [ ] give every non-zero process exit code an unique and clear error type
 * [ ] effective error handling of mm module
-
+* [ ] add more os functions for understanding os conecpts and principles
 ### Todo(Low priority)
 
 * [ ] rewrite practice doc and remove some inproper questions
