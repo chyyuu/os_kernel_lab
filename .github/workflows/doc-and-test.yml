@@ -64,3 +64,6 @@ jobs:
       - name: Run usertests
         run: cd os && make run TEST=1
         timeout-minutes: 10
+
+      - name: Build for k210
+        run: cd os && make build BOARD=k210
