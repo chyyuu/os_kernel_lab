@@ -1,0 +1,69 @@
+name: Build Rust Doc And Run tests
+
+on: [push]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly-2022-04-11
+          components: rust-src, llvm-tools-preview
+          target: riscv64gc-unknown-none-elf
+      - name: Build doc
+        run: cd os && cargo doc --no-deps --verbose --features "board_qemu"
+      - name: Deploy to Github Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./os/target/riscv64gc-unknown-none-elf/doc
+          destination_dir: ${{ github.ref_name }}
+
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly-2022-04-11
+          components: rust-src, llvm-tools-preview
+          target: riscv64gc-unknown-none-elf
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-binutils
+          version: latest
+          use-tool-cache: true
+      - name: Cache QEMU
+        uses: actions/cache@v3
+        with:
+          path: qemu-7.0.0
+          key: qemu-7.0.0-x86_64-riscv64
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build -y
+          if [ ! -d qemu-7.0.0 ]; then
+            wget https://download.qemu.org/qemu-7.0.0.tar.xz
+            tar -xf qemu-7.0.0.tar.xz
+            cd qemu-7.0.0
+            ./configure --target-list=riscv64-softmmu
+            make -j
+          else
+            cd qemu-7.0.0
+          fi
+          sudo make install
+          qemu-system-riscv64 --version
+
+      - name: Run usertests
+        run: cd os && make run TEST=1
+        timeout-minutes: 10
+
+      - name: Build for k210
+        run: cd os && make build BOARD=k210
