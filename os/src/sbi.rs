@@ -4,6 +4,8 @@ use core::arch::asm;
 
 const SBI_SET_TIMER: usize = 0;
 const SBI_CONSOLE_PUTCHAR: usize = 1;
+
+#[cfg(feature = "board_k210")]
 const SBI_SHUTDOWN: usize = 8;
 // const SBI_CONSOLE_GETCHAR: usize = 2;
 // const SBI_CLEAR_IPI: usize = 3;
@@ -44,8 +46,16 @@ pub fn console_putchar(c: usize) {
 //     sbi_call(SBI_CONSOLE_GETCHAR, 0, 0, 0)
 // }
 
+#[cfg(feature = "board_qemu")]
+use crate::board::QEMUExit;
 /// use sbi call to shutdown the kernel
 pub fn shutdown() -> ! {
+    #[cfg(feature = "board_k210")]
     sbi_call(SBI_SHUTDOWN, 0, 0, 0);
+
+    #[cfg(feature = "board_qemu")]
+    crate::board::QEMU_EXIT_HANDLE.exit_failure();
+
+    #[cfg(feature = "board_k210")]
     panic!("It should shutdown!");
 }
