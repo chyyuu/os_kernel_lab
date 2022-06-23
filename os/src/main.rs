@@ -23,6 +23,10 @@
 
 use core::arch::global_asm;
 
+#[cfg(feature = "board_qemu")]
+#[path = "boards/qemu.rs"]
+mod board;
+
 #[macro_use]
 mod console;
 mod config;
