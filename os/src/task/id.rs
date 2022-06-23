@@ -46,6 +46,8 @@ lazy_static! {
         unsafe { UPSafeCell::new(RecycleAllocator::new()) };
 }
 
+pub const IDLE_PID: usize = 0;
+
 pub struct PidHandle(pub usize);
 
 pub fn pid_alloc() -> PidHandle {
