@@ -56,7 +56,7 @@ kernel:
 	@cd ../user && make build
 	@echo Platform: $(BOARD)
 	@cp src/linker-$(BOARD).ld src/linker.ld
-	@cargo build $(MODE_ARG)
+	@cargo build $(MODE_ARG) --features "board_$(BOARD)"
 	@rm src/linker.ld
 
 
