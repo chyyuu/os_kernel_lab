@@ -17,7 +17,7 @@ jobs:
           components: rust-src, llvm-tools-preview
           target: riscv64gc-unknown-none-elf
       - name: Build doc
-        run: cd os && cargo doc --no-deps --verbose
+        run: cd os && cargo doc --no-deps --verbose  --features "board_qemu"
       - name: Deploy to Github Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
