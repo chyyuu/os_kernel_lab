@@ -2,7 +2,7 @@
 #![no_main]
 #![feature(panic_info_message)]
 #![feature(alloc_error_handler)]
-
+#[cfg(feature = "board_qemu")]
 use crate::drivers::{GPU_DEVICE, KEYBOARD_DEVICE, MOUSE_DEVICE};
 
 extern crate alloc;
@@ -22,6 +22,7 @@ mod console;
 mod config;
 mod drivers;
 mod fs;
+#[cfg(feature = "board_qemu")]
 mod gui;
 mod lang_items;
 mod mm;
@@ -60,10 +61,13 @@ pub fn rust_main() -> ! {
     clear_bss();
     mm::init();
     println!("KERN: init gpu");
+    #[cfg(feature = "board_qemu")]
     GPU_DEVICE.clone();
     println!("KERN: init keyboard");
+    #[cfg(feature = "board_qemu")]
     KEYBOARD_DEVICE.clone();
     println!("KERN: init mouse");
+    #[cfg(feature = "board_qemu")]
     MOUSE_DEVICE.clone();
     println!("KERN: init trap");
     trap::init();

@@ -56,7 +56,7 @@ pub fn block_current_and_run_next() {
     let task_cx_ptr = block_current_task();
     schedule(task_cx_ptr);
 }
-
+#[cfg(feature = "board_qemu")]
 use crate::board::QEMUExit;
 
 pub fn exit_current_and_run_next(exit_code: i32) {
@@ -75,6 +75,7 @@ pub fn exit_current_and_run_next(exit_code: i32) {
     // the process should terminate at once
     if tid == 0 {
         let pid = process.getpid();
+        #[cfg(feature = "board_qemu")]
         if pid == IDLE_PID {
             println!(
                 "[kernel] Idle process exit with exit_code {} ...",
