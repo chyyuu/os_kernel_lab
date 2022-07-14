@@ -12,3 +12,7 @@ bitflags = "1.2.1"
 
 [profile.release]
 debug = true
+
+[features]
+board_qemu = []
+board_k210 = []
