@@ -11,3 +11,4 @@ os/last-*
 os/.gdb_history
 tools/
 pushall.sh
+.vscode/*.log
