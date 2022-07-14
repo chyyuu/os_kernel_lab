@@ -10,3 +10,7 @@ edition = "2018"
 
 [profile.release]
 debug = true
+
+[features]
+board_qemu = []
+board_k210 = []

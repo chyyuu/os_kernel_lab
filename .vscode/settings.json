@@ -1,0 +1,13 @@
+{
+    // Prevent "can't find crate for `test`" error on no_std
+    // Ref: https://github.com/rust-lang/vscode-rust/issues/729
+    // For vscode-rust plugin users:
+    "rust.target": "riscv64gc-unknown-none-elf",
+    "rust.all_targets": false,
+    // For Rust Analyzer plugin users:
+    "rust-analyzer.cargo.target": "riscv64gc-unknown-none-elf",
+    "rust-analyzer.checkOnSave.allTargets": false,
+    "rust-analyzer.cargo.features": [
+        "board_qemu"
+    ]
+}
