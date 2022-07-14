@@ -11,3 +11,7 @@ buddy_system_allocator = "0.6"
 
 [profile.release]
 debug = true
+
+[features]
+board_qemu = []
+board_k210 = []
