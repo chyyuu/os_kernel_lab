@@ -12,3 +12,7 @@ lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 
 [profile.release]
 debug = true
+
+[features]
+board_qemu = []
+board_k210 = []
