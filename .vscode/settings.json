@@ -6,5 +6,8 @@
     "rust.all_targets": false,
     // For Rust Analyzer plugin users:
     "rust-analyzer.cargo.target": "riscv64gc-unknown-none-elf",
-    "rust-analyzer.checkOnSave.allTargets": false
+    "rust-analyzer.checkOnSave.allTargets": false,
+    "rust-analyzer.cargo.features": [
+        "board_qemu"
+    ]
 }
