@@ -233,7 +233,7 @@ impl MemorySet {
         )
     }
     ///Clone a same `MemorySet`
-    pub fn from_existed_user(user_space: &MemorySet) -> MemorySet {
+    pub fn from_existed_user(user_space: &Self) -> Self {
         let mut memory_set = Self::new_bare();
         // map trampoline
         memory_set.map_trampoline();
@@ -294,7 +294,7 @@ impl MapArea {
             map_perm,
         }
     }
-    pub fn from_another(another: &MapArea) -> Self {
+    pub fn from_another(another: &Self) -> Self {
         Self {
             vpn_range: VPNRange::new(another.vpn_range.get_start(), another.vpn_range.get_end()),
             data_frames: BTreeMap::new(),
