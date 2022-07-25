@@ -44,9 +44,10 @@ else ifeq ($(BOARD), k210)
 endif
 
 env:
+	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add $(TARGET)
+	cargo install cargo-binutils
 	rustup component add rust-src
 	rustup component add llvm-tools-preview
-	cargo install cargo-binutils --vers =0.3.3
 	rustup target add riscv64gc-unknown-none-elf
 
 $(KERNEL_BIN): kernel
