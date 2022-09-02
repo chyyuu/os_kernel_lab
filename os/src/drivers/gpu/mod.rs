@@ -4,6 +4,7 @@ use core::any::Any;
 use embedded_graphics::pixelcolor::Rgb888;
 use tinybmp::Bmp;
 use virtio_drivers::{VirtIOGpu, VirtIOHeader};
+use crate::drivers::bus::virtio::VirtioHal;
 const VIRTIO7: usize = 0x10007000;
 pub trait GPUDevice: Send + Sync + Any {
     fn update_cursor(&self);
@@ -16,14 +17,14 @@ lazy_static::lazy_static!(
 );
 
 pub struct VirtIOGPU {
-    gpu: UPIntrFreeCell<VirtIOGpu<'static>>,
+    gpu: UPIntrFreeCell<VirtIOGpu<'static, VirtioHal>>,
     fb: &'static [u8],
 }
 static BMP_DATA: &[u8] = include_bytes!("../../assert/mouse.bmp");
 impl VirtIOGPU {
     pub fn new() -> Self {
         unsafe {
-            let mut virtio = VirtIOGpu::new(&mut *(VIRTIO7 as *mut VirtIOHeader)).unwrap();
+            let mut virtio = VirtIOGpu::<VirtioHal>::new(&mut *(VIRTIO7 as *mut VirtIOHeader)).unwrap();
 
             let fbuffer = virtio.setup_framebuffer().unwrap();
             let len = fbuffer.len();

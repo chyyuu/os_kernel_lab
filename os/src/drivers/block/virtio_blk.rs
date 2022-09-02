@@ -1,27 +1,17 @@
 use super::BlockDevice;
-use crate::mm::{
-    frame_alloc, frame_dealloc, kernel_token, FrameTracker, PageTable, PhysAddr, PhysPageNum,
-    StepByOne, VirtAddr,
-};
 use crate::sync::{Condvar, UPIntrFreeCell};
 use crate::task::schedule;
 use crate::DEV_NON_BLOCKING_ACCESS;
 use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
-use lazy_static::*;
 use virtio_drivers::{BlkResp, RespStatus, VirtIOBlk, VirtIOHeader};
+use crate::drivers::bus::virtio::VirtioHal;
 
 #[allow(unused)]
 const VIRTIO0: usize = 0x10008000;
 
 pub struct VirtIOBlock {
-    virtio_blk: UPIntrFreeCell<VirtIOBlk<'static>>,
+    virtio_blk: UPIntrFreeCell<VirtIOBlk<'static, VirtioHal>>,
     condvars: BTreeMap<u16, Condvar>,
-}
-
-lazy_static! {
-    static ref QUEUE_FRAMES: UPIntrFreeCell<Vec<FrameTracker>> =
-        unsafe { UPIntrFreeCell::new(Vec::new()) };
 }
 
 impl BlockDevice for VirtIOBlock {
@@ -79,7 +69,7 @@ impl BlockDevice for VirtIOBlock {
 impl VirtIOBlock {
     pub fn new() -> Self {
         let virtio_blk = unsafe {
-            UPIntrFreeCell::new(VirtIOBlk::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap())
+            UPIntrFreeCell::new(VirtIOBlk::<VirtioHal>::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap())
         };
         let mut condvars = BTreeMap::new();
         let channels = virtio_blk.exclusive_access().virt_queue_size();
@@ -94,38 +84,3 @@ impl VirtIOBlock {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn virtio_dma_alloc(pages: usize) -> PhysAddr {
-    let mut ppn_base = PhysPageNum(0);
-    for i in 0..pages {
-        let frame = frame_alloc().unwrap();
-        if i == 0 {
-            ppn_base = frame.ppn;
-        }
-        assert_eq!(frame.ppn.0, ppn_base.0 + i);
-        QUEUE_FRAMES.exclusive_access().push(frame);
-    }
-    ppn_base.into()
-}
-
-#[no_mangle]
-pub extern "C" fn virtio_dma_dealloc(pa: PhysAddr, pages: usize) -> i32 {
-    let mut ppn_base: PhysPageNum = pa.into();
-    for _ in 0..pages {
-        frame_dealloc(ppn_base);
-        ppn_base.step();
-    }
-    0
-}
-
-#[no_mangle]
-pub extern "C" fn virtio_phys_to_virt(paddr: PhysAddr) -> VirtAddr {
-    VirtAddr(paddr.0)
-}
-
-#[no_mangle]
-pub extern "C" fn virtio_virt_to_phys(vaddr: VirtAddr) -> PhysAddr {
-    PageTable::from_token(kernel_token())
-        .translate_va(vaddr)
-        .unwrap()
-}

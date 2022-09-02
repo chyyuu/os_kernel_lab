@@ -11,6 +11,7 @@ use embedded_graphics::{
 };
 use k210_hal::cache::Uncache;
 use virtio_drivers::{VirtIOHeader, VirtIOInput};
+use crate::drivers::bus::virtio::VirtioHal;
 use virtio_input_decoder::{Decoder, Key, KeyType};
 
 use super::GPU_DEVICE;
@@ -18,7 +19,7 @@ use super::GPU_DEVICE;
 const VIRTIO5: usize = 0x10005000;
 const VIRTIO6: usize = 0x10006000;
 
-struct VirtIOINPUT(UPIntrFreeCell<VirtIOInput<'static>>);
+struct VirtIOINPUT(UPIntrFreeCell<VirtIOInput<'static, VirtioHal>>);
 
 pub trait INPUTDevice: Send + Sync + Any {
     fn handle_irq(&self);
@@ -32,7 +33,7 @@ lazy_static::lazy_static!(
 impl VirtIOINPUT {
     pub fn new(addr: usize) -> Self {
         Self(unsafe {
-            UPIntrFreeCell::new(VirtIOInput::new(&mut *(addr as *mut VirtIOHeader)).unwrap())
+            UPIntrFreeCell::new(VirtIOInput::<VirtioHal>::new(&mut *(addr as *mut VirtIOHeader)).unwrap())
         })
     }
 }
