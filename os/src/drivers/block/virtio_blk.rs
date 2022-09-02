@@ -6,12 +6,12 @@ use crate::mm::{
 use crate::sync::UPSafeCell;
 use alloc::vec::Vec;
 use lazy_static::*;
-use virtio_drivers::{VirtIOBlk, VirtIOHeader};
+use virtio_drivers::{Hal, VirtIOBlk, VirtIOHeader};
 
 #[allow(unused)]
 const VIRTIO0: usize = 0x10001000;
 
-pub struct VirtIOBlock(UPSafeCell<VirtIOBlk<'static>>);
+pub struct VirtIOBlock(UPSafeCell<VirtIOBlk<'static, VirtioHal>>);
 
 lazy_static! {
     static ref QUEUE_FRAMES: UPSafeCell<Vec<FrameTracker>> = unsafe { UPSafeCell::new(Vec::new()) };
@@ -37,44 +37,47 @@ impl VirtIOBlock {
     pub fn new() -> Self {
         unsafe {
             Self(UPSafeCell::new(
-                VirtIOBlk::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap(),
+                VirtIOBlk::<VirtioHal>::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap(),
             ))
         }
     }
 }
 
-#[no_mangle]
-pub extern "C" fn virtio_dma_alloc(pages: usize) -> PhysAddr {
-    let mut ppn_base = PhysPageNum(0);
-    for i in 0..pages {
-        let frame = frame_alloc().unwrap();
-        if i == 0 {
-            ppn_base = frame.ppn;
+pub struct VirtioHal;
+
+impl Hal for VirtioHal {
+    fn dma_alloc(pages: usize) -> usize {
+        let mut ppn_base = PhysPageNum(0);
+        for i in 0..pages {
+            let frame = frame_alloc().unwrap();
+            if i == 0 {
+                ppn_base = frame.ppn;
+            }
+            assert_eq!(frame.ppn.0, ppn_base.0 + i);
+            QUEUE_FRAMES.exclusive_access().push(frame);
         }
-        assert_eq!(frame.ppn.0, ppn_base.0 + i);
-        QUEUE_FRAMES.exclusive_access().push(frame);
+        let pa: PhysAddr = ppn_base.into();
+        pa.0
     }
-    ppn_base.into()
-}
 
-#[no_mangle]
-pub extern "C" fn virtio_dma_dealloc(pa: PhysAddr, pages: usize) -> i32 {
-    let mut ppn_base: PhysPageNum = pa.into();
-    for _ in 0..pages {
-        frame_dealloc(ppn_base);
-        ppn_base.step();
+    fn dma_dealloc(pa: usize, pages: usize) -> i32 {
+        let pa = PhysAddr::from(pa);
+        let mut ppn_base: PhysPageNum = pa.into();
+        for _ in 0..pages {
+            frame_dealloc(ppn_base);
+            ppn_base.step();
+        }
+        0
     }
-    0
-}
 
-#[no_mangle]
-pub extern "C" fn virtio_phys_to_virt(paddr: PhysAddr) -> VirtAddr {
-    VirtAddr(paddr.0)
-}
+    fn phys_to_virt(addr: usize) -> usize {
+        addr
+    }
 
-#[no_mangle]
-pub extern "C" fn virtio_virt_to_phys(vaddr: VirtAddr) -> PhysAddr {
-    PageTable::from_token(kernel_token())
-        .translate_va(vaddr)
-        .unwrap()
+    fn virt_to_phys(vaddr: usize) -> usize {
+        PageTable::from_token(kernel_token())
+            .translate_va(VirtAddr::from(vaddr))
+            .unwrap()
+            .0
+    }
 }
