@@ -47,7 +47,7 @@ pub fn rust_main() -> ! {
         fn edata(); // end addr of data segment
         fn sbss(); // start addr of BSS segment
         fn ebss(); // end addr of BSS segment
-        fn boot_stack(); // stack bottom
+        fn boot_stack_lower_bound(); // stack lower bound
         fn boot_stack_top(); // stack top
     }
     clear_bss();
@@ -56,8 +56,8 @@ pub fn rust_main() -> ! {
     println!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
     println!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
     println!(
-        "boot_stack [{:#x}, {:#x})",
-        boot_stack as usize, boot_stack_top as usize
+        "boot_stack top=bottom={:#x}, lower_bound={:#x}",
+        boot_stack_top as usize, boot_stack_lower_bound as usize
     );
     println!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
 
@@ -66,7 +66,7 @@ pub fn rust_main() -> ! {
 
     #[cfg(feature = "board_qemu")]
     crate::board::QEMU_EXIT_HANDLE.exit_success(); // CI autotest success
-    //crate::board::QEMU_EXIT_HANDLE.exit_failure(); // CI autoest failed
+                                                   //crate::board::QEMU_EXIT_HANDLE.exit_failure(); // CI autoest failed
 
     #[cfg(feature = "board_k210")]
     panic!("Unreachable in rust_main!");
