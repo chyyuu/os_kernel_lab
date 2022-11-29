@@ -4,9 +4,12 @@
 #[macro_use]
 extern crate user_lib;
 
-fn f(d: usize) {
-    println!("d = {}", d);
-    f(d + 1);
+#[allow(unconditional_recursion)]
+fn f(depth: usize) {
+    if depth % 10 == 0 {
+        println!("depth = {}", depth);
+    }
+    f(depth + 1);
 }
 
 #[no_mangle]
