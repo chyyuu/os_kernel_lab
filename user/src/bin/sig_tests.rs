@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-#[macro_use]
 extern crate user_lib;
 
 // use user_lib::{sigaction, sigprocmask, SignalAction, SignalFlags, fork, exit, wait, kill, getpid, sleep, sigreturn};
@@ -96,12 +95,12 @@ fn kernel_sig_test_ignore() {
 fn kernel_sig_test_stop_cont() {
     let pid = fork();
     if pid == 0 {
-        kill(getpid() as usize, SignalFlags::SIGSTOP.bits());
-        sleep(1000);
+        kill(getpid() as usize, SIGSTOP);
+        sleep(500);
         exit(-1);
     } else {
-        sleep(5000);
-        kill(pid as usize, SignalFlags::SIGCONT.bits());
+        sleep(1000);
+        kill(pid as usize, SIGCONT);
         let mut exit_code = 0;
         wait(&mut exit_code);
     }
@@ -139,7 +138,7 @@ fn final_sig_test() {
         if sigaction(SIGUSR1, &new, &old) < 0 {
             panic!("Sigaction failed!");
         }
-        if sigaction(14, &new2, &old2) < 0 {
+        if sigaction(SIGUSR2, &new2, &old2) < 0 {
             panic!("Sigaction failed!");
         }
         if kill(getpid() as usize, SIGUSR1) < 0 {
@@ -147,13 +146,13 @@ fn final_sig_test() {
             exit(-1);
         }
     } else {
-        sleep(1000);
-        if kill(pid as usize, 1 << 14) < 0 {
+        sleep(2000);
+        if kill(pid as usize, SIGUSR2) < 0 {
             println!("Kill failed!");
             exit(-1);
         }
         sleep(1000);
-        kill(pid as usize, SignalFlags::SIGKILL.bits());
+        kill(pid as usize, SIGKILL);
     }
 }
 

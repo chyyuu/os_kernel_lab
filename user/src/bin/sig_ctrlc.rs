@@ -1,9 +1,6 @@
 #![no_std]
 #![no_main]
 
-extern crate alloc;
-
-#[macro_use]
 extern crate user_lib;
 use user_lib::console::getchar;
 use user_lib::*;
@@ -34,7 +31,7 @@ pub fn main() -> i32 {
 
         println!("Got Char  {}", c);
         if c == LF || c == CR {
-            return 0;
+            break;
         }
     }
     println!("sig_ctrlc: Done");
