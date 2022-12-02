@@ -23,12 +23,12 @@ impl File for Stdin {
             if c == 0 {
                 suspend_current_and_run_next();
                 continue;
-            } else if c == 3 {
+            }/* else if c == 3 {
                 // 3 is ctrl_c
                 //println!("[K] os/fs/stdio/read: Got Ctrl_C");
                 current_add_signal(SignalFlags::SIGINT);
                 break;
-            } else {
+            }*/ else {
                 break;
             }
         }
