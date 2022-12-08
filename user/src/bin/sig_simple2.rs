@@ -12,7 +12,7 @@ use user_lib::{
 use user_lib::*;
 
 fn func() {
-    println!("user_sig_test succsess");
+    println!("user_sig_test passed");
     sigreturn();
 }
 
@@ -21,11 +21,11 @@ pub fn main() -> i32 {
     let pid = fork();
     if pid == 0 {
         let mut new = SignalAction::default();
-        let old = SignalAction::default();
+        let mut old = SignalAction::default();
         new.handler = func as usize;
 
         println!("signal_simple2: child sigaction");
-        if sigaction(SIGUSR1, &new, &old) < 0 {
+        if sigaction(SIGUSR1, Some(&new), Some(&mut old)) < 0 {
             panic!("Sigaction failed!");
         }
         sleep(1000);

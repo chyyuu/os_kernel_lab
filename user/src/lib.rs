@@ -140,7 +140,7 @@ pub fn sleep(period_ms: usize) {
 }
 
 /// Action for a signal
-#[repr(C)]
+#[repr(C, align(16))]
 #[derive(Debug, Clone, Copy)]
 pub struct SignalAction {
     pub handler: usize,
@@ -226,16 +226,20 @@ bitflags! {
     }
 }
 
-pub fn kill(pid: usize, signal: i32) -> isize {
-    sys_kill(pid, signal)
+pub fn kill(pid: usize, signum: i32) -> isize {
+    sys_kill(pid, signum)
 }
 
 pub fn sigaction(
     signum: i32,
-    action: *const SignalAction,
-    old_action: *const SignalAction,
+    action: Option<&SignalAction>,
+    old_action: Option<&mut SignalAction>,
 ) -> isize {
-    sys_sigaction(signum, action, old_action)
+    sys_sigaction(
+        signum,
+        action.map_or(core::ptr::null(), |a| a),
+        old_action.map_or(core::ptr::null_mut(), |a| a)
+    )
 }
 
 pub fn sigprocmask(mask: u32) -> isize {

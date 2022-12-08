@@ -168,26 +168,20 @@ pub fn sys_sigaction(
     old_action: *mut SignalAction,
 ) -> isize {
     let token = current_user_token();
-    if let Some(task) = current_task() {
-        let mut inner = task.inner_exclusive_access();
-        if signum as usize > MAX_SIG {
+    let task = current_task().unwrap();
+    let mut inner = task.inner_exclusive_access();
+    if signum as usize > MAX_SIG {
+        return -1;
+    }
+    if let Some(flag) = SignalFlags::from_bits(1 << signum) {
+        if check_sigaction_error(flag, action as usize, old_action as usize) {
             return -1;
         }
-        if let Some(flag) = SignalFlags::from_bits(1 << signum) {
-            if check_sigaction_error(flag, action as usize, old_action as usize) {
-                return -1;
-            }
-            let old_kernel_action = inner.signal_actions.table[signum as usize];
-            if old_kernel_action.mask != SignalFlags::from_bits(40).unwrap() {
-                *translated_refmut(token, old_action) = old_kernel_action;
-            } else {
-                let mut ref_old_action = *translated_refmut(token, old_action);
-                ref_old_action.handler = old_kernel_action.handler;
-            }
-            let ref_action = translated_ref(token, action);
-            inner.signal_actions.table[signum as usize] = *ref_action;
-            return 0;
-        }
+        let prev_action = inner.signal_actions.table[signum as usize];
+        *translated_refmut(token, old_action) = prev_action;
+        inner.signal_actions.table[signum as usize] = *translated_ref(token, action);
+        0
+    } else {
+        -1
     }
-    -1
 }

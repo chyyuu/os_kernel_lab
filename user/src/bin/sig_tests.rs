@@ -7,7 +7,7 @@ extern crate user_lib;
 use user_lib::*;
 
 fn func() {
-    println!("user_sig_test succsess");
+    println!("user_sig_test passed");
     sigreturn();
 }
 
@@ -24,19 +24,19 @@ fn func3() {
 
 fn user_sig_test_failsignum() {
     let mut new = SignalAction::default();
-    let old = SignalAction::default();
+    let mut old = SignalAction::default();
     new.handler = func as usize;
-    if sigaction(50, &new, &old) >= 0 {
-        panic!("Wrong sigaction but success!");
+    if sigaction(50, Some(&new), Some(&mut old)) >= 0 {
+        panic!("Wrong sigaction but successed!");
     }
 }
 
 fn user_sig_test_kill() {
     let mut new = SignalAction::default();
-    let old = SignalAction::default();
+    let mut old = SignalAction::default();
     new.handler = func as usize;
 
-    if sigaction(SIGUSR1, &new, &old) < 0 {
+    if sigaction(SIGUSR1, Some(&new), Some(&mut old)) < 0 {
         panic!("Sigaction failed!");
     }
     if kill(getpid() as usize, SIGUSR1) < 0 {
@@ -49,9 +49,9 @@ fn user_sig_test_multiprocsignals() {
     let pid = fork();
     if pid == 0 {
         let mut new = SignalAction::default();
-        let old = SignalAction::default();
+        let mut old = SignalAction::default();
         new.handler = func as usize;
-        if sigaction(SIGUSR1, &new, &old) < 0 {
+        if sigaction(SIGUSR1, Some(&new), Some(&mut old)) < 0 {
             panic!("Sigaction failed!");
         }
     } else {
@@ -66,15 +66,15 @@ fn user_sig_test_multiprocsignals() {
 
 fn user_sig_test_restore() {
     let mut new = SignalAction::default();
-    let old = SignalAction::default();
-    let old2 = SignalAction::default();
+    let mut old = SignalAction::default();
+    let mut old2 = SignalAction::default();
     new.handler = func as usize;
 
-    if sigaction(SIGUSR1, &new, &old) < 0 {
+    if sigaction(SIGUSR1, Some(&new), Some(&mut old)) < 0 {
         panic!("Sigaction failed!");
     }
 
-    if sigaction(SIGUSR1, &old, &old2) < 0 {
+    if sigaction(SIGUSR1, Some(&old), Some(&mut old2)) < 0 {
         panic!("Sigaction failed!");
     }
 
@@ -108,45 +108,64 @@ fn kernel_sig_test_stop_cont() {
 
 fn kernel_sig_test_failignorekill() {
     let mut new = SignalAction::default();
-    let old = SignalAction::default();
+    let mut old = SignalAction::default();
     new.handler = func as usize;
 
-    if sigaction(9, &new, &old) >= 0 {
+    if sigaction(9, Some(&new), Some(&mut old)) >= 0 {
         panic!("Should not set sigaction to kill!");
     }
 
-    if sigaction(9, &new, 0 as *const SignalAction) >= 0 {
+    if sigaction(
+        9,
+        Some(&new),
+        None) >= 0 {
         panic!("Should not set sigaction to kill!");
     }
 
-    if sigaction(9, 0 as *const SignalAction, &old) >= 0 {
+    if sigaction(
+        9,
+        None,
+        Some(&mut old)) >= 0 {
         panic!("Should not set sigaction to kill!");
     }
+
 }
 
 fn final_sig_test() {
     let mut new = SignalAction::default();
-    let old = SignalAction::default();
+    let mut old = SignalAction::default();
     new.handler = func2 as usize;
 
     let mut new2 = SignalAction::default();
-    let old2 = SignalAction::default();
     new2.handler = func3 as usize;
+
+    let mut pipe_fd = [0usize; 2];
+    pipe(&mut pipe_fd);
 
     let pid = fork();
     if pid == 0 {
-        if sigaction(SIGUSR1, &new, &old) < 0 {
+        close(pipe_fd[0]);
+        if sigaction(SIGUSR1, Some(&new), Some(&mut old)) < 0 {
             panic!("Sigaction failed!");
         }
-        if sigaction(SIGUSR2, &new2, &old2) < 0 {
+        if sigaction(SIGUSR2, Some(&new2), Some(&mut old)) < 0 {
             panic!("Sigaction failed!");
         }
+        //println!("child before writing");
+        write(pipe_fd[1], &[0u8]);
+        //println!("child after writing");
+        close(pipe_fd[1]);
         if kill(getpid() as usize, SIGUSR1) < 0 {
             println!("Kill failed!");
             exit(-1);
         }
     } else {
-        sleep(2000);
+        close(pipe_fd[1]);
+        let mut buf = [0u8; 1];
+        //println!("parent before reading");
+        assert_eq!(read(pipe_fd[0], &mut buf), 1);
+        //println!("parent after reading");
+        close(pipe_fd[0]);
         if kill(pid as usize, SIGUSR2) < 0 {
             println!("Kill failed!");
             exit(-1);

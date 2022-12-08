@@ -100,12 +100,26 @@ pub fn sys_waitpid(pid: isize, exit_code: *mut i32) -> isize {
 pub fn sys_sigaction(
     signum: i32,
     action: *const SignalAction,
-    old_action: *const SignalAction,
+    old_action: *mut SignalAction,
 ) -> isize {
     syscall(
         SYSCALL_SIGACTION,
-        [signum as usize, action as usize, old_action as usize],
+        [
+            signum as usize,
+            action as usize,
+            old_action as usize,
+        ],
     )
+    /*
+    syscall(
+        SYSCALL_SIGACTION,
+        [
+            signum as usize,
+            action.map_or(0, |r| r as *const _ as usize),
+            old_action.map_or(0, |r| r as *mut _ as usize),
+        ],
+    )
+    */
 }
 
 pub fn sys_sigprocmask(mask: u32) -> isize {
