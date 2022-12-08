@@ -114,36 +114,40 @@ impl File for Pipe {
     }
     fn read(&self, buf: UserBuffer) -> usize {
         assert!(self.readable());
+        let want_to_read = buf.len();
         let mut buf_iter = buf.into_iter();
-        let mut read_size = 0usize;
+        let mut already_read = 0usize;
         loop {
             let mut ring_buffer = self.buffer.exclusive_access();
             let loop_read = ring_buffer.available_read();
             if loop_read == 0 {
                 if ring_buffer.all_write_ends_closed() {
-                    return read_size;
+                    return already_read;
                 }
                 drop(ring_buffer);
                 suspend_current_and_run_next();
                 continue;
             }
-            // read at most loop_read bytes
             for _ in 0..loop_read {
                 if let Some(byte_ref) = buf_iter.next() {
                     unsafe {
                         *byte_ref = ring_buffer.read_byte();
                     }
-                    read_size += 1;
+                    already_read += 1;
+                    if already_read == want_to_read {
+                        return want_to_read;
+                    }
                 } else {
-                    return read_size;
+                    return already_read;
                 }
             }
         }
     }
     fn write(&self, buf: UserBuffer) -> usize {
         assert!(self.writable());
+        let want_to_write = buf.len();
         let mut buf_iter = buf.into_iter();
-        let mut write_size = 0usize;
+        let mut already_write = 0usize;
         loop {
             let mut ring_buffer = self.buffer.exclusive_access();
             let loop_write = ring_buffer.available_write();
@@ -156,9 +160,12 @@ impl File for Pipe {
             for _ in 0..loop_write {
                 if let Some(byte_ref) = buf_iter.next() {
                     ring_buffer.write_byte(unsafe { *byte_ref });
-                    write_size += 1;
+                    already_write += 1;
+                    if already_write == want_to_write {
+                        return want_to_write;
+                    }
                 } else {
-                    return write_size;
+                    return already_write;
                 }
             }
         }

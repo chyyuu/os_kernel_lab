@@ -7,18 +7,7 @@ extern crate user_lib;
 use user_lib::*;
 
 fn func() {
-    println!("user_sig_test passed");
-    sigreturn();
-}
-
-fn func2() {
-    loop {
-        print!("");
-    }
-}
-
-fn func3() {
-    println!("interrupt");
+    println!("func triggered");
     sigreturn();
 }
 
@@ -134,10 +123,7 @@ fn kernel_sig_test_failignorekill() {
 fn final_sig_test() {
     let mut new = SignalAction::default();
     let mut old = SignalAction::default();
-    new.handler = func2 as usize;
-
-    let mut new2 = SignalAction::default();
-    new2.handler = func3 as usize;
+    new.handler = func as usize;
 
     let mut pipe_fd = [0usize; 2];
     pipe(&mut pipe_fd);
@@ -148,29 +134,19 @@ fn final_sig_test() {
         if sigaction(SIGUSR1, Some(&new), Some(&mut old)) < 0 {
             panic!("Sigaction failed!");
         }
-        if sigaction(SIGUSR2, Some(&new2), Some(&mut old)) < 0 {
-            panic!("Sigaction failed!");
-        }
-        //println!("child before writing");
         write(pipe_fd[1], &[0u8]);
-        //println!("child after writing");
         close(pipe_fd[1]);
-        if kill(getpid() as usize, SIGUSR1) < 0 {
-            println!("Kill failed!");
-            exit(-1);
-        }
+        loop {}
     } else {
         close(pipe_fd[1]);
         let mut buf = [0u8; 1];
-        //println!("parent before reading");
         assert_eq!(read(pipe_fd[0], &mut buf), 1);
-        //println!("parent after reading");
         close(pipe_fd[0]);
-        if kill(pid as usize, SIGUSR2) < 0 {
+        if kill(pid as usize, SIGUSR1) < 0 {
             println!("Kill failed!");
             exit(-1);
         }
-        sleep(1000);
+        sleep(100);
         kill(pid as usize, SIGKILL);
     }
 }
