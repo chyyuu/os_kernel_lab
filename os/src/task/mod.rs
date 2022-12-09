@@ -169,8 +169,6 @@ fn call_user_signal_handler(sig: usize, signal: SignalFlags) {
     if handler != 0 {
         // user handler
 
-        // change current mask
-        task_inner.signal_mask = task_inner.signal_actions.table[sig].mask;
         // handle flag
         task_inner.handling_sig = sig as isize;
         task_inner.signals ^= signal;
