@@ -137,7 +137,7 @@ pub fn sys_sigprocmask(mask: u32) -> isize {
     }
 }
 
-pub fn sys_sigretrun() -> isize {
+pub fn sys_sigreturn() -> isize {
     if let Some(task) = current_task() {
         let mut inner = task.inner_exclusive_access();
         inner.handling_sig = -1;

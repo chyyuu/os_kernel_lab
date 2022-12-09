@@ -41,7 +41,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
             args[2] as *mut SignalAction,
         ),
         SYSCALL_SIGPROCMASK => sys_sigprocmask(args[0] as u32),
-        SYSCALL_SIGRETURN => sys_sigretrun(),
+        SYSCALL_SIGRETURN => sys_sigreturn(),
         SYSCALL_GET_TIME => sys_get_time(),
         SYSCALL_GETPID => sys_getpid(),
         SYSCALL_FORK => sys_fork(),
