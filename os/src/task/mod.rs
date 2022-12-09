@@ -196,7 +196,20 @@ fn check_pending_signals() {
         let task_inner = task.inner_exclusive_access();
         let signal = SignalFlags::from_bits(1 << sig).unwrap();
         if task_inner.signals.contains(signal) && (!task_inner.signal_mask.contains(signal)) {
-            if task_inner.handling_sig == -1 {
+            let mut masked = true;
+            let handling_sig = task_inner.handling_sig;
+            if handling_sig == -1 {
+                masked = false;
+            } else {
+                let handling_sig = handling_sig as usize;
+                if !task_inner.signal_actions.table[handling_sig]
+                    .mask
+                    .contains(signal)
+                {
+                    masked = false;
+                }
+            }
+            if !masked {
                 drop(task_inner);
                 drop(task);
                 if signal == SignalFlags::SIGKILL
@@ -211,44 +224,22 @@ fn check_pending_signals() {
                     call_user_signal_handler(sig, signal);
                     return;
                 }
-            } else {
-                if !task_inner.signal_actions.table[task_inner.handling_sig as usize]
-                    .mask
-                    .contains(signal)
-                {
-                    drop(task_inner);
-                    drop(task);
-                    if signal == SignalFlags::SIGKILL
-                        || signal == SignalFlags::SIGSTOP
-                        || signal == SignalFlags::SIGCONT
-                        || signal == SignalFlags::SIGDEF
-                    {
-                        // signal is a kernel signal
-                        call_kernel_signal_handler(signal);
-                    } else {
-                        // signal is a user signal
-                        call_user_signal_handler(sig, signal);
-                        return;
-                    }
-                }
             }
         }
     }
 }
 
 pub fn handle_signals() {
-    check_pending_signals();
     loop {
-        let task = current_task().unwrap();
-        let task_inner = task.inner_exclusive_access();
-        let frozen_flag = task_inner.frozen;
-        let killed_flag = task_inner.killed;
-        drop(task_inner);
-        drop(task);
-        if (!frozen_flag) || killed_flag {
+        check_pending_signals();
+        let (frozen, killed) = {
+            let task = current_task().unwrap();
+            let task_inner = task.inner_exclusive_access();
+            (task_inner.frozen, task_inner.killed)
+        };
+        if !frozen || killed {
             break;
         }
-        check_pending_signals();
-        suspend_current_and_run_next()
+        suspend_current_and_run_next();
     }
 }
