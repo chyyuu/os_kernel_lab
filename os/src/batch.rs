@@ -69,14 +69,8 @@ impl AppManager {
     unsafe fn load_app(&self, app_id: usize) {
         if app_id >= self.num_app {
             println!("All applications completed!");
-
-            #[cfg(feature = "board_qemu")]
             use crate::board::QEMUExit;
-            #[cfg(feature = "board_qemu")]
             crate::board::QEMU_EXIT_HANDLE.exit_success();
-
-            #[cfg(feature = "board_k210")]
-            panic!("All applications completed!");
         }
         println!("[kernel] Loading app_{}", app_id);
         // clear icache
