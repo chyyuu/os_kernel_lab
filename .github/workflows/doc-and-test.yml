@@ -53,13 +53,14 @@ jobs:
           if [ ! -d qemu-7.0.0 ]; then
             wget https://download.qemu.org/qemu-7.0.0.tar.xz
             tar -xf qemu-7.0.0.tar.xz
+            cd qemu-7.0.0
+            ./configure --target-list=riscv64-softmmu
+            make -j
+          else
+            cd qemu-7.0.0
           fi
-          cd qemu-7.0.0
-          ./configure --target-list=riscv64-softmmu
-          make -j
           sudo make install
           qemu-system-riscv64 --version
-
       - name: Run usertests
         run: cd os && make run TEST=1
         timeout-minutes: 10
