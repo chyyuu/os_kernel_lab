@@ -20,7 +20,6 @@ mod console;
 mod lang_items;
 mod sbi;
 
-#[cfg(feature = "board_qemu")]
 #[path = "boards/qemu.rs"]
 mod board;
 
@@ -61,13 +60,8 @@ pub fn rust_main() -> ! {
     );
     println!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
 
-    #[cfg(feature = "board_qemu")]
     use crate::board::QEMUExit;
-
-    #[cfg(feature = "board_qemu")]
     crate::board::QEMU_EXIT_HANDLE.exit_success(); // CI autotest success
                                                    //crate::board::QEMU_EXIT_HANDLE.exit_failure(); // CI autoest failed
 
-    #[cfg(feature = "board_k210")]
-    panic!("Unreachable in rust_main!");
 }

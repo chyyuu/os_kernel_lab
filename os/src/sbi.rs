@@ -38,14 +38,9 @@ pub fn console_getchar() -> usize {
     sbi_call(SBI_CONSOLE_GETCHAR, 0, 0, 0)
 }
 
-#[cfg(feature = "board_qemu")]
 use crate::board::QEMUExit;
 /// use sbi call to shutdown the kernel
 pub fn shutdown() -> ! {
-    #[cfg(feature = "board_k210")]
-    sbi_call(SBI_SHUTDOWN, 0, 0, 0);
-
-    #[cfg(feature = "board_qemu")]
     crate::board::QEMU_EXIT_HANDLE.exit_failure();
 
     panic!("It should shutdown!");
