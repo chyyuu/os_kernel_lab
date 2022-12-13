@@ -58,7 +58,6 @@ pub fn suspend_current_and_run_next() {
 /// pid of usertests app in make run TEST=1
 pub const IDLE_PID: usize = 0;
 
-#[cfg(feature = "board_qemu")]
 use crate::board::QEMUExit;
 
 /// Exit the current 'Running' task and run the next task in task list.
@@ -66,9 +65,7 @@ pub fn exit_current_and_run_next(exit_code: i32) {
     // take from Processor
     let task = take_current_task().unwrap();
 
-    #[cfg(feature = "board_qemu")]
     let pid = task.getpid();
-    #[cfg(feature = "board_qemu")]
     if pid == IDLE_PID {
         println!(
             "[kernel] Idle process exit with exit_code {} ...",
