@@ -9,7 +9,6 @@ use embedded_graphics::{
     prelude::{Point, Size},
     text::Text,
 };
-use k210_hal::cache::Uncache;
 use virtio_drivers::{VirtIOHeader, VirtIOInput};
 use crate::drivers::bus::virtio::VirtioHal;
 use virtio_input_decoder::{Decoder, Key, KeyType};
