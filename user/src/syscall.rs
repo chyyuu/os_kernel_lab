@@ -154,6 +154,3 @@ pub fn sys_condvar_signal(condvar_id: usize) -> isize {
 pub fn sys_condvar_wait(condvar_id: usize, mutex_id: usize) -> isize {
     syscall(SYSCALL_CONDVAR_WAIT, [condvar_id, mutex_id, 0])
 }
-pub fn sys_create_desktop() -> isize {
-    syscall(2000, [0, 0, 0])
-}

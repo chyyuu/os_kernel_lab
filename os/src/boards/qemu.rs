@@ -14,6 +14,7 @@ pub const VIRT_PLIC: usize = 0xC00_0000;
 pub const VIRT_UART: usize = 0x1000_0000;
 
 pub const VIRTGPU_XRES: u32 = 1280;
+#[allow(unused)]
 pub const VIRTGPU_YRES: u32 = 800;
 
 use crate::drivers::block::BLOCK_DEVICE;
@@ -30,7 +31,7 @@ pub fn device_init() {
     plic.set_threshold(hart_id, supervisor, 0);
     plic.set_threshold(hart_id, machine, 1);
     //irq nums: 5 keyboard, 6 mouse, 8 block, 10 uart
-    for intr_src_id in [5usize, 6, 8 , 10] {
+    for intr_src_id in [5usize, 6, 8, 10] {
         plic.enable(hart_id, supervisor, intr_src_id);
         plic.set_priority(intr_src_id, 1);
     }

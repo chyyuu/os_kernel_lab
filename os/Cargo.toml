@@ -18,6 +18,8 @@ easy-fs = { path = "../easy-fs" }
 virtio-input-decoder = "0.1.4"
 embedded-graphics = "0.7.1"
 tinybmp = "0.3.1"
+embedded-term = { git = "https://github.com/rcore-os/embedded-term" }
+
 
 [profile.release]
 debug = true

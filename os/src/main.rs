@@ -28,7 +28,7 @@ mod task;
 mod timer;
 mod trap;
 
-// use syscall::create_desktop; //for test
+//use syscall::create_desktop; //for test
 
 core::arch::global_asm!(include_str!("entry.asm"));
 
@@ -56,18 +56,18 @@ pub fn rust_main() -> ! {
     clear_bss();
     mm::init();
     println!("KERN: init gpu");
-    GPU_DEVICE.clone();
+    let _gpu = GPU_DEVICE.clone();
     println!("KERN: init keyboard");
-    KEYBOARD_DEVICE.clone();
+    let _keyboard = KEYBOARD_DEVICE.clone();
     println!("KERN: init mouse");
-    MOUSE_DEVICE.clone();
+    let _mouse = MOUSE_DEVICE.clone();
     println!("KERN: init trap");
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     board::device_init();
     fs::list_apps();
-    //syscall::create_desktop(); //for test
+    gui::init_paint();
     task::add_initproc();
     *DEV_NON_BLOCKING_ACCESS.exclusive_access() = true;
     task::run_tasks();

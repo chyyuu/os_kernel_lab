@@ -5,7 +5,7 @@
 extern crate user_lib;
 extern crate alloc;
 
-use alloc::{fmt::format, string::String, vec::Vec};
+use alloc::{fmt::format, vec::Vec};
 use user_lib::{close, get_time, gettid, open, write, OpenFlags};
 use user_lib::{exit, thread_create, waittid};
 

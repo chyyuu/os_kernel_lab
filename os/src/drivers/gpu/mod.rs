@@ -1,30 +1,31 @@
+use crate::drivers::bus::virtio::VirtioHal;
 use crate::sync::UPIntrFreeCell;
 use alloc::{sync::Arc, vec::Vec};
 use core::any::Any;
 use embedded_graphics::pixelcolor::Rgb888;
 use tinybmp::Bmp;
 use virtio_drivers::{VirtIOGpu, VirtIOHeader};
-use crate::drivers::bus::virtio::VirtioHal;
 const VIRTIO7: usize = 0x10007000;
-pub trait GPUDevice: Send + Sync + Any {
+pub trait GpuDevice: Send + Sync + Any {
     fn update_cursor(&self);
-    fn getfreambuffer(&self) -> &mut [u8];
+    fn get_framebuffer(&self) -> &mut [u8];
     fn flush(&self);
 }
 
 lazy_static::lazy_static!(
-    pub static ref GPU_DEVICE: Arc<dyn GPUDevice> = Arc::new(VirtIOGPU::new());
+    pub static ref GPU_DEVICE: Arc<dyn GpuDevice> = Arc::new(VirtIOGpuWrapper::new());
 );
 
-pub struct VirtIOGPU {
+pub struct VirtIOGpuWrapper {
     gpu: UPIntrFreeCell<VirtIOGpu<'static, VirtioHal>>,
     fb: &'static [u8],
 }
 static BMP_DATA: &[u8] = include_bytes!("../../assert/mouse.bmp");
-impl VirtIOGPU {
+impl VirtIOGpuWrapper {
     pub fn new() -> Self {
         unsafe {
-            let mut virtio = VirtIOGpu::<VirtioHal>::new(&mut *(VIRTIO7 as *mut VirtIOHeader)).unwrap();
+            let mut virtio =
+                VirtIOGpu::<VirtioHal>::new(&mut *(VIRTIO7 as *mut VirtIOHeader)).unwrap();
 
             let fbuffer = virtio.setup_framebuffer().unwrap();
             let len = fbuffer.len();
@@ -53,11 +54,11 @@ impl VirtIOGPU {
     }
 }
 
-impl GPUDevice for VirtIOGPU {
+impl GpuDevice for VirtIOGpuWrapper {
     fn flush(&self) {
         self.gpu.exclusive_access().flush().unwrap();
     }
-    fn getfreambuffer(&self) -> &mut [u8] {
+    fn get_framebuffer(&self) -> &mut [u8] {
         unsafe {
             let ptr = self.fb.as_ptr() as *const _ as *mut u8;
             core::slice::from_raw_parts_mut(ptr, self.fb.len())

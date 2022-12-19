@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 #![feature(core_intrinsics)]
-#![feature(asm)]
 
 #[macro_use]
 extern crate user_lib;

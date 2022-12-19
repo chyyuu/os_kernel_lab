@@ -9,6 +9,7 @@ os/src/link_app.S
 os/src/linker.ld
 os/last-*
 os/.gdb_history
+os/virt.out
 tools/
 pushall.sh
 .vscode/*.log

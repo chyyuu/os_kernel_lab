@@ -1,10 +1,10 @@
 use super::BlockDevice;
+use crate::drivers::bus::virtio::VirtioHal;
 use crate::sync::{Condvar, UPIntrFreeCell};
 use crate::task::schedule;
 use crate::DEV_NON_BLOCKING_ACCESS;
 use alloc::collections::BTreeMap;
 use virtio_drivers::{BlkResp, RespStatus, VirtIOBlk, VirtIOHeader};
-use crate::drivers::bus::virtio::VirtioHal;
 
 #[allow(unused)]
 const VIRTIO0: usize = 0x10008000;
@@ -69,7 +69,9 @@ impl BlockDevice for VirtIOBlock {
 impl VirtIOBlock {
     pub fn new() -> Self {
         let virtio_blk = unsafe {
-            UPIntrFreeCell::new(VirtIOBlk::<VirtioHal>::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap())
+            UPIntrFreeCell::new(
+                VirtIOBlk::<VirtioHal>::new(&mut *(VIRTIO0 as *mut VirtIOHeader)).unwrap(),
+            )
         };
         let mut condvars = BTreeMap::new();
         let channels = virtio_blk.exclusive_access().virt_queue_size();
@@ -83,4 +85,3 @@ impl VirtIOBlock {
         }
     }
 }
-

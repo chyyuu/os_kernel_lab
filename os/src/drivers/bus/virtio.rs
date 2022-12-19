@@ -1,9 +1,9 @@
-use alloc::vec::Vec;
 use crate::mm::{
     frame_alloc, frame_dealloc, kernel_token, FrameTracker, PageTable, PhysAddr, PhysPageNum,
     StepByOne, VirtAddr,
 };
 use crate::sync::UPIntrFreeCell;
+use alloc::vec::Vec;
 use lazy_static::*;
 use virtio_drivers::Hal;
 
