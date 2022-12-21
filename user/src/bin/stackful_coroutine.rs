@@ -311,7 +311,7 @@ pub fn main() {
         println!("TASK  1 STARTING");
         let id = 1;
         for i in 0..4 {
-            println!("task: {} counter: {}", id, i);
+            println!("task: {} counter: {}", id, i);
             yield_task();
         }
         println!("TASK 1 FINISHED");
@@ -320,7 +320,7 @@ pub fn main() {
         println!("TASK 2 STARTING");
         let id = 2;
         for i in 0..8 {
-            println!("task: {} counter: {}", id, i);
+            println!("task: {} counter: {}", id, i);
             yield_task();
         }
         println!("TASK 2 FINISHED");
@@ -329,7 +329,7 @@ pub fn main() {
         println!("TASK 3 STARTING");
         let id = 3;
         for i in 0..12 {
-            println!("task: {} counter: {}", id, i);
+            println!("task: {} counter: {}", id, i);
             yield_task();
         }
         println!("TASK 3 FINISHED");
@@ -338,7 +338,7 @@ pub fn main() {
         println!("TASK 4 STARTING");
         let id = 4;
         for i in 0..16 {
-            println!("task: {} counter: {}", id, i);
+            println!("task: {} counter: {}", id, i);
             yield_task();
         }
         println!("TASK 4 FINISHED");
