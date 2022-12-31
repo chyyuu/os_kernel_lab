@@ -4,7 +4,7 @@
 #![no_std]
 #![no_main]
 #![feature(naked_functions)]
-#![feature(asm)]
+//#![feature(asm)]
 
 extern crate alloc;
 #[macro_use]
@@ -12,7 +12,7 @@ extern crate user_lib;
 
 use core::arch::asm;
 
-#[macro_use]
+//#[macro_use]
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -69,7 +69,7 @@ impl Task {
         // we can allocate memory for it later, but it keeps complexity down and lets us focus on more interesting parts
         // to do it here. The important part is that once allocated it MUST NOT move in memory.
         Task {
-            id,
+            id:id,
             stack: vec![0_u8; DEFAULT_STACK_SIZE],
             ctx: TaskContext::default(),
             state: State::Available,
@@ -185,6 +185,7 @@ impl Runtime {
             .find(|t| t.state == State::Available)
             .expect("no available task.");
 
+        println!("RUNTIME: spawning task {}", available.id);
         let size = available.stack.len();
         unsafe {
             let s_ptr = available.stack.as_mut_ptr().offset(size as isize);
@@ -259,7 +260,7 @@ pub fn yield_task() {
 /// see: https://doc.rust-lang.org/nightly/rust-by-example/unsafe/asm.html
 #[naked]
 #[no_mangle]
-unsafe fn switch(old: *mut TaskContext, new: *const TaskContext) {
+unsafe extern "C" fn switch(old: *mut TaskContext, new: *const TaskContext) {
     // a0: _old, a1: _new
     asm!(
         "
