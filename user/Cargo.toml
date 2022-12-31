@@ -12,6 +12,6 @@ riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 [profile.release]
 debug = true
 
-[features]
-board_qemu = []
-board_k210 = []
+# [features]
+# board_qemu = []
+# board_k210 = []
