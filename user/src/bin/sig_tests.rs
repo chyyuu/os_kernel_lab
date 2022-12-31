@@ -3,7 +3,6 @@
 
 extern crate user_lib;
 
-// use user_lib::{sigaction, sigprocmask, SignalAction, SignalFlags, fork, exit, wait, kill, getpid, sleep, sigreturn};
 use user_lib::*;
 
 fn func() {
