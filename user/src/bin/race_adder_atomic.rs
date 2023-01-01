@@ -11,7 +11,7 @@ use user_lib::{exit, get_time, thread_create, waittid, yield_};
 
 static mut A: usize = 0;
 static OCCUPIED: AtomicBool = AtomicBool::new(false);
-const PER_THREAD: usize = 1000;
+const PER_THREAD: usize = 10000;
 const THREAD_COUNT: usize = 16;
 
 unsafe fn f() -> ! {
@@ -41,9 +41,8 @@ pub fn main() -> i32 {
     for _ in 0..THREAD_COUNT {
         v.push(thread_create(f as usize, 0) as usize);
     }
-    let mut time_cost = Vec::new();
-    for tid in v.iter() {
-        time_cost.push(waittid(*tid));
+    for tid in v.into_iter() {
+        waittid(tid);
     }
     println!("time cost is {}ms", get_time() - start);
     assert_eq!(unsafe { A }, PER_THREAD * THREAD_COUNT);

@@ -10,15 +10,15 @@ use alloc::vec::Vec;
 use user_lib::{exit, get_time, thread_create, waittid};
 
 static mut A: usize = 0;
-const PER_THREAD: usize = 1000;
+const PER_THREAD: usize = 10000;
 const THREAD_COUNT: usize = 16;
 
-unsafe fn f(count: usize) -> ! {
+unsafe fn f() -> ! {
     let mut t = 2usize;
     for _ in 0..PER_THREAD {
         let a = &mut A as *mut usize;
         let cur = a.read_volatile();
-        for _ in 0..count {
+        for _ in 0..500 {
             t = t * t % 10007;
         }
         a.write_volatile(cur + 1);
@@ -28,26 +28,23 @@ unsafe fn f(count: usize) -> ! {
 
 #[no_mangle]
 pub fn main(argc: usize, argv: &[&str]) -> i32 {
-    let count: usize;
-    if argc == 1 {
-        count = THREAD_COUNT;
-    } else if argc == 2 {
-        count = argv[1].to_string().parse::<usize>().unwrap();
-    } else {
+    let mut thread_count = THREAD_COUNT;
+    if argc == 2 {
+        thread_count = argv[1].to_string().parse::<usize>().unwrap();
+    } else if argc != 1 {
         println!("ERROR in argv");
         exit(-1);
     }
 
     let start = get_time();
     let mut v = Vec::new();
-    for _ in 0..THREAD_COUNT {
-        v.push(thread_create(f as usize, count) as usize);
+    for _ in 0..thread_count {
+        v.push(thread_create(f as usize, 0) as usize);
     }
-    let mut time_cost = Vec::new();
-    for tid in v.iter() {
-        time_cost.push(waittid(*tid));
+    for tid in v.into_iter() {
+        waittid(tid);
     }
     println!("time cost is {}ms", get_time() - start);
-    assert_eq!(unsafe { A }, PER_THREAD * THREAD_COUNT);
+    assert_eq!(unsafe { A }, PER_THREAD * thread_count);
     0
 }
