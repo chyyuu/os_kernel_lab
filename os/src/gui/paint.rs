@@ -28,7 +28,14 @@ impl DrawingBoard {
             .draw(&mut self.graphics)
             .ok();
     }
+    fn unpaint(&mut self) {
+        Rectangle::with_center(self.latest_pos, Size::new(RECT_SIZE, RECT_SIZE))
+            .into_styled(PrimitiveStyle::with_stroke(Rgb888::BLACK, 1))
+            .draw(&mut self.graphics)
+            .ok();
+    }
     pub fn move_rect(&mut self, dx: i32, dy: i32) {
+        self.unpaint();
         self.latest_pos.x += dx;
         self.latest_pos.y += dy;
         self.paint();
