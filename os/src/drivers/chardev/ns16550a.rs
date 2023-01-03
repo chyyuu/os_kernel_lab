@@ -135,7 +135,7 @@ impl<const BASE_ADDR: usize> NS16550a<BASE_ADDR> {
             ns16550a: NS16550aRaw::new(BASE_ADDR),
             read_buffer: VecDeque::new(),
         };
-        inner.ns16550a.init();
+        //inner.ns16550a.init();
         Self {
             inner: unsafe { UPIntrFreeCell::new(inner) },
             condvar: Condvar::new(),
@@ -144,6 +144,12 @@ impl<const BASE_ADDR: usize> NS16550a<BASE_ADDR> {
 }
 
 impl<const BASE_ADDR: usize> CharDevice for NS16550a<BASE_ADDR> {
+    fn init(&self){
+        let mut inner = self.inner.exclusive_access();
+        inner.ns16550a.init();
+        drop(inner);
+    }
+
     fn read(&self) -> u8 {
         loop {
             let mut inner = self.inner.exclusive_access();

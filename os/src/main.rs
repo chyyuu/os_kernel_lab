@@ -28,6 +28,8 @@ mod task;
 mod timer;
 mod trap;
 
+use crate::drivers::chardev::CharDevice;
+use crate::drivers::chardev::UART;
 //use syscall::create_desktop; //for test
 
 core::arch::global_asm!(include_str!("entry.asm"));
@@ -55,6 +57,7 @@ lazy_static! {
 pub fn rust_main() -> ! {
     clear_bss();
     mm::init();
+    UART.init();
     println!("KERN: init gpu");
     let _gpu = GPU_DEVICE.clone();
     println!("KERN: init keyboard");
