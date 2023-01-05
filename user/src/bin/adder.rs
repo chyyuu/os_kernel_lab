@@ -6,31 +6,26 @@ extern crate user_lib;
 extern crate alloc;
 
 use alloc::vec::Vec;
-use user_lib::{exit, get_time, thread_create, waittid, yield_};
+use user_lib::{exit, get_time, thread_create, waittid};
 
 static mut A: usize = 0;
-static mut OCCUPIED: bool = false;
 const PER_THREAD: usize = 10000;
 const THREAD_COUNT: usize = 16;
+
+unsafe fn critical_section(t: &mut usize) {
+    let a = &mut A as *mut usize;
+    let cur = a.read_volatile();
+    for _ in 0..500 {
+        *t = (*t) * (*t) % 10007;
+    }
+    a.write_volatile(cur + 1);
+}
 
 unsafe fn f() -> ! {
     let mut t = 2usize;
     for _ in 0..PER_THREAD {
-        while OCCUPIED {
-            yield_();
-        }
-        OCCUPIED = true;
-        // enter critical section
-        let a = &mut A as *mut usize;
-        let cur = a.read_volatile();
-        for _ in 0..500 {
-            t = t * t % 10007;
-        }
-        a.write_volatile(cur + 1);
-        // exit critical section
-        OCCUPIED = false;
+        critical_section(&mut t);
     }
-
     exit(t as i32)
 }
 
