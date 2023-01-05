@@ -1,12 +1,13 @@
 #![no_std]
 #![no_main]
+#![feature(core_intrinsics)]
 
 #[macro_use]
 extern crate user_lib;
 extern crate alloc;
 
 use alloc::vec::Vec;
-use user_lib::{exit, get_time, thread_create, waittid, yield_};
+use user_lib::{exit, get_time, thread_create, waittid};
 
 static mut A: usize = 0;
 static mut OCCUPIED: bool = false;
@@ -24,9 +25,7 @@ unsafe fn critical_section(t: &mut usize) {
 }
 
 unsafe fn lock() {
-    while OCCUPIED {
-        yield_();
-    }
+    while vload!(&OCCUPIED) {}
     OCCUPIED = true;
 }
 

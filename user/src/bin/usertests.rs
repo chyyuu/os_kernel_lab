@@ -49,6 +49,7 @@ static FAIL_TESTS: &[(&str, &str, &str, &str, i32)] = &[
     ("until_timeout\0", "\0", "\0", "\0", -6),
     ("adder\0", "\0", "\0", "\0", -6),
     ("adder_simple_spin\0", "\0", "\0", "\0", -6),
+    ("adder_simple_yield\0", "\0", "\0", "\0", -6),
 ];
 
 use user_lib::{exec, fork, waitpid};
