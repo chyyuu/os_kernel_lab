@@ -3,8 +3,8 @@
 #![feature(panic_info_message)]
 #![feature(alloc_error_handler)]
 
+//use crate::drivers::{GPU_DEVICE, KEYBOARD_DEVICE, MOUSE_DEVICE, INPUT_CONDVAR};
 use crate::drivers::{GPU_DEVICE, KEYBOARD_DEVICE, MOUSE_DEVICE};
-
 extern crate alloc;
 
 #[macro_use]
@@ -59,6 +59,7 @@ pub fn rust_main() -> ! {
     UART.init();
     println!("KERN: init gpu");
     let _gpu = GPU_DEVICE.clone();
+    //let _input_condvar = INPUT_CONDVAR.clone();
     println!("KERN: init keyboard");
     let _keyboard = KEYBOARD_DEVICE.clone();
     println!("KERN: init mouse");

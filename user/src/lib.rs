@@ -205,6 +205,11 @@ pub fn framebuffer_flush() -> isize {
     sys_framebuffer_flush()
 }
 
+pub fn event_get() -> isize {
+    sys_event_get()
+}
+
+
 #[macro_export]
 macro_rules! vstore {
     ($var_ref: expr, $value: expr) => {

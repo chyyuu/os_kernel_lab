@@ -27,6 +27,7 @@ const SYSCALL_CONDVAR_SIGNAL: usize = 1031;
 const SYSCALL_CONDVAR_WAIT: usize = 1032;
 const SYSCALL_FRAMEBUFFER: usize = 2000;
 const SYSCALL_FRAMEBUFFER_FLUSH: usize = 2001;
+const SYSCALL_EVENT_GET: usize = 3000;
 
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
@@ -164,4 +165,8 @@ pub fn sys_framebuffer() -> isize {
 
 pub fn sys_framebuffer_flush() -> isize {
     syscall(SYSCALL_FRAMEBUFFER_FLUSH, [0, 0, 0])
+}
+
+pub fn sys_event_get() -> isize {
+    syscall(SYSCALL_EVENT_GET, [0, 0, 0])
 }
