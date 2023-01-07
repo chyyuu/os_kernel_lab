@@ -18,6 +18,9 @@ impl FrameTracker {
         }
         Self { ppn }
     }
+    pub fn new_nowrite(ppn: PhysPageNum) -> Self {
+        Self { ppn }
+    }
 }
 
 impl Debug for FrameTracker {

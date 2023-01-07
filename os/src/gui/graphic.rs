@@ -27,6 +27,10 @@ impl Graphics {
         let fb = self.drv.get_framebuffer();
         fb.fill(0u8);
     }
+
+    pub fn get_framebuffer(&self)-> &mut [u8] {
+        self.drv.get_framebuffer()
+    }
 }
 
 impl OriginDimensions for Graphics {
