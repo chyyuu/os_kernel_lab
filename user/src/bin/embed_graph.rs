@@ -27,11 +27,12 @@ const RECT_SIZE: u32 = 40;
 // pub static ref FB: Arc<Display> = Arc::new(Display::new(Size::new(VIRTGPU_XRES as u32, VIRTGPU_YRES as u32), Point::new(INIT_X, INIT_Y)));
 //  }
 
-#[derive(Clone)]
+//#[derive(Clone)]
 pub struct Display {
     pub size: Size,
     pub point: Point,
-    pub fb: Arc<&'static mut [u8]>,
+    //pub fb: Arc<&'static mut [u8]>,
+    pub fb: &'static mut [u8],
 }
 
 impl Display {
@@ -41,9 +42,9 @@ impl Display {
             "Hello world from user mode program! 0x{:X} , len {}",
             fb_ptr as usize, VIRTGPU_LEN
         );
-        let fb =
-            unsafe { Arc::new(core::slice::from_raw_parts_mut(fb_ptr as *mut u8, VIRTGPU_LEN as usize)) };
-
+        // let fb =
+        //     unsafe { Arc::new(core::slice::from_raw_parts_mut(fb_ptr as *mut u8, VIRTGPU_LEN as usize)) };
+        let fb= unsafe { core::slice::from_raw_parts_mut(fb_ptr as *mut u8, VIRTGPU_LEN as usize) };
         Self { size, point, fb }
     }
     // pub fn reset(&self) {
@@ -67,18 +68,19 @@ impl DrawTarget for Display {
     where
         I: IntoIterator<Item = embedded_graphics::Pixel<Self::Color>>,
     {
-        let fb = self.fb.clone();
+        //let fb = self.fb.clone();
+        //let fb = self.fb;
         //let mut arc_data_mut = Arc::make_mut(fb);
         pixels.into_iter().for_each(|px| {
             let idx = ((self.point.y + px.0.y) * VIRTGPU_XRES as i32 + self.point.x + px.0.x)
                 as usize
                 * 4;
-            if idx + 2 >= fb.len() {
+            if idx + 2 >= self.fb.len() {
                 return;
             }
-            fb[idx] = px.1.b();
-            fb[idx + 1] = px.1.g();
-            fb[idx + 2] = px.1.r();
+            self.fb[idx] = px.1.b();
+            self.fb[idx + 1] = px.1.g();
+            self.fb[idx + 2] = px.1.r();
         });
         framebuffer_flush();
         Ok(())
