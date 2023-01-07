@@ -18,7 +18,6 @@ mod console;
 mod config;
 mod drivers;
 mod fs;
-mod gui;
 mod lang_items;
 mod mm;
 mod sbi;
@@ -70,7 +69,7 @@ pub fn rust_main() -> ! {
     timer::set_next_trigger();
     board::device_init();
     fs::list_apps();
-    gui::init_paint();
+    //gui::init_paint();
     task::add_initproc();
     *DEV_NON_BLOCKING_ACCESS.exclusive_access() = true;
     task::run_tasks();
