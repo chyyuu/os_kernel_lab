@@ -1,19 +1,11 @@
 #![no_std]
 #![no_main]
 
-use user_lib::{framebuffer, framebuffer_flush};
-
 #[macro_use]
 extern crate user_lib;
 
-// use embedded_graphics::pixelcolor::Rgb888;
-// use embedded_graphics::prelude::{Drawable, Point, RgbColor, Size};
-// use embedded_graphics::primitives::Primitive;
-// use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
-// use embedded_graphics::{
-//     draw_target::DrawTarget,
-//     prelude::{OriginDimensions},
-// };
+use user_lib::{framebuffer, framebuffer_flush};
+
 pub const VIRTGPU_XRES: usize = 1280;
 pub const VIRTGPU_YRES: usize = 800;
 

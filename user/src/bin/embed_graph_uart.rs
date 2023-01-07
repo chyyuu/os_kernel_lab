@@ -5,6 +5,7 @@
 extern crate user_lib;
 extern crate alloc;
 
+use user_lib::console::getchar;
 use user_lib::{framebuffer, framebuffer_flush};
 
 use embedded_graphics::pixelcolor::Rgb888;
@@ -104,11 +105,17 @@ impl DrawingBoard {
     }
 }
 
+const LF: u8 = 0x0au8;
+const CR: u8 = 0x0du8;
 #[no_mangle]
 pub fn main() -> i32 {
     // let fb_ptr = framebuffer() as *mut u8;
     let mut board = DrawingBoard::new();
     for i in 0..20 {
+        let c=getchar();
+        if c == LF || c == CR {
+            break;
+        }
         board.latest_pos.x += i;
         board.latest_pos.y += i;
         board.paint();
