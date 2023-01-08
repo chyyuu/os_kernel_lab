@@ -28,6 +28,7 @@ const SYSCALL_CONDVAR_WAIT: usize = 1032;
 const SYSCALL_FRAMEBUFFER: usize = 2000;
 const SYSCALL_FRAMEBUFFER_FLUSH: usize = 2001;
 const SYSCALL_EVENT_GET: usize = 3000;
+const SYSCALL_KEY_PRESSED: usize = 3001;
 
 mod fs;
 mod process;
@@ -75,6 +76,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_FRAMEBUFFER => sys_framebuffer(),
         SYSCALL_FRAMEBUFFER_FLUSH => sys_framebuffer_flush(),
         SYSCALL_EVENT_GET => sys_event_get(),
+        SYSCALL_KEY_PRESSED => sys_key_pressed(),
         _ => panic!("Unsupported syscall_id: {}", syscall_id),
     }
 }

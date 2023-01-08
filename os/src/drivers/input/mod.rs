@@ -1,12 +1,10 @@
 use crate::drivers::bus::virtio::VirtioHal;
 use crate::sync::{Condvar, UPIntrFreeCell};
 use crate::task::schedule;
-use alloc::collections::BTreeMap;
 use alloc::collections::VecDeque;
 use alloc::sync::Arc;
 use core::any::Any;
 use virtio_drivers::{VirtIOHeader, VirtIOInput};
-use virtio_input_decoder::{Decoder, Key, KeyType};
 
 const VIRTIO5: usize = 0x10005000;
 const VIRTIO6: usize = 0x10006000;
@@ -112,7 +110,8 @@ impl InputDevice for VirtIOInputWrapper {
                     | (event.code as u64) << 32
                     | (event.value) as u64;
                 inner.events.push_back(result);
-                println!("[KERN] inputdev_handle_irq: event: {:x}", result);
+                // for test
+                //println!("[KERN] inputdev_handle_irq: event: {:x}", result);
             }
         });
         if count > 0 {

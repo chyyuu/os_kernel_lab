@@ -209,6 +209,13 @@ pub fn event_get() -> isize {
     sys_event_get()
 }
 
+pub fn key_pressed() -> bool {
+    if sys_key_pressed() == 1 {
+        true
+    } else {
+        false
+    }
+}
 
 #[macro_export]
 macro_rules! vstore {

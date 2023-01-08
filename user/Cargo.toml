@@ -11,11 +11,6 @@ buddy_system_allocator = "0.6"
 bitflags = "1.2.1"
 riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 embedded-graphics = "0.7.1"
-# lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
-
+oorandom ="11"
 [profile.release]
 debug = true
-
-# [features]
-# board_qemu = []
-# board_k210 = []
