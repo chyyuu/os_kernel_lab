@@ -30,7 +30,8 @@ unsafe fn critical_section(t: &mut usize) {
 
 unsafe fn lock(id: usize) {
     FLAG[id] = true;
-    TURN = 1 - id;
+    let j = 1 - id;
+    TURN = j;
     // Tell the compiler not to reorder memory operations
     // across this fence.
     compiler_fence(Ordering::SeqCst);
@@ -38,7 +39,7 @@ unsafe fn lock(id: usize) {
     // Otherwise the compiler will assume that they will never
     // be changed on this thread. Thus, they will be accessed
     // only once! 
-    while vload!(&FLAG[1 - id]) && vload!(&TURN) == 1 - id {}
+    while vload!(&FLAG[j]) && vload!(&TURN) == j {}
 }
 
 unsafe fn unlock(id: usize) {
