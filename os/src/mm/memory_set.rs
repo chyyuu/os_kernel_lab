@@ -290,6 +290,9 @@ impl MapArea {
                 ppn = frame.ppn;
                 self.data_frames.insert(vpn, frame);
             }
+            MapType::Noalloc => {
+                panic!("Noalloc should not be mapped");
+            }
         }
         let pte_flags = PTEFlags::from_bits(self.map_perm.bits).unwrap();
         page_table.map(vpn, ppn, pte_flags);
@@ -307,7 +310,7 @@ impl MapArea {
     }
     pub fn map_noalloc(&mut self, page_table: &mut PageTable,ppn_range:PPNRange) {
         for (vpn,ppn) in core::iter::zip(self.vpn_range,ppn_range) {
-            self.data_frames.insert(vpn, FrameTracker::new_nowrite(ppn));
+            self.data_frames.insert(vpn, FrameTracker::new_noalloc(ppn));
             let pte_flags = PTEFlags::from_bits(self.map_perm.bits).unwrap();
             page_table.map(vpn, ppn, pte_flags);
         }
@@ -346,6 +349,7 @@ impl MapArea {
 pub enum MapType {
     Identical,
     Framed,
+    Noalloc,
 }
 
 bitflags! {

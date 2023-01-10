@@ -111,6 +111,7 @@ const CR: u8 = 0x0du8;
 pub fn main() -> i32 {
     // let fb_ptr = framebuffer() as *mut u8;
     let mut board = DrawingBoard::new();
+    let _ = board.disp.clear(Rgb888::BLACK).unwrap();
     for i in 0..20 {
         let c=getchar();
         if c == LF || c == CR {

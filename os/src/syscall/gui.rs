@@ -22,7 +22,7 @@ pub fn sys_framebuffer() -> isize {
         MapArea::new(
             (FB_VADDR as usize).into(),
             (FB_VADDR + len as usize).into(),
-            MapType::Framed,
+            MapType::Noalloc,
             MapPermission::R | MapPermission::W | MapPermission::U,
         ),
         PPNRange::new(fb_ppn, fb_end_ppn),

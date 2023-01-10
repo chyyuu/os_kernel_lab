@@ -382,6 +382,7 @@ const CR: u8 = 0x0du8;
 pub fn main() -> i32 {
     let mut disp = Display::new(Size::new(1280, 800), Point::new(0, 0));
     let mut game = SnakeGame::<20, Rgb888>::new(1280, 800, 20, 20, Rgb888::RED, Rgb888::YELLOW, 50);
+    let _ = disp.clear(Rgb888::BLACK).unwrap();
     loop {
         if key_pressed() {
             let c = getchar();

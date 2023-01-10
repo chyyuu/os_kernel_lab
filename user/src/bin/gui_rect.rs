@@ -108,6 +108,7 @@ impl DrawingBoard {
 pub fn main() -> i32 {
     // let fb_ptr = framebuffer() as *mut u8;
     let mut board = DrawingBoard::new();
+    let _ = board.disp.clear(Rgb888::BLACK).unwrap();
     for i in 0..20 {
         board.latest_pos.x += i;
         board.latest_pos.y += i;

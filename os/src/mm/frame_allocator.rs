@@ -7,6 +7,7 @@ use lazy_static::*;
 
 pub struct FrameTracker {
     pub ppn: PhysPageNum,
+    pub nodrop: bool,
 }
 
 impl FrameTracker {
@@ -16,10 +17,10 @@ impl FrameTracker {
         for i in bytes_array {
             *i = 0;
         }
-        Self { ppn }
+        Self { ppn, nodrop: false }
     }
-    pub fn new_nowrite(ppn: PhysPageNum) -> Self {
-        Self { ppn }
+    pub fn new_noalloc(ppn: PhysPageNum) -> Self {
+        Self { ppn, nodrop: true }
     }
 }
 
@@ -31,6 +32,9 @@ impl Debug for FrameTracker {
 
 impl Drop for FrameTracker {
     fn drop(&mut self) {
+        if self.nodrop {
+            return;
+        }
         frame_dealloc(self.ppn);
     }
 }
