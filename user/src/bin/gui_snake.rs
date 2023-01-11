@@ -6,7 +6,7 @@ extern crate user_lib;
 extern crate alloc;
 
 use user_lib::console::getchar;
-use user_lib::{framebuffer, framebuffer_flush, key_pressed, sleep};
+use user_lib::{Display, key_pressed, sleep, VIRTGPU_XRES, VIRTGPU_YRES};
 
 use embedded_graphics::pixelcolor::*;
 use embedded_graphics::prelude::{Drawable, Point, RgbColor, Size};
@@ -16,58 +16,6 @@ use embedded_graphics::Pixel;
 use embedded_graphics::{draw_target::DrawTarget, prelude::OriginDimensions};
 use oorandom; //random generator
 
-pub const VIRTGPU_XRES: usize = 1280;
-pub const VIRTGPU_YRES: usize = 800;
-pub const VIRTGPU_LEN: usize = VIRTGPU_XRES * VIRTGPU_YRES * 4;
-
-pub struct Display {
-    pub size: Size,
-    pub point: Point,
-    pub fb: &'static mut [u8],
-}
-
-impl Display {
-    pub fn new(size: Size, point: Point) -> Self {
-        let fb_ptr = framebuffer() as *mut u8;
-        println!(
-            "Hello world from user mode program! 0x{:X} , len {}",
-            fb_ptr as usize, VIRTGPU_LEN
-        );
-        let fb =
-            unsafe { core::slice::from_raw_parts_mut(fb_ptr as *mut u8, VIRTGPU_LEN as usize) };
-        Self { size, point, fb }
-    }
-}
-
-impl OriginDimensions for Display {
-    fn size(&self) -> Size {
-        self.size
-    }
-}
-
-impl DrawTarget for Display {
-    type Color = Rgb888;
-    type Error = core::convert::Infallible;
-
-    fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
-    where
-        I: IntoIterator<Item = embedded_graphics::Pixel<Self::Color>>,
-    {
-        pixels.into_iter().for_each(|px| {
-            let idx = ((self.point.y + px.0.y) * VIRTGPU_XRES as i32 + self.point.x + px.0.x)
-                as usize
-                * 4;
-            if idx + 2 >= self.fb.len() {
-                return;
-            }
-            self.fb[idx] = px.1.b();
-            self.fb[idx + 1] = px.1.g();
-            self.fb[idx + 2] = px.1.r();
-        });
-        framebuffer_flush();
-        Ok(())
-    }
-}
 struct Snake<T: PixelColor, const MAX_SIZE: usize> {
     parts: [Pixel<T>; MAX_SIZE],
     len: usize,
@@ -380,7 +328,7 @@ const LF: u8 = 0x0au8;
 const CR: u8 = 0x0du8;
 #[no_mangle]
 pub fn main() -> i32 {
-    let mut disp = Display::new(Size::new(1280, 800), Point::new(0, 0));
+    let mut disp = Display::new(Size::new(VIRTGPU_XRES, VIRTGPU_YRES));
     let mut game = SnakeGame::<20, Rgb888>::new(1280, 800, 20, 20, Rgb888::RED, Rgb888::YELLOW, 50);
     let _ = disp.clear(Rgb888::BLACK).unwrap();
     loop {
