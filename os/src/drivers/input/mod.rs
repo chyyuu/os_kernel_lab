@@ -18,7 +18,7 @@ struct VirtIOInputWrapper {
     inner: UPIntrFreeCell<VirtIOInputInner>,
     //condvars: BTreeMap<u16, Condvar>,
     //condvar: Arc::<Condvar> ,
-    condvar:Condvar,
+    condvar: Condvar,
 }
 
 pub trait InputDevice: Send + Sync + Any {
@@ -38,7 +38,7 @@ lazy_static::lazy_static!(
 //const QUEUE_SIZE: u16 = 32;
 // pub fn read_input_event() -> u64 {
 //     loop {
-        
+
 //         //let mut inner = self.inner.exclusive_access();
 //         let kb=KEYBOARD_DEVICE.clone();
 //         let evs = kb.events();

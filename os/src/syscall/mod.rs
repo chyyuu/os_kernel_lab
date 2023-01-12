@@ -31,18 +31,18 @@ const SYSCALL_EVENT_GET: usize = 3000;
 const SYSCALL_KEY_PRESSED: usize = 3001;
 
 mod fs;
+mod gui;
+mod input;
 mod process;
 mod sync;
 mod thread;
-mod gui;
-mod input;
 
 use fs::*;
+use gui::*;
+use input::*;
 use process::*;
 use sync::*;
 use thread::*;
-use gui::*;
-use input::*;
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
     match syscall_id {
