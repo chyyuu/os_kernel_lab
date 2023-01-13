@@ -29,7 +29,6 @@ mod trap;
 
 use crate::drivers::chardev::CharDevice;
 use crate::drivers::chardev::UART;
-//use syscall::create_desktop; //for test
 
 core::arch::global_asm!(include_str!("entry.asm"));
 
@@ -59,7 +58,6 @@ pub fn rust_main() -> ! {
     UART.init();
     println!("KERN: init gpu");
     let _gpu = GPU_DEVICE.clone();
-    //let _input_condvar = INPUT_CONDVAR.clone();
     println!("KERN: init keyboard");
     let _keyboard = KEYBOARD_DEVICE.clone();
     println!("KERN: init mouse");
@@ -70,7 +68,6 @@ pub fn rust_main() -> ! {
     timer::set_next_trigger();
     board::device_init();
     fs::list_apps();
-    //gui::init_paint();
     task::add_initproc();
     *DEV_NON_BLOCKING_ACCESS.exclusive_access() = true;
     task::run_tasks();

@@ -143,12 +143,13 @@ impl<const BASE_ADDR: usize> NS16550a<BASE_ADDR> {
     }
 
     pub fn read_buffer_is_empty(&self) -> bool {
-        self.inner.exclusive_session(|inner| inner.read_buffer.is_empty())
+        self.inner
+            .exclusive_session(|inner| inner.read_buffer.is_empty())
     }
 }
 
 impl<const BASE_ADDR: usize> CharDevice for NS16550a<BASE_ADDR> {
-    fn init(&self){
+    fn init(&self) {
         let mut inner = self.inner.exclusive_access();
         inner.ns16550a.init();
         drop(inner);

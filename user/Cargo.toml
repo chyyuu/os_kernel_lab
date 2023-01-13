@@ -12,5 +12,7 @@ bitflags = "1.2.1"
 riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 embedded-graphics = "0.7.1"
 oorandom ="11"
+virtio-input-decoder = "0.1.4"
+
 [profile.release]
 debug = true
