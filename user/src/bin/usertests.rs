@@ -27,10 +27,10 @@ static SUCC_TESTS: &[(&str, &str, &str, &str, i32)] = &[
     ("phil_din_mutex\0", "\0", "\0", "\0", 0),
     ("pipe_large_test\0", "\0", "\0", "\0", 0),
     ("pipetest\0", "\0", "\0", "\0", 0),
-    ("race_adder_arg\0", "3\0", "\0", "\0", 0),
-    ("race_adder_atomic\0", "\0", "\0", "\0", 0),
-    ("race_adder_mutex_blocking\0", "\0", "\0", "\0", 0),
-    ("race_adder_mutex_spin\0", "\0", "\0", "\0", 0),
+    ("adder_peterson_spin\0", "\0", "\0", "\0", 0),
+    ("adder_peterson_yield\0", "\0", "\0", "\0", 0),
+    ("adder_mutex_blocking\0", "\0", "\0", "\0", 0),
+    ("adder_mutex_spin\0", "\0", "\0", "\0", 0),
     ("run_pipe_test\0", "\0", "\0", "\0", 0),
     ("sleep_simple\0", "\0", "\0", "\0", 0),
     ("sleep\0", "\0", "\0", "\0", 0),
@@ -49,8 +49,9 @@ static FAIL_TESTS: &[(&str, &str, &str, &str, i32)] = &[
     ("priv_inst\0", "\0", "\0", "\0", -4),
     ("store_fault\0", "\0", "\0", "\0", -11),
     ("until_timeout\0", "\0", "\0", "\0", -6),
-    ("race_adder\0", "\0", "\0", "\0", -6),
-    ("huge_write_mt\0", "\0", "\0", "\0", -6),
+    ("adder\0", "\0", "\0", "\0", -6),
+    ("adder_simple_spin\0", "\0", "\0", "\0", -6),
+    ("adder_simple_yield\0", "\0", "\0", "\0", -6),
 ];
 
 use user_lib::{exec, fork, waitpid};

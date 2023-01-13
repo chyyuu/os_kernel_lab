@@ -10,7 +10,7 @@ extern crate core;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use user_lib::{exit, sleep, thread_create, waittid};
-const N: usize = 3;
+const N: usize = 1000;
 
 static mut TURN: usize = 0;
 static mut FLAG: [bool; 2] = [false; 2];
@@ -29,27 +29,30 @@ fn critical_test_exit() {
 }
 
 fn peterson_enter_critical(id: usize, peer_id: usize) {
-    println!("Thread[{}] try enter", id);
+    // println!("Thread[{}] try enter", id);
     vstore!(&FLAG[id], true);
     vstore!(&TURN, peer_id);
     memory_fence!();
     while vload!(&FLAG[peer_id]) && vload!(&TURN) == peer_id {
-        println!("Thread[{}] enter fail", id);
+        // println!("Thread[{}] enter fail", id);
         sleep(1);
-        println!("Thread[{}] retry enter", id);
+        // println!("Thread[{}] retry enter", id);
     }
-    println!("Thread[{}] enter", id);
+    // println!("Thread[{}] enter", id);
 }
 
 fn peterson_exit_critical(id: usize) {
     vstore!(&FLAG[id], false);
-    println!("Thread[{}] exit", id);
+    // println!("Thread[{}] exit", id);
 }
 
 pub fn thread_fn(id: usize) -> ! {
-    println!("Thread[{}] init.", id);
+    // println!("Thread[{}] init.", id);
     let peer_id: usize = id ^ 1;
-    for _ in 0..N {
+    for iter in 0..N {
+        if iter % 10 == 0 {
+            println!("[{}] it={}", id, iter);
+        }
         peterson_enter_critical(id, peer_id);
         critical_test_enter();
         for _ in 0..3 {
