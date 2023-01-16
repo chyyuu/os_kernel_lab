@@ -73,8 +73,6 @@ impl AppManager {
             crate::board::QEMU_EXIT_HANDLE.exit_success();
         }
         println!("[kernel] Loading app_{}", app_id);
-        // clear icache
-        asm!("fence.i");
         // clear app area
         core::slice::from_raw_parts_mut(APP_BASE_ADDRESS as *mut u8, APP_SIZE_LIMIT).fill(0);
         let app_src = core::slice::from_raw_parts(
@@ -83,6 +81,13 @@ impl AppManager {
         );
         let app_dst = core::slice::from_raw_parts_mut(APP_BASE_ADDRESS as *mut u8, app_src.len());
         app_dst.copy_from_slice(app_src);
+        // Memory fence about fetching the instruction memory
+        // It is guaranteed that a subsequent instruction fetch must
+        // observes all previous writes to the instruction memory.
+        // Therefore, fence.i must be executed after we have loaded
+        // the code of the next app into the instruction memory.
+        // See also: riscv non-priv spec chapter 3, 'Zifencei' extension.
+        asm!("fence.i");
     }
 
     pub fn get_current_app(&self) -> usize {

@@ -39,7 +39,6 @@ pub fn console_putchar(c: usize) {
 // pub fn console_getchar() -> usize {
 //     sbi_call(SBI_CONSOLE_GETCHAR, 0, 0, 0)
 // }
-
 use crate::board::QEMUExit;
 /// use sbi call to shutdown the kernel
 pub fn shutdown() -> ! {
