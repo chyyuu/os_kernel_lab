@@ -1,5 +1,5 @@
 use crate::sync::{Mutex, UPSafeCell};
-use crate::task::{add_task, block_current_and_run_next, current_task, TaskControlBlock};
+use crate::task::{wakeup_task, block_current_and_run_next, current_task, TaskControlBlock};
 use alloc::{collections::VecDeque, sync::Arc};
 
 pub struct Condvar {
@@ -24,7 +24,7 @@ impl Condvar {
     pub fn signal(&self) {
         let mut inner = self.inner.exclusive_access();
         if let Some(task) = inner.wait_queue.pop_front() {
-            add_task(task);
+            wakeup_task(task);
         }
     }
 

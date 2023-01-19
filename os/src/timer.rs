@@ -3,7 +3,7 @@ use core::cmp::Ordering;
 use crate::config::CLOCK_FREQ;
 use crate::sbi::set_timer;
 use crate::sync::UPSafeCell;
-use crate::task::{add_task, TaskControlBlock};
+use crate::task::{wakeup_task, TaskControlBlock};
 use alloc::collections::BinaryHeap;
 use alloc::sync::Arc;
 use lazy_static::*;
@@ -76,7 +76,7 @@ pub fn check_timer() {
     let mut timers = TIMERS.exclusive_access();
     while let Some(timer) = timers.peek() {
         if timer.expire_ms <= current_ms {
-            add_task(Arc::clone(&timer.task));
+            wakeup_task(Arc::clone(&timer.task));
             timers.pop();
         } else {
             break;
