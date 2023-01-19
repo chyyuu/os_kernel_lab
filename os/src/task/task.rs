@@ -74,5 +74,5 @@ impl TaskControlBlock {
 pub enum TaskStatus {
     Ready,
     Running,
-    Blocking,
+    Blocked,
 }
