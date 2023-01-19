@@ -48,7 +48,7 @@ pub fn suspend_current_and_run_next() {
 pub fn block_current_task() -> *mut TaskContext {
     let task = take_current_task().unwrap();
     let mut task_inner = task.inner_exclusive_access();
-    task_inner.task_status = TaskStatus::Blocking;
+    task_inner.task_status = TaskStatus::Blocked;
     &mut task_inner.task_cx as *mut TaskContext
 }
 
