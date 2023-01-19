@@ -1,5 +1,5 @@
 use crate::sync::UPIntrFreeCell;
-use crate::task::{add_task, block_current_and_run_next, current_task, TaskControlBlock};
+use crate::task::{wakeup_task, block_current_and_run_next, current_task, TaskControlBlock};
 use alloc::{collections::VecDeque, sync::Arc};
 
 pub struct Semaphore {
@@ -28,7 +28,7 @@ impl Semaphore {
         inner.count += 1;
         if inner.count <= 0 {
             if let Some(task) = inner.wait_queue.pop_front() {
-                add_task(task);
+                wakeup_task(task);
             }
         }
     }
