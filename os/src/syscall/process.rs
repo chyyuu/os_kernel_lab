@@ -144,7 +144,10 @@ pub fn sys_sigreturn() -> isize {
         // restore the trap context
         let trap_ctx = inner.get_trap_cx();
         *trap_ctx = inner.trap_ctx_backup.unwrap();
-        0
+        // Here we return the value of a0 in the trap_ctx,
+        // otherwise it will be overwritten after we trap
+        // back to the original execution of the application.
+        trap_ctx.x[10] as isize
     } else {
         -1
     }
