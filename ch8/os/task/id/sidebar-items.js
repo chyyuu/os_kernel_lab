@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["IDLE_PID",""]],"fn":[["kernel_stack_position","Return (bottom, top) of a kernel stack in kernel space."],["kstack_alloc",""],["pid_alloc",""],["trap_cx_bottom_from_tid",""],["ustack_bottom_from_tid",""]],"struct":[["KSTACK_ALLOCATOR",""],["KernelStack",""],["PID_ALLOCATOR",""],["PidHandle",""],["RecycleAllocator",""],["TaskUserRes",""]]};

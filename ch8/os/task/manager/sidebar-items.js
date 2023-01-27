@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["add_task",""],["fetch_task",""],["insert_into_pid2process",""],["pid2process",""],["remove_from_pid2process",""],["remove_task",""],["wakeup_task",""]],"struct":[["PID2PCB",""],["TASK_MANAGER",""],["TaskManager",""]]};
