@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["SYSCALL_EXEC",""],["SYSCALL_EXIT",""],["SYSCALL_FORK",""],["SYSCALL_GETPID",""],["SYSCALL_GET_TIME",""],["SYSCALL_READ",""],["SYSCALL_WAITPID",""],["SYSCALL_WRITE",""],["SYSCALL_YIELD",""]],"fn":[["syscall","handle syscall exception with `syscall_id` and other arguments"]],"mod":[["fs","File and filesystem-related syscalls"],["process",""]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["TaskContext","task context structure containing some registers"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["MSEC_PER_SEC",""],["TICKS_PER_SEC",""]],"fn":[["get_time","get current time"],["get_time_ms","get current time in microseconds"],["set_next_trigger","set the next timer interrupt"]]};
