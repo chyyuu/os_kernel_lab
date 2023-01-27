@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["disable_supervisor_interrupt",""],["enable_supervisor_interrupt",""],["enable_timer_interrupt",""],["init",""],["set_kernel_trap_entry",""],["set_user_trap_entry",""],["trap_from_kernel",""],["trap_handler",""],["trap_return",""]],"mod":[["context",""]]};

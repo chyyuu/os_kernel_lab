@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["sys_event_get",""],["sys_key_pressed","check UART’s read-buffer is empty or not"]]};

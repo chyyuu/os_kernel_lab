@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["sys_gettid",""],["sys_thread_create",""],["sys_waittid","thread does not exist, return -1 thread has not exited yet, return -2 otherwise, return thread’s exit code"]]};

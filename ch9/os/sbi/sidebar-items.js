@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["SBI_CLEAR_IPI",""],["SBI_CONSOLE_GETCHAR",""],["SBI_CONSOLE_PUTCHAR",""],["SBI_REMOTE_FENCE_I",""],["SBI_REMOTE_SFENCE_VMA",""],["SBI_REMOTE_SFENCE_VMA_ASID",""],["SBI_SEND_IPI",""],["SBI_SET_TIMER",""],["SBI_SHUTDOWN",""]],"fn":[["console_getchar",""],["console_putchar",""],["sbi_call",""],["set_timer",""],["shutdown",""]]};
