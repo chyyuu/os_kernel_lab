@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["up","Uniprocessor interior mutability primitives"]]};
